@@ -1,0 +1,137 @@
+{
+  "site": {
+    "title": "CookBook",
+    "description": "Личная книга рецептов"
+  },
+  "nav": {
+    "recipes": "Рецепты",
+    "favorites": "Избранное",
+    "signOut": "Выйти",
+    "signIn": "Войти",
+    "register": "Регистрация"
+  },
+  "home": {
+    "welcome": "добро пожаловать",
+    "heroLine1": "Я готовлю",
+    "heroLine2": "для тех,",
+    "heroLine3": "кого",
+    "heroLine3accent": "люблю",
+    "heroText1": "Для мужа, который всегда просит «как в прошлый раз». Для подруг, которые остаются до позднего вечера. Для себя — когда хочется тишины и запаха чего-то хорошего.",
+    "heroText2": "Это личная книга рецептов. Не для всех — для своих. Каждый рецепт здесь с историей и воспоминанием. Создавалось с душой и без спешки.",
+    "viewRecipes": "Посмотреть рецепты",
+    "quote": "Еда — это не просто топливо. Это воспоминания, любовь и забота.",
+    "fromBook": "из книги",
+    "featuredTitle": "Самые любимые блюда",
+    "allRecipes": "Все рецепты →",
+    "viewAll": "смотреть все →",
+    "noRecipesTitle": "Рецептов пока нет...",
+    "noRecipesSubtitle": "Скоро здесь появятся самые любимые блюда — те, что готовятся с душой и теплом.",
+    "heroAlt": "Готовлю для своих"
+  },
+  "recipes": {
+    "tagline": "все рецепты",
+    "catalog": "Каталог",
+    "search": "Поиск...",
+    "reset": "Сбросить",
+    "clearSelection": "Снять выбор",
+    "nothingFound": "Ничего не найдено",
+    "noRecipes": "Рецепты пока не добавлены",
+    "resetFilters": "Сбросить фильтры",
+    "loadMore": "Загрузить ещё",
+    "recipeCount": "{count, plural, one {# рецепт} few {# рецепта} other {# рецептов}}"
+  },
+  "recipe": {
+    "backToAll": "← Все рецепты",
+    "dishStory": "история блюда",
+    "preparation": "Приготовление",
+    "step": "Шаг {number}"
+  },
+  "filters": {
+    "mealType": "Тип блюда",
+    "mealTime": "Приём пищи",
+    "ingredient": "Ингредиент",
+    "season": "Сезон / повод",
+    "country": "Кухня"
+  },
+  "auth": {
+    "login": {
+      "backLink": "Нет аккаунта?",
+      "tagline": "войти в книгу",
+      "title": "Добро пожаловать",
+      "email": "Email",
+      "password": "Пароль",
+      "error": "Неверный email или пароль",
+      "loading": "Входим...",
+      "submit": "Войти",
+      "noAccount": "Нет аккаунта?",
+      "registerLink": "Зарегистрироваться",
+      "forgotPassword": "Забыли пароль?"
+    },
+    "forgotPassword": {
+      "backLink": "Вернуться к входу",
+      "tagline": "бывает",
+      "title": "Сбросить пароль",
+      "description": "Введите email, и мы отправим ссылку для сброса пароля.",
+      "email": "Email",
+      "loading": "Отправляем...",
+      "submit": "Отправить ссылку",
+      "successTagline": "письмо отправлено",
+      "successTitle": "Проверьте почту",
+      "successText": "Мы отправили ссылку для сброса пароля на {email}.",
+      "successLink": "Перейти к входу",
+      "errorNotFound": "Пользователь с таким email не найден",
+      "errorGeneric": "Что-то пошло не так. Попробуйте снова"
+    },
+    "resetPassword": {
+      "tagline": "новый старт",
+      "title": "Новый пароль",
+      "password": "Новый пароль",
+      "passwordHint": "не менее 6 символов",
+      "confirmPassword": "Подтвердите пароль",
+      "loading": "Сохраняем...",
+      "submit": "Сохранить пароль",
+      "errorMismatch": "Пароли не совпадают",
+      "errorShort": "Пароль должен быть не менее 6 символов",
+      "errorGeneric": "Не удалось обновить пароль. Попробуйте снова",
+      "successTagline": "готово",
+      "successTitle": "Пароль обновлён",
+      "successText": "Теперь вы можете войти с новым паролем.",
+      "successLink": "Перейти к входу"
+    },
+    "register": {
+      "backLink": "Уже есть аккаунт?",
+      "tagline": "новый читатель",
+      "title": "Создать аккаунт",
+      "email": "Email",
+      "password": "Пароль",
+      "passwordHint": "не менее 6 символов",
+      "confirmPassword": "Подтвердите пароль",
+      "errorMismatch": "Пароли не совпадают",
+      "errorShort": "Пароль должен быть не менее 6 символов",
+      "errorExists": "Этот email уже зарегистрирован",
+      "errorGeneric": "Что-то пошло не так. Попробуйте снова",
+      "loading": "Создаём аккаунт...",
+      "submit": "Зарегистрироваться",
+      "hasAccount": "Уже есть аккаунт?",
+      "loginLink": "Войти",
+      "successTagline": "почти готово",
+      "successTitle": "Проверьте почту",
+      "successText": "Мы отправили письмо на {email}. Перейдите по ссылке в письме, чтобы подтвердить аккаунт.",
+      "successLink": "Перейти к входу"
+    }
+  },
+  "favorites": {
+    "tagline": "моя коллекция",
+    "title": "Избранное",
+    "empty": "Пока пусто",
+    "emptyHint": "Нажми на сердечко на карточке рецепта, чтобы сохранить его сюда",
+    "goToRecipes": "Перейти к рецептам →",
+    "recipeCount": "{count, plural, one {# рецепт} few {# рецепта} other {# рецептов}}"
+  },
+  "common": {
+    "loading": "Загрузка...",
+    "addToFavorites": "Добавить в избранное",
+    "removeFromFavorites": "Убрать из избранного",
+    "cookbook": "CookBook"
+  }
+}

@@ -1,0 +1,137 @@
+{
+  "site": {
+    "title": "CookBook",
+    "description": "Personal recipe collection"
+  },
+  "nav": {
+    "recipes": "Recipes",
+    "favorites": "Favorites",
+    "signOut": "Sign out",
+    "signIn": "Sign in",
+    "register": "Register"
+  },
+  "home": {
+    "welcome": "welcome",
+    "heroLine1": "I cook",
+    "heroLine2": "for those",
+    "heroLine3": "I",
+    "heroLine3accent": "love",
+    "heroText1": "For my husband, who always asks for 'the same as last time.' For friends who stay until late evening. For myself — when I want quiet and the smell of something good.",
+    "heroText2": "This is a personal recipe book. Not for everyone — for my loved ones. Every recipe here comes with a story and a memory. Made with soul and without rush.",
+    "viewRecipes": "View recipes",
+    "quote": "Food is not just fuel. It's memories, love, and care.",
+    "fromBook": "from the book",
+    "featuredTitle": "Most loved dishes",
+    "allRecipes": "All recipes →",
+    "viewAll": "view all →",
+    "noRecipesTitle": "No recipes yet...",
+    "noRecipesSubtitle": "Soon the most loved dishes will appear here — those made with soul and warmth.",
+    "heroAlt": "Cooking for my loved ones"
+  },
+  "recipes": {
+    "tagline": "all recipes",
+    "catalog": "Catalog",
+    "search": "Search...",
+    "reset": "Reset",
+    "clearSelection": "Clear selection",
+    "nothingFound": "Nothing found",
+    "noRecipes": "No recipes added yet",
+    "resetFilters": "Reset filters",
+    "loadMore": "Load more",
+    "recipeCount": "{count, plural, one {# recipe} other {# recipes}}"
+  },
+  "recipe": {
+    "backToAll": "← All recipes",
+    "dishStory": "dish story",
+    "preparation": "Preparation",
+    "step": "Step {number}"
+  },
+  "filters": {
+    "mealType": "Meal type",
+    "mealTime": "Meal time",
+    "ingredient": "Ingredient",
+    "season": "Season / occasion",
+    "country": "Cuisine"
+  },
+  "auth": {
+    "login": {
+      "backLink": "No account?",
+      "tagline": "enter the book",
+      "title": "Welcome back",
+      "email": "Email",
+      "password": "Password",
+      "error": "Invalid email or password",
+      "loading": "Signing in...",
+      "submit": "Sign in",
+      "noAccount": "No account?",
+      "registerLink": "Register",
+      "forgotPassword": "Forgot password?"
+    },
+    "forgotPassword": {
+      "backLink": "Back to sign in",
+      "tagline": "it happens",
+      "title": "Reset password",
+      "description": "Enter your email and we'll send you a reset link.",
+      "email": "Email",
+      "loading": "Sending...",
+      "submit": "Send reset link",
+      "successTagline": "email sent",
+      "successTitle": "Check your inbox",
+      "successText": "We sent a password reset link to {email}.",
+      "successLink": "Go to sign in",
+      "errorNotFound": "No user found with this email",
+      "errorGeneric": "Something went wrong. Please try again"
+    },
+    "resetPassword": {
+      "tagline": "fresh start",
+      "title": "New password",
+      "password": "New password",
+      "passwordHint": "at least 6 characters",
+      "confirmPassword": "Confirm password",
+      "loading": "Saving...",
+      "submit": "Save password",
+      "errorMismatch": "Passwords don't match",
+      "errorShort": "Password must be at least 6 characters",
+      "errorGeneric": "Could not update password. Please try again",
+      "successTagline": "all done",
+      "successTitle": "Password updated",
+      "successText": "You can now sign in with your new password.",
+      "successLink": "Go to sign in"
+    },
+    "register": {
+      "backLink": "Already have an account?",
+      "tagline": "new reader",
+      "title": "Create account",
+      "email": "Email",
+      "password": "Password",
+      "passwordHint": "at least 6 characters",
+      "confirmPassword": "Confirm password",
+      "errorMismatch": "Passwords don't match",
+      "errorShort": "Password must be at least 6 characters",
+      "errorExists": "This email is already registered",
+      "errorGeneric": "Something went wrong. Please try again",
+      "loading": "Creating account...",
+      "submit": "Register",
+      "hasAccount": "Already have an account?",
+      "loginLink": "Sign in",
+      "successTagline": "almost there",
+      "successTitle": "Check your email",
+      "successText": "We sent an email to {email}. Follow the link to confirm your account.",
+      "successLink": "Go to sign in"
+    }
+  },
+  "favorites": {
+    "tagline": "my collection",
+    "title": "Favorites",
+    "empty": "Nothing here yet",
+    "emptyHint": "Tap the heart on a recipe card to save it here",
+    "goToRecipes": "Browse recipes →",
+    "recipeCount": "{count, plural, one {# recipe} other {# recipes}}"
+  },
+  "common": {
+    "loading": "Loading...",
+    "addToFavorites": "Add to favorites",
+    "removeFromFavorites": "Remove from favorites",
+    "cookbook": "CookBook"
+  }
+}

@@ -2,26 +2,151 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@layer base {
+  html {
+    @apply bg-cream text-charcoal;
+    font-family: var(--font-plus-jakarta), system-ui, sans-serif;
+  }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  h1,
+  h2 {
+    font-family: var(--font-cormorant), Georgia, serif;
+  }
+
+  h3,
+  h4 {
+    font-family: var(--font-dm-serif), Georgia, serif;
+  }
+
+  * {
+    @apply box-border;
   }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-}
-
 @layer utilities {
+  .font-handwritten {
+    font-family: var(--font-satisfy), cursive;
+  }
+
   .text-balance {
     text-wrap: balance;
+  }
+}
+
+/* ── Toggle switch reset ─────────────────────────────────────────────────── */
+button[role="switch"] {
+  -webkit-appearance: none;
+  appearance: none;
+  border: none;
+  outline: none;
+  box-shadow: none;
+}
+button[role="switch"]:focus,
+button[role="switch"]:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+/* ── Dropdown ─────────────────────────────────────────────────────────────── */
+@keyframes dropdown-open {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.dropdown-panel {
+  animation: dropdown-open 0.18s cubic-bezier(0.4, 0, 0.2, 1) both;
+  transform-origin: top left;
+}
+
+/* ── Hero fade-in (pure CSS, no JS conflict) ──────────────────────────────── */
+@keyframes hero-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes hero-image-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.hero-image {
+  animation: hero-image-in 1.2s cubic-bezier(0.4, 0, 0.2, 1) 0.05s both;
+}
+
+.hero-in-1 { animation: hero-in 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.15s both; }
+.hero-in-2 { animation: hero-in 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.3s  both; }
+.hero-in-3 { animation: hero-in 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.45s both; }
+.hero-in-4 { animation: hero-in 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.6s  both; }
+
+/* ── Shimmer ──────────────────────────────────────────────────────────────── */
+@keyframes shimmer {
+  0%   { background-position: 200% center; }
+  100% { background-position: -200% center; }
+}
+
+.shimmer-text {
+  background: linear-gradient(90deg, #E8956D 0%, #f5d4b8 40%, #E8956D 60%);
+  background-size: 200% auto;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 3s linear infinite;
+  display: inline;
+}
+
+/* ── Recipe card hover lift ───────────────────────────────────────────────── */
+/* Lift + shadow on image; title lifts the same amount */
+.recipe-card-hover .recipe-card-image,
+.recipe-card-hover .recipe-card-title {
+  transition: transform 0.3s cubic-bezier(0.6, 0.6, 0, 1),
+              box-shadow 0.3s cubic-bezier(0.6, 0.6, 0, 1);
+}
+.recipe-card-hover:hover .recipe-card-image {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 32px rgba(28, 25, 23, 0.12);
+}
+.recipe-card-hover:hover .recipe-card-title {
+  transform: translateY(-4px);
+}
+
+/* ── Prefers-reduced-motion overrides ────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .hero-image,
+  .hero-in-1,
+  .hero-in-2,
+  .hero-in-3,
+  .hero-in-4 {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .shimmer-text {
+    animation: none;
+    background: none;
+    -webkit-text-fill-color: #E8956D;
+  }
+
+  .recipe-card-hover .recipe-card-image,
+  .recipe-card-hover .recipe-card-title {
+    transition: none;
+  }
+
+  .recipe-card-hover:hover .recipe-card-image,
+  .recipe-card-hover:hover .recipe-card-title {
+    transform: none;
+    box-shadow: none;
   }
 }

@@ -1,0 +1,137 @@
+{
+  "site": {
+    "title": "CookBook",
+    "description": "Osobní kniha receptů"
+  },
+  "nav": {
+    "recipes": "Recepty",
+    "favorites": "Oblíbené",
+    "signOut": "Odhlásit se",
+    "signIn": "Přihlásit se",
+    "register": "Registrace"
+  },
+  "home": {
+    "welcome": "vítejte",
+    "heroLine1": "Vařím",
+    "heroLine2": "pro ty,",
+    "heroLine3": "které",
+    "heroLine3accent": "miluji",
+    "heroText1": "Pro manžela, který vždy prosí o 'to samé jako minule.' Pro kamarádky, které zůstávají do pozdního večera. Pro sebe — když chci ticho a vůni něčeho dobrého.",
+    "heroText2": "Tohle je osobní kniha receptů. Ne pro všechny — pro mé blízké. Každý recept tu má svůj příběh a vzpomínku. Tvořeno s láskou a bez spěchu.",
+    "viewRecipes": "Prohlédnout recepty",
+    "quote": "Jídlo není jen palivo. Jsou to vzpomínky, láska a péče.",
+    "fromBook": "z knihy",
+    "featuredTitle": "Nejoblíbenější pokrmy",
+    "allRecipes": "Všechny recepty →",
+    "viewAll": "zobrazit vše →",
+    "noRecipesTitle": "Zatím žádné recepty...",
+    "noRecipesSubtitle": "Brzy se tu objeví nejoblíbenější pokrmy — ty, které se vaří s láskou a teplem.",
+    "heroAlt": "Vařím pro své blízké"
+  },
+  "recipes": {
+    "tagline": "všechny recepty",
+    "catalog": "Katalog",
+    "search": "Hledat...",
+    "reset": "Resetovat",
+    "clearSelection": "Zrušit výběr",
+    "nothingFound": "Nic nenalezeno",
+    "noRecipes": "Zatím nebyly přidány žádné recepty",
+    "resetFilters": "Resetovat filtry",
+    "loadMore": "Načíst další",
+    "recipeCount": "{count, plural, one {# recept} few {# recepty} other {# receptů}}"
+  },
+  "recipe": {
+    "backToAll": "← Všechny recepty",
+    "dishStory": "příběh pokrmu",
+    "preparation": "Příprava",
+    "step": "Krok {number}"
+  },
+  "filters": {
+    "mealType": "Typ jídla",
+    "mealTime": "Denní jídlo",
+    "ingredient": "Ingredience",
+    "season": "Sezóna / příležitost",
+    "country": "Kuchyně"
+  },
+  "auth": {
+    "login": {
+      "backLink": "Nemáte účet?",
+      "tagline": "vstupte do knihy",
+      "title": "Vítejte zpět",
+      "email": "Email",
+      "password": "Heslo",
+      "error": "Neplatný email nebo heslo",
+      "loading": "Přihlašování...",
+      "submit": "Přihlásit se",
+      "noAccount": "Nemáte účet?",
+      "registerLink": "Zaregistrujte se",
+      "forgotPassword": "Zapomněli jste heslo?"
+    },
+    "forgotPassword": {
+      "backLink": "Zpět k přihlášení",
+      "tagline": "stává se",
+      "title": "Obnovit heslo",
+      "description": "Zadejte email a pošleme vám odkaz pro obnovení hesla.",
+      "email": "Email",
+      "loading": "Odesílání...",
+      "submit": "Odeslat odkaz",
+      "successTagline": "email odeslán",
+      "successTitle": "Zkontrolujte schránku",
+      "successText": "Poslali jsme odkaz pro obnovení hesla na {email}.",
+      "successLink": "Přejít k přihlášení",
+      "errorNotFound": "Uživatel s tímto emailem nebyl nalezen",
+      "errorGeneric": "Něco se pokazilo. Zkuste to znovu"
+    },
+    "resetPassword": {
+      "tagline": "nový začátek",
+      "title": "Nové heslo",
+      "password": "Nové heslo",
+      "passwordHint": "alespoň 6 znaků",
+      "confirmPassword": "Potvrďte heslo",
+      "loading": "Ukládání...",
+      "submit": "Uložit heslo",
+      "errorMismatch": "Hesla se neshodují",
+      "errorShort": "Heslo musí mít alespoň 6 znaků",
+      "errorGeneric": "Heslo se nepodařilo aktualizovat. Zkuste to znovu",
+      "successTagline": "hotovo",
+      "successTitle": "Heslo aktualizováno",
+      "successText": "Nyní se můžete přihlásit s novým heslem.",
+      "successLink": "Přejít k přihlášení"
+    },
+    "register": {
+      "backLink": "Již máte účet?",
+      "tagline": "nový čtenář",
+      "title": "Vytvořit účet",
+      "email": "Email",
+      "password": "Heslo",
+      "passwordHint": "alespoň 6 znaků",
+      "confirmPassword": "Potvrďte heslo",
+      "errorMismatch": "Hesla se neshodují",
+      "errorShort": "Heslo musí mít alespoň 6 znaků",
+      "errorExists": "Tento email je již registrován",
+      "errorGeneric": "Něco se pokazilo. Zkuste to znovu",
+      "loading": "Vytváření účtu...",
+      "submit": "Zaregistrovat se",
+      "hasAccount": "Již máte účet?",
+      "loginLink": "Přihlásit se",
+      "successTagline": "skoro hotovo",
+      "successTitle": "Zkontrolujte email",
+      "successText": "Poslali jsme email na {email}. Klikněte na odkaz pro potvrzení účtu.",
+      "successLink": "Přejít k přihlášení"
+    }
+  },
+  "favorites": {
+    "tagline": "moje kolekce",
+    "title": "Oblíbené",
+    "empty": "Zatím prázdné",
+    "emptyHint": "Klepněte na srdíčko na kartě receptu a uložte si ho sem",
+    "goToRecipes": "Prohlédnout recepty →",
+    "recipeCount": "{count, plural, one {# recept} few {# recepty} other {# receptů}}"
+  },
+  "common": {
+    "loading": "Načítání...",
+    "addToFavorites": "Přidat do oblíbených",
+    "removeFromFavorites": "Odebrat z oblíbených",
+    "cookbook": "CookBook"
+  }
+}
