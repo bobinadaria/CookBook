@@ -79,7 +79,7 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
       await supabase.from("favorites").delete().match({ user_id: user.id, recipe_slug: slug });
     } else {
       // Optimistic add
-      setFavorites((prev) => new Set([...prev, slug]));
+      setFavorites((prev) => { const n = new Set(prev); n.add(slug); return n; });
       await supabase.from("favorites").insert({ user_id: user.id, recipe_slug: slug });
     }
   }, [user, favorites]);

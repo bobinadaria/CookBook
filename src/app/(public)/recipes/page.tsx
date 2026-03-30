@@ -101,7 +101,7 @@ export default function RecipesPage() {
     setActiveFilters((prev) => {
       const next = { ...prev };
       const set = new Set(next[groupType] ?? []);
-      set.has(catId) ? set.delete(catId) : set.add(catId);
+      if (set.has(catId)) set.delete(catId); else set.add(catId);
       if (set.size === 0) delete next[groupType];
       else next[groupType] = set;
       return next;

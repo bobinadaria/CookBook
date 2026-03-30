@@ -4,16 +4,29 @@ import Link from "next/link";
 import Image from "next/image";
 import { useLocale } from "next-intl";
 import { cn } from "@/lib/utils";
-import { localizedField, type Locale } from "@/lib/localized-content";
+import { type Locale } from "@/lib/localized-content";
 import FavoriteButton from "./FavoriteButton";
 import { useFavorites } from "@/context/FavoritesContext";
 
 interface RecipeCardProps {
-  recipe: Record<string, unknown> & { id: string; title: string; slug: string; cover_image?: string | null };
+  recipe: {
+    id: string;
+    title: string;
+    slug: string;
+    cover_image?: string | null;
+    title_en?: string | null;
+    title_cs?: string | null;
+  };
   aspectClass?: string;
   fillHeight?: boolean;
   locale?: string;
   className?: string;
+}
+
+function getLocalizedTitle(recipe: RecipeCardProps["recipe"], locale: Locale): string {
+  if (locale === "en" && recipe.title_en) return recipe.title_en;
+  if (locale === "cs" && recipe.title_cs) return recipe.title_cs;
+  return recipe.title;
 }
 
 export default function RecipeCard({
@@ -27,7 +40,7 @@ export default function RecipeCard({
   const locale = (localeProp ?? hookLocale) as Locale;
   const { favorites } = useFavorites();
   const isFavorited = favorites.has(recipe.slug);
-  const title = localizedField(recipe, "title", locale) ?? recipe.title;
+  const title = getLocalizedTitle(recipe, locale);
 
   return (
     <Link

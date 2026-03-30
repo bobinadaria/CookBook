@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
+
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import RecipeCard from "@/components/recipe/RecipeCard";

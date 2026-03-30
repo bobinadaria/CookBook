@@ -82,7 +82,7 @@ export const mockRecipes: Recipe[] = [
     description: "Нежный кремовый тост, который превращает обычное утро в маленький праздник. Сливочная рикотта, спелый персик и капля цветочного мёда.",
     note: "Этот рецепт появился случайно — однажды летним утром в Тоскане.",
     cover_image: "https://images.unsplash.com/photo-1484723091739-30a097e8f929?w=800&q=80",
-    published: true, created_at: "2024-01-15T10:00:00Z", updated_at: "2024-01-15T10:00:00Z",
+    published: true, featured: false, created_at: "2024-01-15T10:00:00Z", updated_at: "2024-01-15T10:00:00Z",
     categories: [mtStarter, mmBreakfast, mmBrunch, iCheese, sSummer, cItaly],
     steps: mockSteps["ricotta-toast-peach-honey"],
   },
@@ -91,7 +91,7 @@ export const mockRecipes: Recipe[] = [
     description: "Паста, которая пахнет роскошью. Минимум ингредиентов — максимум вкуса.",
     note: "Впервые попробовала в маленьком ресторане в Болонье.",
     cover_image: "https://images.unsplash.com/photo-1476124369491-e7addf5db371?w=800&q=80",
-    published: true, created_at: "2024-01-20T10:00:00Z", updated_at: "2024-01-20T10:00:00Z",
+    published: true, featured: false, created_at: "2024-01-20T10:00:00Z", updated_at: "2024-01-20T10:00:00Z",
     categories: [mtPasta, mmLunch, mmDinner, iMushrooms, sAutumn, cItaly], steps: [],
   },
   {
@@ -99,7 +99,7 @@ export const mockRecipes: Recipe[] = [
     description: "Бархатный зелёный напиток с землистой горчинкой матчи и мягкой сладостью овсяного молока.",
     note: null,
     cover_image: "https://images.unsplash.com/photo-1515823064-d6e0c04616a7?w=800&q=80",
-    published: true, created_at: "2024-02-01T10:00:00Z", updated_at: "2024-02-01T10:00:00Z",
+    published: true, featured: false, created_at: "2024-02-01T10:00:00Z", updated_at: "2024-02-01T10:00:00Z",
     categories: [mtDrink, mmBreakfast, mmSnack, sSpring, cJapan], steps: [],
   },
   {
@@ -107,7 +107,7 @@ export const mockRecipes: Recipe[] = [
     description: "Классика французской патиссерии — хрустящее песочное тесто, шёлковый лимонный крем.",
     note: "Долго искала идеальное соотношение кислоты и сладости. Этот рецепт — результат десяти попыток.",
     cover_image: "https://images.unsplash.com/photo-1519915028121-7d3463d20b13?w=800&q=80",
-    published: true, created_at: "2024-02-10T10:00:00Z", updated_at: "2024-02-10T10:00:00Z",
+    published: true, featured: false, created_at: "2024-02-10T10:00:00Z", updated_at: "2024-02-10T10:00:00Z",
     categories: [mtDessert, mtBaking, mmSnack, iEggs, sSummer, sEaster, cFrance], steps: [],
   },
   {
@@ -115,7 +115,7 @@ export const mockRecipes: Recipe[] = [
     description: "Самый нежный хумус — с нутом, сваренным до полной мягкости, и щедрым оливковым маслом.",
     note: "Готовлю каждую пятницу. Стало традицией.",
     cover_image: "https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=800&q=80",
-    published: true, created_at: "2024-02-15T10:00:00Z", updated_at: "2024-02-15T10:00:00Z",
+    published: true, featured: false, created_at: "2024-02-15T10:00:00Z", updated_at: "2024-02-15T10:00:00Z",
     categories: [mtStarter, mmLunch, mmSnack, iLegumes, iVeggies, cMiddleEast], steps: [],
   },
   {
@@ -123,7 +123,7 @@ export const mockRecipes: Recipe[] = [
     description: "Салат, который хочется есть каждый день. Хрустящий руккола, кремовое авокадо, солёная фета.",
     note: null,
     cover_image: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800&q=80",
-    published: true, created_at: "2024-03-01T10:00:00Z", updated_at: "2024-03-01T10:00:00Z",
+    published: true, featured: false, created_at: "2024-03-01T10:00:00Z", updated_at: "2024-03-01T10:00:00Z",
     categories: [mtSalad, mmLunch, iCheese, iVeggies, sSpring, sSummer, cGreece], steps: [],
   },
   {
@@ -131,7 +131,7 @@ export const mockRecipes: Recipe[] = [
     description: "Настоящая римская карбонара без сливок — только яйца, пекорино, гуанчале и черный перец.",
     note: "Секрет в температуре: яйца нельзя перегреть, иначе будет омлет.",
     cover_image: "https://images.unsplash.com/photo-1612874742237-6526221588e3?w=800&q=80",
-    published: true, created_at: "2024-03-05T10:00:00Z", updated_at: "2024-03-05T10:00:00Z",
+    published: true, featured: false, created_at: "2024-03-05T10:00:00Z", updated_at: "2024-03-05T10:00:00Z",
     categories: [mtPasta, mmLunch, mmDinner, iEggs, iCheese, cItaly], steps: [],
   },
   {
@@ -139,7 +139,7 @@ export const mockRecipes: Recipe[] = [
     description: "Простой и глубокий — бульон даши, белое мисо, шёлковый тофу и вакаме. Японский завтрак.",
     note: null,
     cover_image: "https://images.unsplash.com/photo-1547592180-85f173990554?w=800&q=80",
-    published: true, created_at: "2024-03-10T10:00:00Z", updated_at: "2024-03-10T10:00:00Z",
+    published: true, featured: false, created_at: "2024-03-10T10:00:00Z", updated_at: "2024-03-10T10:00:00Z",
     categories: [mtSoup, mmBreakfast, mmLunch, iVeggies, cJapan], steps: [],
   },
   {
@@ -147,7 +147,7 @@ export const mockRecipes: Recipe[] = [
     description: "Классический итальянский десерт с маскарпоне, эспрессо и савоярди. Никакой желатин — только воздух.",
     note: "Готовлю накануне — на следующий день вкус раскрывается полностью.",
     cover_image: "https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=800&q=80",
-    published: true, created_at: "2024-03-15T10:00:00Z", updated_at: "2024-03-15T10:00:00Z",
+    published: true, featured: false, created_at: "2024-03-15T10:00:00Z", updated_at: "2024-03-15T10:00:00Z",
     categories: [mtDessert, mmSnack, iEggs, iCheese, cItaly], steps: [],
   },
   {
@@ -155,7 +155,7 @@ export const mockRecipes: Recipe[] = [
     description: "Пышная, хрустящая снаружи и воздушная внутри. Секрет — щедрое количество оливкового масла.",
     note: "Лучшее что можно сделать с простыми ингредиентами.",
     cover_image: "https://images.unsplash.com/photo-1549931319-a545dcf3bc73?w=800&q=80",
-    published: true, created_at: "2024-03-20T10:00:00Z", updated_at: "2024-03-20T10:00:00Z",
+    published: true, featured: false, created_at: "2024-03-20T10:00:00Z", updated_at: "2024-03-20T10:00:00Z",
     categories: [mtBaking, mtStarter, mmSnack, sAutumn, sWinter, cItaly], steps: [],
   },
   {
@@ -163,7 +163,7 @@ export const mockRecipes: Recipe[] = [
     description: "Идеальная прожарка medium rare, хрустящая корочка, тающее масло с тимьяном и чесноком.",
     note: "Главное — дать мясу отдохнуть 5 минут после сковороды.",
     cover_image: "https://images.unsplash.com/photo-1558030006-450675393462?w=800&q=80",
-    published: true, created_at: "2024-04-01T10:00:00Z", updated_at: "2024-04-01T10:00:00Z",
+    published: true, featured: false, created_at: "2024-04-01T10:00:00Z", updated_at: "2024-04-01T10:00:00Z",
     categories: [mtMain, mmDinner, iBeef, sBBQ, sAutumn], steps: [],
   },
   {
@@ -171,7 +171,7 @@ export const mockRecipes: Recipe[] = [
     description: "Нежный лосось с лакированной корочкой — сладкое мисо, свежий имбирь, соевый соус.",
     note: null,
     cover_image: "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=800&q=80",
-    published: true, created_at: "2024-04-05T10:00:00Z", updated_at: "2024-04-05T10:00:00Z",
+    published: true, featured: false, created_at: "2024-04-05T10:00:00Z", updated_at: "2024-04-05T10:00:00Z",
     categories: [mtMain, mmLunch, mmDinner, iFish, cJapan], steps: [],
   },
   {
@@ -179,7 +179,7 @@ export const mockRecipes: Recipe[] = [
     description: "Питательный и красивый боул. Хрустящий нут, сладкий батат, свежая зелень, кунжутная заправка.",
     note: null,
     cover_image: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&q=80",
-    published: true, created_at: "2024-04-10T10:00:00Z", updated_at: "2024-04-10T10:00:00Z",
+    published: true, featured: false, created_at: "2024-04-10T10:00:00Z", updated_at: "2024-04-10T10:00:00Z",
     categories: [mtMain, mmLunch, iVeggies, iLegumes, sSpring, cMiddleEast], steps: [],
   },
   {
@@ -187,7 +187,7 @@ export const mockRecipes: Recipe[] = [
     description: "Влажный, тёмный, интенсивный — три вида шоколада, два вида какао, шёлковый ганаш.",
     note: "Рецепт, который я готовлю на каждый день рождения.",
     cover_image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=800&q=80",
-    published: true, created_at: "2024-04-15T10:00:00Z", updated_at: "2024-04-15T10:00:00Z",
+    published: true, featured: false, created_at: "2024-04-15T10:00:00Z", updated_at: "2024-04-15T10:00:00Z",
     categories: [mtDessert, mtBaking, mmSnack, sWinter, sChristmas], steps: [],
   },
   {
@@ -195,7 +195,7 @@ export const mockRecipes: Recipe[] = [
     description: "Кремовое ризотто с лесными грибами — медленное помешивание, горячий бульон и хорошее вино.",
     note: "Ризотто нельзя торопить. Это медитация.",
     cover_image: "https://images.unsplash.com/photo-1476124369491-e7addf5db371?w=800&q=80",
-    published: true, created_at: "2024-04-20T10:00:00Z", updated_at: "2024-04-20T10:00:00Z",
+    published: true, featured: false, created_at: "2024-04-20T10:00:00Z", updated_at: "2024-04-20T10:00:00Z",
     categories: [mtMain, mmDinner, iMushrooms, iCheese, sAutumn, sWinter, cItaly], steps: [],
   },
   {
@@ -203,7 +203,7 @@ export const mockRecipes: Recipe[] = [
     description: "Бранч мечты — идеальные яйца пашот, хрустящие тосты, бархатный голландский соус.",
     note: null,
     cover_image: "https://images.unsplash.com/photo-1482049016688-2d3e1b311543?w=800&q=80",
-    published: true, created_at: "2024-05-01T10:00:00Z", updated_at: "2024-05-01T10:00:00Z",
+    published: true, featured: false, created_at: "2024-05-01T10:00:00Z", updated_at: "2024-05-01T10:00:00Z",
     categories: [mtMain, mmBreakfast, mmBrunch, iEggs, cFrance], steps: [],
   },
   {
@@ -211,7 +211,7 @@ export const mockRecipes: Recipe[] = [
     description: "Классический хориатики — сочные томаты, огурец, красный лук, маслины, большой кусок феты.",
     note: null,
     cover_image: "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=800&q=80",
-    published: true, created_at: "2024-05-05T10:00:00Z", updated_at: "2024-05-05T10:00:00Z",
+    published: true, featured: false, created_at: "2024-05-05T10:00:00Z", updated_at: "2024-05-05T10:00:00Z",
     categories: [mtSalad, mmLunch, iCheese, iVeggies, sSummer, cGreece], steps: [],
   },
   {
@@ -219,7 +219,7 @@ export const mockRecipes: Recipe[] = [
     description: "Ароматное вегетарианское карри — кокосовое молоко, куркума, кумин, свежий корень имбиря.",
     note: "Готовится за 25 минут, вкус будто варился весь день.",
     cover_image: "https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=800&q=80",
-    published: true, created_at: "2024-05-10T10:00:00Z", updated_at: "2024-05-10T10:00:00Z",
+    published: true, featured: false, created_at: "2024-05-10T10:00:00Z", updated_at: "2024-05-10T10:00:00Z",
     categories: [mtMain, mmLunch, mmDinner, iLegumes, iVeggies, sWinter, cIndia], steps: [],
   },
   {
@@ -227,7 +227,7 @@ export const mockRecipes: Recipe[] = [
     description: "Хрустящие кластеры овса, орехов и семян — запечённые с кленовым сиропом и кокосовым маслом.",
     note: "Делаю большую банку на всю неделю.",
     cover_image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&q=80",
-    published: true, created_at: "2024-05-15T10:00:00Z", updated_at: "2024-05-15T10:00:00Z",
+    published: true, featured: false, created_at: "2024-05-15T10:00:00Z", updated_at: "2024-05-15T10:00:00Z",
     categories: [mtMain, mmBreakfast, mmSnack, sSpring, sSummer], steps: [],
   },
   {
@@ -235,7 +235,7 @@ export const mockRecipes: Recipe[] = [
     description: "Густой тропический смузи с кокосовым молоком, свежим манго, маракуйей и хрустящей гранолой.",
     note: null,
     cover_image: "https://images.unsplash.com/photo-1511690743698-d9d85f2fbf38?w=800&q=80",
-    published: true, created_at: "2024-05-20T10:00:00Z", updated_at: "2024-05-20T10:00:00Z",
+    published: true, featured: false, created_at: "2024-05-20T10:00:00Z", updated_at: "2024-05-20T10:00:00Z",
     categories: [mtMain, mmBreakfast, mmBrunch, sSummer], steps: [],
   },
   {
@@ -243,7 +243,7 @@ export const mockRecipes: Recipe[] = [
     description: "Пышные вафли на пахте, щедрая горсть черники, лёгкие взбитые сливки и немного сахарной пудры.",
     note: null,
     cover_image: "https://images.unsplash.com/photo-1562376552-0d160a2f238d?w=800&q=80",
-    published: true, created_at: "2024-06-01T10:00:00Z", updated_at: "2024-06-01T10:00:00Z",
+    published: true, featured: false, created_at: "2024-06-01T10:00:00Z", updated_at: "2024-06-01T10:00:00Z",
     categories: [mtBaking, mtDessert, mmBreakfast, mmBrunch, iEggs, sSummer], steps: [],
   },
   {
@@ -251,7 +251,7 @@ export const mockRecipes: Recipe[] = [
     description: "Яйца, запечённые в густом томатном соусе с перцем и специями. Фета сверху. Хлеб обязателен.",
     note: "Идеальное блюдо когда нет времени, но хочется чего-то настоящего.",
     cover_image: "https://images.unsplash.com/photo-1590301157890-4810ed352733?w=800&q=80",
-    published: true, created_at: "2024-06-05T10:00:00Z", updated_at: "2024-06-05T10:00:00Z",
+    published: true, featured: false, created_at: "2024-06-05T10:00:00Z", updated_at: "2024-06-05T10:00:00Z",
     categories: [mtMain, mmBreakfast, mmBrunch, iEggs, iCheese, iVeggies, cMiddleEast], steps: [],
   },
   {
@@ -259,7 +259,7 @@ export const mockRecipes: Recipe[] = [
     description: "Запечённые баклажаны, кунжутная паста, гранатовые зёрна, зелень. Блюдо Ближнего Востока.",
     note: "Чем дольше печётся баклажан — тем лучше.",
     cover_image: "https://images.unsplash.com/photo-1534088568595-a066f410bcda?w=800&q=80",
-    published: true, created_at: "2024-06-10T10:00:00Z", updated_at: "2024-06-10T10:00:00Z",
+    published: true, featured: false, created_at: "2024-06-10T10:00:00Z", updated_at: "2024-06-10T10:00:00Z",
     categories: [mtStarter, mtMain, mmLunch, mmDinner, iVeggies, sSummer, cMiddleEast], steps: [],
   },
   {
@@ -267,7 +267,7 @@ export const mockRecipes: Recipe[] = [
     description: "Шёлковый итальянский десерт из ванильных сливок с ярким соусом из свежей клубники.",
     note: null,
     cover_image: "https://images.unsplash.com/photo-1488477304112-4944851de03d?w=800&q=80",
-    published: true, created_at: "2024-06-15T10:00:00Z", updated_at: "2024-06-15T10:00:00Z",
+    published: true, featured: false, created_at: "2024-06-15T10:00:00Z", updated_at: "2024-06-15T10:00:00Z",
     categories: [mtDessert, mmSnack, sSummer, sEaster, cItaly], steps: [],
   },
   {
@@ -275,7 +275,7 @@ export const mockRecipes: Recipe[] = [
     description: "Острый и ароматный тайский суп — лимонная трава, галангал, листья каффир-лайма, кокосовое молоко.",
     note: null,
     cover_image: "https://images.unsplash.com/photo-1569050467447-ce54b3bbc37d?w=800&q=80",
-    published: true, created_at: "2024-07-01T10:00:00Z", updated_at: "2024-07-01T10:00:00Z",
+    published: true, featured: false, created_at: "2024-07-01T10:00:00Z", updated_at: "2024-07-01T10:00:00Z",
     categories: [mtSoup, mmLunch, mmDinner, iSeafood, sWinter], steps: [],
   },
   {
@@ -283,7 +283,7 @@ export const mockRecipes: Recipe[] = [
     description: "Лодочка из дрожжевого теста с сулугуни, яичным желтком и маслом — символ грузинской кухни.",
     note: "Едят руками, отламывая хлеб и обмакивая в яично-сырную начинку.",
     cover_image: "https://images.unsplash.com/photo-1628556270448-4d4e4148e1b1?w=800&q=80",
-    published: true, created_at: "2024-07-05T10:00:00Z", updated_at: "2024-07-05T10:00:00Z",
+    published: true, featured: false, created_at: "2024-07-05T10:00:00Z", updated_at: "2024-07-05T10:00:00Z",
     categories: [mtBaking, mtMain, mmBreakfast, mmBrunch, iEggs, iCheese, cGeorgia], steps: [],
   },
   {
@@ -291,7 +291,7 @@ export const mockRecipes: Recipe[] = [
     description: "Хрустящие кукурузные тортильи, пряная говядина, свежая сальса, авокадо и кинза.",
     note: null,
     cover_image: "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=800&q=80",
-    published: true, created_at: "2024-07-10T10:00:00Z", updated_at: "2024-07-10T10:00:00Z",
+    published: true, featured: false, created_at: "2024-07-10T10:00:00Z", updated_at: "2024-07-10T10:00:00Z",
     categories: [mtMain, mmLunch, mmDinner, iBeef, sBBQ, sSummer, cMexico], steps: [],
   },
   {
@@ -299,7 +299,7 @@ export const mockRecipes: Recipe[] = [
     description: "Итальянский овощной суп с фасолью, пастой и базиликом. Густой, сытный, домашний.",
     note: "Каждый раз немного разный — зависит от того, что есть в холодильнике.",
     cover_image: "https://images.unsplash.com/photo-1540914124281-342587941389?w=800&q=80",
-    published: true, created_at: "2024-07-15T10:00:00Z", updated_at: "2024-07-15T10:00:00Z",
+    published: true, featured: false, created_at: "2024-07-15T10:00:00Z", updated_at: "2024-07-15T10:00:00Z",
     categories: [mtSoup, mmLunch, iVeggies, iLegumes, sAutumn, sWinter, cItaly], steps: [],
   },
   {
@@ -307,7 +307,7 @@ export const mockRecipes: Recipe[] = [
     description: "Медленно карамелизованный лук, насыщенный говяжий бульон, хрустящий багет и расплавленный грюйер.",
     note: "Лук нужно жарить не менее часа — в этом весь секрет.",
     cover_image: "https://images.unsplash.com/photo-1547592166-23ac45744acd?w=800&q=80",
-    published: true, created_at: "2024-08-01T10:00:00Z", updated_at: "2024-08-01T10:00:00Z",
+    published: true, featured: false, created_at: "2024-08-01T10:00:00Z", updated_at: "2024-08-01T10:00:00Z",
     categories: [mtSoup, mmLunch, mmDinner, iBeef, iCheese, sAutumn, sWinter, cFrance], steps: [],
   },
   {
@@ -315,7 +315,7 @@ export const mockRecipes: Recipe[] = [
     description: "Дрожащий заварной крем под тонкой хрустящей карамельной корочкой. Маленький французский театр.",
     note: "Постукивание ложечкой по карамели — лучший звук на свете.",
     cover_image: "https://images.unsplash.com/photo-1470124182917-cc6e71b22ecc?w=800&q=80",
-    published: true, created_at: "2024-08-05T10:00:00Z", updated_at: "2024-08-05T10:00:00Z",
+    published: true, featured: false, created_at: "2024-08-05T10:00:00Z", updated_at: "2024-08-05T10:00:00Z",
     categories: [mtDessert, mmSnack, iEggs, sWinter, sChristmas, cFrance], steps: [],
   },
 ];
