@@ -8,8 +8,6 @@ import { createClient } from "@/lib/supabase/client";
 
 export default function LoginPage() {
   const t = useTranslations("auth.login");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -18,6 +16,10 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+
+    const form = e.target as HTMLFormElement;
+    const email = (form.elements.namedItem("email") as HTMLInputElement).value;
+    const password = (form.elements.namedItem("password") as HTMLInputElement).value;
 
     const supabase = createClient();
     const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -64,38 +66,34 @@ export default function LoginPage() {
           <div className="hero-in-2 w-12 h-px bg-sand mb-10" />
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="hero-in-3 space-y-5" autoComplete="on">
+          <form onSubmit={handleSubmit} method="post" action="/login" className="hero-in-3 space-y-5">
             <div>
-              <label htmlFor="login-email" className="block text-xs text-charcoal/40 uppercase tracking-wider mb-2">
+              <label htmlFor="email" className="block text-xs text-charcoal/40 uppercase tracking-wider mb-2">
                 {t("email")}
               </label>
               <input
-                id="login-email"
+                id="email"
                 name="email"
                 type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
                 required
                 autoComplete="username"
                 placeholder="your@email.com"
-                className="w-full bg-sand rounded-xl px-4 py-3.5 text-sm text-charcoal placeholder:text-charcoal/25 outline-none focus:ring-2 focus:ring-peach/30 transition"
+                className="w-full bg-sand rounded-xl px-4 py-3.5 text-sm text-charcoal placeholder:text-charcoal/25 outline-none focus:ring-2 focus:ring-peach/30 transition autofill:bg-sand autofill:shadow-[inset_0_0_0px_1000px_#F2E8DC]"
               />
             </div>
 
             <div>
-              <label htmlFor="login-password" className="block text-xs text-charcoal/40 uppercase tracking-wider mb-2">
+              <label htmlFor="password" className="block text-xs text-charcoal/40 uppercase tracking-wider mb-2">
                 {t("password")}
               </label>
               <input
-                id="login-password"
+                id="password"
                 name="password"
                 type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
                 required
                 autoComplete="current-password"
                 placeholder="••••••••"
-                className="w-full bg-sand rounded-xl px-4 py-3.5 text-sm text-charcoal placeholder:text-charcoal/25 outline-none focus:ring-2 focus:ring-peach/30 transition"
+                className="w-full bg-sand rounded-xl px-4 py-3.5 text-sm text-charcoal placeholder:text-charcoal/25 outline-none focus:ring-2 focus:ring-peach/30 transition autofill:bg-sand autofill:shadow-[inset_0_0_0px_1000px_#F2E8DC]"
               />
             </div>
 

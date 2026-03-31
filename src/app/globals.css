@@ -3,6 +3,16 @@
 @tailwind utilities;
 
 @layer base {
+  /* Chrome autofill: keep sand background instead of default blue/yellow */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0px 1000px #F2E8DC inset !important;
+    -webkit-text-fill-color: #1C1917 !important;
+    caret-color: #1C1917;
+    transition: background-color 5000s ease-in-out 0s;
+  }
+
   html {
     @apply bg-cream text-charcoal;
     font-family: var(--font-plus-jakarta), system-ui, sans-serif;
