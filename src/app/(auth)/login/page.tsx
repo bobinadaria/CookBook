@@ -64,27 +64,31 @@ export default function LoginPage() {
           <div className="hero-in-2 w-12 h-px bg-sand mb-10" />
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="hero-in-3 space-y-5">
+          <form onSubmit={handleSubmit} className="hero-in-3 space-y-5" autoComplete="on">
             <div>
-              <label className="block text-xs text-charcoal/40 uppercase tracking-wider mb-2">
+              <label htmlFor="login-email" className="block text-xs text-charcoal/40 uppercase tracking-wider mb-2">
                 {t("email")}
               </label>
               <input
+                id="login-email"
+                name="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                autoComplete="email"
+                autoComplete="username"
                 placeholder="your@email.com"
                 className="w-full bg-sand rounded-xl px-4 py-3.5 text-sm text-charcoal placeholder:text-charcoal/25 outline-none focus:ring-2 focus:ring-peach/30 transition"
               />
             </div>
 
             <div>
-              <label className="block text-xs text-charcoal/40 uppercase tracking-wider mb-2">
+              <label htmlFor="login-password" className="block text-xs text-charcoal/40 uppercase tracking-wider mb-2">
                 {t("password")}
               </label>
               <input
+                id="login-password"
+                name="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
