@@ -7,7 +7,6 @@ import { cn } from "@/lib/utils";
 const LOCALES = [
   { code: "ru", label: "RU" },
   { code: "en", label: "EN" },
-  { code: "cs", label: "CS" },
 ] as const;
 
 export default function LanguageSwitcher() {

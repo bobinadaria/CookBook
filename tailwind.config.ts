@@ -1,6 +1,7 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
+  darkMode: "class",
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -9,13 +10,14 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        cream: "#FDFAF5",
-        sand: "#F2E8DC",
-        charcoal: "#1C1917",
-        peach: "#E8956D",
-        "peach-dark": "#D4956A",
-        sage: "#8BAF8C",
-        "sage-dark": "#6B9470",
+        // CSS-variable tokens — all opacity modifiers (e.g. text-charcoal/70) keep working
+        cream:        "hsl(var(--cream)      / <alpha-value>)",
+        sand:         "hsl(var(--sand)       / <alpha-value>)",
+        charcoal:     "hsl(var(--charcoal)   / <alpha-value>)",
+        peach:        "hsl(var(--peach)      / <alpha-value>)",
+        "peach-dark": "hsl(var(--peach-dark) / <alpha-value>)",
+        sage:         "hsl(var(--sage)       / <alpha-value>)",
+        "sage-dark":  "hsl(var(--sage-dark)  / <alpha-value>)",
       },
       borderRadius: {
         card: "24px",

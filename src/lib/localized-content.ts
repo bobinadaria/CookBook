@@ -1,4 +1,4 @@
-export type Locale = "ru" | "en" | "cs";
+export type Locale = "ru" | "en";
 
 export function localizedField(
   record: Record<string, unknown>,

@@ -7,10 +7,10 @@ export default getRequestConfig(async ({ requestLocale }) => {
   let locale = await requestLocale;
 
   // 2. Fallback: read NEXT_LOCALE cookie directly
-  if (!locale || !routing.locales.includes(locale as "ru" | "en" | "cs")) {
+  if (!locale || !routing.locales.includes(locale as "ru" | "en")) {
     const cookieStore = cookies();
     const cookieLocale = cookieStore.get("NEXT_LOCALE")?.value;
-    if (cookieLocale && routing.locales.includes(cookieLocale as "ru" | "en" | "cs")) {
+    if (cookieLocale && routing.locales.includes(cookieLocale as "ru" | "en")) {
       locale = cookieLocale;
     } else {
       locale = routing.defaultLocale;

@@ -15,7 +15,8 @@ export async function POST(req: NextRequest) {
   }
 
   // 2. Verify admin role using service role key (bypasses RLS)
-  if (!(await isAdmin(user.id))) {
+  const adminCheck = await isAdmin(user.id);
+  if (!adminCheck) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
@@ -53,11 +54,8 @@ export async function POST(req: NextRequest) {
       .from("recipes")
       .update({
         title_en: translations.en.title,
-        title_cs: translations.cs.title,
         description_en: translations.en.description,
-        description_cs: translations.cs.description,
         note_en: translations.en.note,
-        note_cs: translations.cs.note,
       })
       .eq("id", recipeId);
 
@@ -74,16 +72,13 @@ export async function POST(req: NextRequest) {
     if (dbSteps) {
       for (const dbStep of dbSteps) {
         const enStep = translations.en.steps.find((s) => s.order === dbStep.order);
-        const csStep = translations.cs.steps.find((s) => s.order === dbStep.order);
 
-        if (enStep || csStep) {
+        if (enStep) {
           await supabase
             .from("steps")
             .update({
-              title_en: enStep?.title ?? null,
-              title_cs: csStep?.title ?? null,
-              description_en: enStep?.description ?? null,
-              description_cs: csStep?.description ?? null,
+              title_en: enStep.title ?? null,
+              description_en: enStep.description ?? null,
             })
             .eq("id", dbStep.id);
         }

@@ -2,14 +2,39 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Design tokens ────────────────────────────────────────────────────────── */
 @layer base {
-  /* Chrome autofill: keep sand background instead of default blue/yellow */
+  :root {
+    /* Light mode — H S% L% (no hsl wrapper, Tailwind injects it) */
+    --cream:      40 67% 97%;    /* #FDFAF5 — main background          */
+    --sand:       32 55% 90%;    /* #F2E8DC — card backgrounds          */
+    --charcoal:   20 10% 11%;    /* #1C1917 — primary text              */
+    --peach:      20 73% 67%;    /* #E8956D — primary accent            */
+    --peach-dark: 25 59% 62%;    /* #D4956A — hover on peach            */
+    --sage:      122 13% 61%;    /* #8BAF8C — secondary accent          */
+    --sage-dark: 125 16% 50%;    /* #6B9470 — hover on sage             */
+  }
+
+  .dark {
+    /* Dark mode — warm near-black palette */
+    --cream:      20 10%  8%;    /* #151211 — very dark warm background */
+    --sand:       20  8% 14%;    /* #231f1d — dark card background      */
+    --charcoal:   35 40% 93%;    /* #f0ebe4 — light warm text           */
+    --peach:      20 73% 67%;    /* unchanged — accent stays warm       */
+    --peach-dark: 25 59% 62%;    /* unchanged                           */
+    --sage:      122 13% 61%;    /* unchanged                           */
+    --sage-dark: 125 16% 50%;    /* unchanged                           */
+  }
+}
+
+@layer base {
+  /* Chrome autofill override */
   input:-webkit-autofill,
   input:-webkit-autofill:hover,
   input:-webkit-autofill:focus {
-    -webkit-box-shadow: 0 0 0px 1000px #F2E8DC inset !important;
-    -webkit-text-fill-color: #1C1917 !important;
-    caret-color: #1C1917;
+    -webkit-box-shadow: 0 0 0px 1000px hsl(32 55% 90%) inset !important;
+    -webkit-text-fill-color: hsl(20 10% 11%) !important;
+    caret-color: hsl(20 10% 11%);
     transition: background-color 5000s ease-in-out 0s;
   }
 
@@ -74,7 +99,7 @@ button[role="switch"]:focus-visible {
   transform-origin: top left;
 }
 
-/* ── Hero fade-in (pure CSS, no JS conflict) ──────────────────────────────── */
+/* ── Hero fade-in ─────────────────────────────────────────────────────────── */
 @keyframes hero-in {
   from {
     opacity: 0;
@@ -107,7 +132,7 @@ button[role="switch"]:focus-visible {
 }
 
 .shimmer-text {
-  background: linear-gradient(90deg, #E8956D 0%, #f5d4b8 40%, #E8956D 60%);
+  background: linear-gradient(90deg, hsl(var(--peach)) 0%, hsl(var(--peach) / 0.5) 40%, hsl(var(--peach)) 60%);
   background-size: 200% auto;
   background-clip: text;
   -webkit-background-clip: text;
@@ -117,7 +142,6 @@ button[role="switch"]:focus-visible {
 }
 
 /* ── Recipe card hover lift ───────────────────────────────────────────────── */
-/* Lift + shadow on image; title lifts the same amount */
 .recipe-card-hover .recipe-card-image,
 .recipe-card-hover .recipe-card-title {
   transition: transform 0.3s cubic-bezier(0.6, 0.6, 0, 1),
@@ -125,13 +149,13 @@ button[role="switch"]:focus-visible {
 }
 .recipe-card-hover:hover .recipe-card-image {
   transform: translateY(-4px);
-  box-shadow: 0 16px 32px rgba(28, 25, 23, 0.12);
+  box-shadow: 0 16px 32px hsl(var(--charcoal) / 0.12);
 }
 .recipe-card-hover:hover .recipe-card-title {
   transform: translateY(-4px);
 }
 
-/* ── Prefers-reduced-motion overrides ────────────────────────────────────── */
+/* ── Prefers-reduced-motion ───────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   .hero-image,
   .hero-in-1,
@@ -146,7 +170,7 @@ button[role="switch"]:focus-visible {
   .shimmer-text {
     animation: none;
     background: none;
-    -webkit-text-fill-color: #E8956D;
+    -webkit-text-fill-color: hsl(var(--peach));
   }
 
   .recipe-card-hover .recipe-card-image,

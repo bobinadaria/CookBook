@@ -4,6 +4,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import "./globals.css";
 import CursorGlow from "@/components/animations/CursorGlow";
+import { ThemeProvider } from "@/components/layout/ThemeProvider";
 
 const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
@@ -50,12 +51,15 @@ export default async function RootLayout({
     <html
       lang={locale}
       className={`${cormorant.variable} ${dmSerif.variable} ${satisfy.variable} ${plusJakarta.variable}`}
+      suppressHydrationWarning
     >
       <body className="antialiased">
-        <NextIntlClientProvider messages={messages}>
-          <CursorGlow />
-          {children}
-        </NextIntlClientProvider>
+        <ThemeProvider>
+          <NextIntlClientProvider messages={messages}>
+            <CursorGlow />
+            {children}
+          </NextIntlClientProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

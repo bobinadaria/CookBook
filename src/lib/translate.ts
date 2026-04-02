@@ -18,14 +18,20 @@ interface TranslationResult {
 
 interface TranslateOutput {
   en: TranslationResult;
-  cs: TranslationResult;
+}
+
+/** Extract retryDelay seconds from a Gemini 429 error message, e.g. "retryDelay\":\"55s\"" */
+function parseRetryDelay(message: string): number {
+  const match = message.match(/"retryDelay"\s*:\s*"(\d+(?:\.\d+)?)s"/);
+  if (match) return Math.ceil(parseFloat(match[1])) * 1000;
+  return 0;
 }
 
 export async function translateRecipe(input: TranslateInput): Promise<TranslateOutput> {
-  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
   const prompt = `You are a professional translator for a personal recipe book website.
-Translate the following recipe from Russian to English and Czech.
+Translate the following recipe from Russian to English.
 
 IMPORTANT RULES:
 - Keep the tone warm, personal, and cozy — this is a personal recipe book
@@ -43,16 +49,10 @@ Return JSON in this exact format:
     "description": "..." or null,
     "note": "..." or null,
     "steps": [{ "order": 1, "title": "..." or null, "description": "..." }]
-  },
-  "cs": {
-    "title": "...",
-    "description": "..." or null,
-    "note": "..." or null,
-    "steps": [{ "order": 1, "title": "..." or null, "description": "..." }]
   }
 }`;
 
-  const maxRetries = 3;
+  const maxRetries = 4;
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
       const result = await model.generateContent(prompt);
@@ -62,9 +62,15 @@ Return JSON in this exact format:
       const cleaned = text.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim();
       return JSON.parse(cleaned) as TranslateOutput;
     } catch (err: unknown) {
-      const is429 = err instanceof Error && (err.message.includes("429") || err.message.includes("RESOURCE_EXHAUSTED"));
-      if (!is429 || attempt === maxRetries) throw err;
-      const delay = Math.pow(2, attempt) * 1000 + Math.random() * 500;
+      const isQuota =
+        err instanceof Error &&
+        (err.message.includes("429") || err.message.includes("RESOURCE_EXHAUSTED"));
+      if (!isQuota || attempt === maxRetries) throw err;
+
+      // Respect the retryDelay Google gives us; fall back to exponential backoff
+      const googleDelay = err instanceof Error ? parseRetryDelay(err.message) : 0;
+      const backoff = Math.pow(2, attempt + 1) * 1000 + Math.random() * 1000;
+      const delay = Math.max(googleDelay, backoff);
       await new Promise((r) => setTimeout(r, delay));
     }
   }

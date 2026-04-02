@@ -61,7 +61,7 @@ export default function RecipesPage() {
       supabase
         .from("recipes")
         .select(`
-          id, title, slug, description, note, cover_image, published, created_at, updated_at,
+          id, title, title_en, title_cs, slug, description, note, cover_image, published, created_at, updated_at,
           recipe_categories ( categories ( id, name, slug, type ) )
         `)
         .eq("published", true)

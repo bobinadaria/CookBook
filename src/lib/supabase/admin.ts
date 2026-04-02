@@ -17,11 +17,15 @@ export function createServiceRoleClient() {
  */
 export async function isAdmin(userId: string): Promise<boolean> {
   const supabase = createServiceRoleClient();
-  const { data: profile } = await supabase
+  const { data: profile, error } = await supabase
     .from("profiles")
     .select("role")
     .eq("id", userId)
     .single();
+
+  if (error) {
+    console.error("[isAdmin] Failed to check role:", error.message, "userId:", userId);
+  }
 
   return profile?.role === "admin";
 }
