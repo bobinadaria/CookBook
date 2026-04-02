@@ -25,7 +25,6 @@ interface RecipeCardProps {
 
 function getLocalizedTitle(recipe: RecipeCardProps["recipe"], locale: Locale): string {
   if (locale === "en" && recipe.title_en) return recipe.title_en;
-  if (locale === "cs" && recipe.title_cs) return recipe.title_cs;
   return recipe.title;
 }
 
