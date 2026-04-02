@@ -28,8 +28,8 @@ export default function LoginPage() {
       setError(t("error"));
       setLoading(false);
     } else {
-      router.push("/");
-      router.refresh();
+      // Full navigation so Chrome detects successful login and offers to save password
+      window.location.href = "/";
     }
   };
 
