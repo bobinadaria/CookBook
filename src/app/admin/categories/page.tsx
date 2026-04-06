@@ -48,6 +48,7 @@ export default function AdminCategoriesPage() {
     setSaving(true);
     setError(null);
 
+    const supabase = createClient();
     const slug = toSlug(name);
     const { error: err } = await supabase
       .from("categories")
@@ -63,6 +64,7 @@ export default function AdminCategoriesPage() {
   };
 
   const handleDelete = async (id: string) => {
+    const supabase = createClient();
     await supabase.from("categories").delete().eq("id", id);
     await load();
   };
@@ -75,6 +77,7 @@ export default function AdminCategoriesPage() {
 
   const handleEditSave = async () => {
     if (!editId || !editName.trim()) return;
+    const supabase = createClient();
     await supabase
       .from("categories")
       .update({ name: editName.trim(), slug: toSlug(editName), type: editType })
