@@ -43,7 +43,7 @@ const slides: Slide[] = [
     ),
     notes:
       "Uvítací slide. Přivítejte publikum, řekněte pár slov o sobě — nejste vývojář, nejste technik. Jen člověk s nápadem a chuťou zkusit něco nového. Dnešní prezentace je o tom, jak AI změnila přístup k tvorbě webů pro netech lidi.",
-    iframeUrl: "/en",
+    iframeUrl: "/",
   },
   {
     id: 2,
@@ -80,7 +80,7 @@ const slides: Slide[] = [
     ),
     notes:
       "Zdůrazněte, že tohle není prezentace pro vývojáře. Je to příběh o tom, co se stane, když normální člověk dostane do rukou mocný nástroj. Mluvte o frustraci z toho, že máte nápad, ale nemáte technické zázemí.",
-    iframeUrl: "/en",
+    iframeUrl: "/",
   },
   {
     id: 3,
@@ -138,7 +138,7 @@ const slides: Slide[] = [
     ),
     notes:
       "Ukažte, že každý nástroj má konkrétní roli. Claude Code není jen chatbot — je to asistent přímo v terminálu, vidí soubory, spouští příkazy, opravuje chyby v reálném čase. Zdůrazněte, že free tier Supabase a Vercel umožnil celý projekt bez nákladů.",
-    iframeUrl: "/en",
+    iframeUrl: "/",
   },
   {
     id: 4,
@@ -188,7 +188,7 @@ const slides: Slide[] = [
     ),
     notes:
       "Toto je klíčový slide. Vysvětlete pojem 'vibe-coding' — programování na základě záměru, ne syntaxe. Nemusíte znát React hooks, TypeScript generics ani SQL JOIN — stačí popsat výsledek. AI překládá záměr do kódu. Vaše role je být product managerem vlastního projektu.",
-    iframeUrl: "/en/recipes",
+    iframeUrl: "/recipes",
   },
   {
     id: 5,
@@ -231,7 +231,7 @@ const slides: Slide[] = [
     ),
     notes:
       "Plan Mode je funkce Claude Code, která zabrání AI psát kód bez schválení plánu. Vhodné pro větší featury. Ukažte, že pro začátečníka je to obzvlášť důležité — jinak skončíte s kódem, kterému nerozumíte a nedokážete ho opravit.",
-    iframeUrl: "/en",
+    iframeUrl: "/",
   },
   {
     id: 6,
@@ -275,7 +275,7 @@ const slides: Slide[] = [
     ),
     notes:
       "Buďte konkrétní. Cyrilický slug byl frustrující — URL s ruskými znaky nefungovaly ve sdílení. Ztráta dat formuláře byl emocionální moment — hodina práce na receptu pryč jedním kliknutím. Build chyby ukázaly rozdíl mezi 'funguje u mě' a 'funguje všude'. AI všechny problémy vyřešil, ale potřeboval přesný popis chyby.",
-    iframeUrl: "/en/recipes",
+    iframeUrl: "/recipes",
   },
   {
     id: 7,
@@ -325,7 +325,7 @@ const slides: Slide[] = [
     ),
     notes:
       "Toto je jeden z nejimpresivnějších momentů projektu. Ukažte, že AI může nejen psát kód, ale také obsah. Načetl recept z jiného webu, přeložil ho, strukturoval a uložil — vše v jednom příkazu. To je úroveň automatizace, která dříve vyžadovala vývojáře.",
-    iframeUrl: "/en/recipes/muraveynik",
+    iframeUrl: "/recipes/muraveynik",
   },
   {
     id: 8,
@@ -377,7 +377,7 @@ const slides: Slide[] = [
     ),
     notes:
       "Bezpečnost je téma, které začátečníci podceňují. Vysvětlete, že omylem commitovaný API klíč na GitHub může vést k velkým účtům (botové prohledávají GitHub). Supabase RLS je elegantní řešení — pravidla jsou v databázi, ne jen v kódu. Claude Code mě varoval, když jsem se ptala na věci, které by mohly být nebezpečné.",
-    iframeUrl: "/en",
+    iframeUrl: "/",
   },
   {
     id: 9,
@@ -438,7 +438,7 @@ const slides: Slide[] = [
     ),
     notes:
       "Praktická ekonomika AI asistence. Tokeny jsou jako minuty telefonního tarifu — platíte za každé slovo, které AI přečte i napíše. Velký zaneřáděný soubor stojí více než čistý modulární kód. Refaktoring není jen o čistotě — je to i o úspoře peněz při dalším vývoji.",
-    iframeUrl: "/en",
+    iframeUrl: "/",
   },
   {
     id: 10,
@@ -495,7 +495,7 @@ const slides: Slide[] = [
     ),
     notes:
       "Přepínání modelů je jako volba nástroje — kladivo vs šroubovák. Pro rutinní práci je Haiku dost rychlý a levný. Sonnet je sweet spot pro většinu úkolů. Opus nasadíte jen když to opravdu potřebujete. Ukažte, že tohle vědění šetří peníze a čas.",
-    iframeUrl: "/en",
+    iframeUrl: "/",
   },
   {
     id: 11,
@@ -550,7 +550,7 @@ const slides: Slide[] = [
     ),
     notes:
       "Over-engineering je skutečný problém. AI je jako šikovný asistent, který chce udělat co nejlepší práci — a 'nejlepší' pro inženýra může znamenat škálovatelnou enterprise architekturu. Vy chcete osobní kuchařku, ne Amazon. Naučte se říkat ne komplexitě a udržet focus na problém, který řešíte.",
-    iframeUrl: "/en",
+    iframeUrl: "/",
   },
   {
     id: 12,
@@ -606,7 +606,7 @@ const slides: Slide[] = [
     ),
     notes:
       "Konkrétní výsledky. Ukažte živý web — přepněte na iframe s recepty. Zdůrazněte, že tohle vše existuje za 0 Kč na hostingu. Celé bylo postaveno za víkend. Bez týmu vývojářů. Bez předchozích zkušeností s backendem.",
-    iframeUrl: "/en/recipes",
+    iframeUrl: "/recipes",
   },
   {
     id: 13,
@@ -650,7 +650,7 @@ const slides: Slide[] = [
     ),
     notes:
       "Roadmapa ukazuje, že projekt je živý a roste. Zdůrazněte AI generování receptů — to je přirozený next step pro kuchařskou aplikaci. Uzavřete myšlenkou, že AI demokratizuje vývoj softwaru. Nemusíte být vývojář, abyste realizovali svou vizi.",
-    iframeUrl: "/en",
+    iframeUrl: "/",
   },
   {
     id: 14,
@@ -688,7 +688,7 @@ const slides: Slide[] = [
     ),
     notes:
       "Závěrečný slide. Nechte na ekranu otevřený web v iframe — ať lidé vidí živý výsledek. Připravte se na otázky o ceně, čase a nutných znalostech. Nejčastější otázka: 'Musím umět programovat?' Odpověď: trochu pomáhá, ale není nutné — důležitější je schopnost přesně popsat, co chcete.",
-    iframeUrl: "/en/recipes",
+    iframeUrl: "/recipes",
   },
 ];
 
