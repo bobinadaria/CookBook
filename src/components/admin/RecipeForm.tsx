@@ -262,7 +262,7 @@ export default function RecipeForm({ recipeId, defaultValues }: RecipeFormProps)
       const draft = {
         title, slug, description, note, ingredients, published, featured,
         categoryIds: Array.from(selectedCategoryIds),
-        steps: steps.map(({ photoFile: _photoFile, ...rest }) => rest),
+        steps: steps.map((s) => ({ id: s.id, order: s.order, title: s.title, description: s.description, photo_url: s.photo_url })),
       };
       localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
     }, 500);

@@ -29,10 +29,8 @@ export default function AdminCategoriesPage() {
   const [editName, setEditName] = useState("");
   const [editType, setEditType] = useState<CategoryType>("meal_type");
 
-  const supabase = createClient();
-
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const load = useCallback(async () => {
+    const supabase = createClient();
     const { data } = await supabase
       .from("categories")
       .select("*")
