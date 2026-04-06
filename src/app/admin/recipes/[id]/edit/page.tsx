@@ -20,6 +20,7 @@ export default function EditRecipePage() {
           slug: recipe.slug,
           description: recipe.description ?? "",
           note: recipe.note ?? "",
+          ingredients: recipe.ingredients ?? "",
           published: recipe.published,
           featured: recipe.featured ?? false,
           cover_image: recipe.cover_image ?? undefined,

@@ -22,6 +22,8 @@ interface RecipeFormProps {
   defaultValues?: Partial<RecipeInput & { cover_image: string }>;
 }
 
+const DRAFT_KEY = "cookbook-recipe-draft";
+
 const CATEGORY_LABELS: Record<string, string> = {
   meal_type: "Тип блюда",
   meal_time: "Приём пищи",
@@ -207,6 +209,7 @@ export default function RecipeForm({ recipeId, defaultValues }: RecipeFormProps)
   const [slugEdited, setSlugEdited] = useState(!!defaultValues?.slug);
   const [description, setDescription] = useState(defaultValues?.description ?? "");
   const [note, setNote] = useState(defaultValues?.note ?? "");
+  const [ingredients, setIngredients] = useState(defaultValues?.ingredients ?? "");
   const [published, setPublished] = useState(defaultValues?.published ?? false);
   const [featured, setFeatured] = useState(defaultValues?.featured ?? false);
 
@@ -230,6 +233,41 @@ export default function RecipeForm({ recipeId, defaultValues }: RecipeFormProps)
   const [error, setError] = useState<string | null>(null);
   const [translating, setTranslating] = useState(false);
   const [translateSuccess, setTranslateSuccess] = useState(false);
+
+  // Restore draft from localStorage (only for new recipes)
+  const draftRestored = useRef(false);
+  useEffect(() => {
+    if (recipeId || draftRestored.current) return;
+    draftRestored.current = true;
+    try {
+      const saved = localStorage.getItem(DRAFT_KEY);
+      if (!saved) return;
+      const d = JSON.parse(saved);
+      if (d.title) setTitle(d.title);
+      if (d.slug) { setSlug(d.slug); setSlugEdited(true); }
+      if (d.description) setDescription(d.description);
+      if (d.note) setNote(d.note);
+      if (d.ingredients) setIngredients(d.ingredients);
+      if (d.published) setPublished(d.published);
+      if (d.featured) setFeatured(d.featured);
+      if (d.categoryIds) setSelectedCategoryIds(new Set(d.categoryIds));
+      if (d.steps?.length) setSteps(d.steps.map((s: StepInput) => ({ ...s, photoFile: undefined })));
+    } catch { /* ignore corrupt data */ }
+  }, [recipeId]);
+
+  // Auto-save draft to localStorage (only for new recipes)
+  useEffect(() => {
+    if (recipeId) return;
+    const timer = setTimeout(() => {
+      const draft = {
+        title, slug, description, note, ingredients, published, featured,
+        categoryIds: Array.from(selectedCategoryIds),
+        steps: steps.map(({ photoFile, ...rest }) => rest),
+      };
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [title, slug, description, note, ingredients, published, featured, selectedCategoryIds, steps, recipeId]);
 
   // Auto-generate slug from title
   useEffect(() => {
@@ -301,6 +339,7 @@ export default function RecipeForm({ recipeId, defaultValues }: RecipeFormProps)
       slug: slug.trim(),
       description: description.trim(),
       note: note.trim(),
+      ingredients: ingredients.trim(),
       published,
       featured,
       categoryIds: Array.from(selectedCategoryIds),
@@ -314,6 +353,7 @@ export default function RecipeForm({ recipeId, defaultValues }: RecipeFormProps)
         await updateRecipe(recipeId, input);
       } else {
         await createRecipe(input);
+        localStorage.removeItem(DRAFT_KEY);
       }
       router.push("/admin/recipes");
       router.refresh();
@@ -431,6 +471,20 @@ export default function RecipeForm({ recipeId, defaultValues }: RecipeFormProps)
             Отображается на странице рецепта в рукописном стиле
           </p>
         </div>
+      </section>
+
+      {/* ── Ingredients ── */}
+      <section>
+        <FieldLabel>Состав / Ингредиенты</FieldLabel>
+        <Textarea
+          rows={6}
+          value={ingredients}
+          onChange={(e) => setIngredients(e.target.value)}
+          placeholder={"Персик\nКамамбер\nТимьян\nКруассаны\nМёд\nГрецкий орех"}
+        />
+        <p className="mt-1 text-xs text-charcoal/30">
+          По одному ингредиенту на строку
+        </p>
       </section>
 
       {/* ── Categories ── */}

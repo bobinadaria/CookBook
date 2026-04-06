@@ -43,6 +43,7 @@
   "recipe": {
     "backToAll": "← Všechny recepty",
     "dishStory": "příběh pokrmu",
+    "ingredients": "Ingredience",
     "preparation": "Příprava",
     "step": "Krok {number}"
   },

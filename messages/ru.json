@@ -43,6 +43,7 @@
   "recipe": {
     "backToAll": "← Все рецепты",
     "dishStory": "история блюда",
+    "ingredients": "Состав",
     "preparation": "Приготовление",
     "step": "Шаг {number}"
   },

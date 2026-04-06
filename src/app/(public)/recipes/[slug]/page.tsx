@@ -33,6 +33,32 @@ async function getRecipe(slug: string) {
   };
 }
 
+/** Parse ingredients string into sections and items */
+function parseIngredients(raw: string) {
+  const lines = raw.split("\n").filter((l) => l.trim());
+  const sections: { header: string | null; items: string[] }[] = [];
+  let current: { header: string | null; items: string[] } = { header: null, items: [] };
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    // Detect section headers: lines that start AND end with —
+    const isHeader = /^—.+—$/.test(trimmed);
+    if (isHeader) {
+      if (current.items.length > 0 || current.header !== null) {
+        sections.push(current);
+      }
+      current = { header: trimmed.replace(/^—\s*/, "").replace(/\s*—$/, ""), items: [] };
+    } else {
+      current.items.push(trimmed);
+    }
+  }
+  if (current.items.length > 0 || current.header !== null) {
+    sections.push(current);
+  }
+
+  return sections;
+}
+
 export default async function RecipePage({ params }: RecipePageProps) {
   const recipe = await getRecipe(decodeURIComponent(params.slug));
   if (!recipe) notFound();
@@ -47,6 +73,9 @@ export default async function RecipePage({ params }: RecipePageProps) {
   const description = localizedField(recipe, "description", l);
   const note = localizedField(recipe, "note", l);
 
+  const ingredientSections = recipe.ingredients ? parseIngredients(recipe.ingredients) : [];
+  const hasMultipleSections = ingredientSections.some((s) => s.header !== null);
+
   return (
     <main className="min-h-screen">
       <div className="px-6 pt-10 max-w-5xl mx-auto">
@@ -55,6 +84,7 @@ export default async function RecipePage({ params }: RecipePageProps) {
         </Link>
       </div>
 
+      {/* ── Hero: title + cover ── */}
       <section className="px-6 pt-8 pb-12 max-w-5xl mx-auto grid md:grid-cols-2 gap-10 items-start">
         <div>
           {recipe.categories.length > 0 && (
@@ -88,6 +118,7 @@ export default async function RecipePage({ params }: RecipePageProps) {
         )}
       </section>
 
+      {/* ── Story / Note ── */}
       {note && (
         <section className="px-6 pb-12 max-w-5xl mx-auto">
           <div className="bg-sand rounded-card p-8 md:p-10">
@@ -99,36 +130,81 @@ export default async function RecipePage({ params }: RecipePageProps) {
         </section>
       )}
 
+      {/* ── Ingredients ── */}
+      {ingredientSections.length > 0 && (
+        <section className="px-6 pb-14 max-w-5xl mx-auto">
+          <h2 className="font-serif text-4xl text-charcoal mb-8">{t("ingredients")}</h2>
+
+          {hasMultipleSections ? (
+            /* Sectioned layout: cards per group */
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {ingredientSections.map((section, si) => (
+                <div key={si} className="bg-sand/60 rounded-2xl p-5">
+                  {section.header && (
+                    <p className="text-[11px] uppercase tracking-widest text-charcoal/40 font-medium mb-3">
+                      {section.header}
+                    </p>
+                  )}
+                  <ul className="space-y-2">
+                    {section.items.map((item, ii) => (
+                      <li key={ii} className="flex items-start gap-2.5 text-sm text-charcoal/75">
+                        <span className="w-1 h-1 rounded-full bg-peach mt-2 shrink-0" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          ) : (
+            /* Simple flat list — no sections */
+            <ul className="grid sm:grid-cols-2 gap-x-8 gap-y-2.5">
+              {ingredientSections[0]?.items.map((item, i) => (
+                <li key={i} className="flex items-center gap-3 text-charcoal/70">
+                  <span className="w-1.5 h-1.5 rounded-full bg-peach/60 shrink-0" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
+
+      {/* ── Steps ── */}
       {recipe.steps.length > 0 && (
         <section className="px-6 pb-24 max-w-5xl mx-auto">
-          <h2 className="font-serif text-4xl text-charcoal mb-10">{t("preparation")}</h2>
-          <div className="space-y-12">
+          <h2 className="font-serif text-4xl text-charcoal mb-8">{t("preparation")}</h2>
+
+          <div className="grid md:grid-cols-2 gap-5">
             {recipe.steps.map((step: Step, index: number) => {
               const stepTitle = localizedField(step as unknown as Record<string, unknown>, "title", l);
               const stepDesc = localizedField(step as unknown as Record<string, unknown>, "description", l) ?? step.description;
 
               return (
-                <div key={step.id} className="grid md:grid-cols-12 gap-6 items-start">
-                  <div className="md:col-span-1">
-                    <span className="font-handwritten text-4xl text-peach/50">{index + 1}</span>
-                  </div>
-                  <div className="md:col-span-6">
+                <div key={step.id} className="bg-sand/50 rounded-2xl p-6 flex flex-col gap-4">
+                  {/* Step number + title */}
+                  <div className="flex items-center gap-3">
+                    <span className="font-handwritten text-3xl text-peach/50 leading-none shrink-0">
+                      {index + 1}
+                    </span>
                     {stepTitle && (
-                      <h3 className="font-serif text-xl text-charcoal mb-3">{stepTitle}</h3>
+                      <h3 className="font-serif text-lg text-charcoal leading-snug">{stepTitle}</h3>
                     )}
-                    <p className="text-charcoal/70 leading-relaxed">{stepDesc}</p>
                   </div>
+
+                  {/* Description */}
+                  <p className="text-charcoal/65 text-sm leading-relaxed">{stepDesc}</p>
+
+                  {/* Photo if available */}
                   {step.photo_url && (
-                    <div className="md:col-span-5">
-                      <div className="relative aspect-[4/3] rounded-2xl overflow-hidden shadow-card">
-                        <Image
-                          src={step.photo_url}
-                          alt={stepTitle ?? t("step", { number: index + 1 })}
-                          fill
-                          className="object-cover"
-                          sizes="(max-width: 768px) 100vw, 40vw"
-                        />
-                      </div>
+                    <div className="relative aspect-[4/3] rounded-xl overflow-hidden mt-auto">
+                      <Image
+                        src={step.photo_url}
+                        alt={stepTitle ?? t("step", { number: index + 1 })}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 100vw, 40vw"
+                      />
                     </div>
                   )}
                 </div>

@@ -43,6 +43,7 @@
   "recipe": {
     "backToAll": "← All recipes",
     "dishStory": "dish story",
+    "ingredients": "Ingredients",
     "preparation": "Preparation",
     "step": "Step {number}"
   },

@@ -26,6 +26,7 @@ export interface Recipe {
   slug: string;
   description: string | null;
   note: string | null;
+  ingredients: string | null;
   cover_image: string | null;
   published: boolean;
   featured: boolean;

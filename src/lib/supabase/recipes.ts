@@ -96,6 +96,7 @@ export interface RecipeInput {
   slug: string;
   description: string;
   note: string;
+  ingredients: string;
   published: boolean;
   featured: boolean;
   categoryIds: string[];
@@ -105,12 +106,25 @@ export interface RecipeInput {
 }
 
 // ── Slug helper ─────────────────────────────────────────────────────────────
+
+const CYRILLIC_MAP: Record<string, string> = {
+  а: "a", б: "b", в: "v", г: "g", д: "d", е: "e", ё: "yo", ж: "zh",
+  з: "z", и: "i", й: "y", к: "k", л: "l", м: "m", н: "n", о: "o",
+  п: "p", р: "r", с: "s", т: "t", у: "u", ф: "f", х: "kh", ц: "ts",
+  ч: "ch", ш: "sh", щ: "shch", ъ: "", ы: "y", ь: "", э: "e", ю: "yu",
+  я: "ya",
+};
+
 export function toSlug(title: string) {
   return title
     .toLowerCase()
-    .replace(/[^a-zа-яё0-9\s-]/gi, "")
+    .split("")
+    .map((ch) => CYRILLIC_MAP[ch] ?? ch)
+    .join("")
+    .replace(/[^a-z0-9\s-]/g, "")
     .trim()
-    .replace(/\s+/g, "-");
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-");
 }
 
 // ── Upload helpers ───────────────────────────────────────────────────────────
@@ -152,6 +166,7 @@ export async function createRecipe(input: RecipeInput): Promise<string> {
       slug: input.slug,
       description: input.description || null,
       note: input.note || null,
+      ingredients: input.ingredients || null,
       cover_image,
       published: input.published,
       featured: input.featured,
@@ -214,6 +229,7 @@ export async function updateRecipe(recipeId: string, input: RecipeInput): Promis
       slug: input.slug,
       description: input.description || null,
       note: input.note || null,
+      ingredients: input.ingredients || null,
       cover_image,
       published: input.published,
       featured: input.featured,
