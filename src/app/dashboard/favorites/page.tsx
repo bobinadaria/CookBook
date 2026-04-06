@@ -52,6 +52,7 @@ function FavoritesContent() {
         setRecipes(data ?? []);
         setLoading(false);
       });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id, favorites]);
 
   if (!checked || loading) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { toSlug } from "@/lib/supabase/recipes";
@@ -31,7 +31,8 @@ export default function AdminCategoriesPage() {
 
   const supabase = createClient();
 
-  const load = async () => {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const load = useCallback(async () => {
     const { data } = await supabase
       .from("categories")
       .select("*")
@@ -39,9 +40,9 @@ export default function AdminCategoriesPage() {
       .order("name");
     setCategories(data ?? []);
     setLoading(false);
-  };
+  }, []);
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [load]);
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();

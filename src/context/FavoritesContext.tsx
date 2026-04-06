@@ -67,6 +67,7 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
       .then(({ data }) => {
         if (data) setFavorites(new Set(data.map((r: { recipe_slug: string }) => r.recipe_slug)));
       });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
   const toggle = useCallback(async (slug: string) => {
