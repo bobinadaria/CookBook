@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { Category } from "@/types";
 import { cn } from "@/lib/utils";
 
@@ -28,6 +28,7 @@ export default function FilterDropdown({
   onClose,
 }: FilterDropdownProps) {
   const t = useTranslations("recipes");
+  const locale = useLocale();
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const [panelPos, setPanelPos] = useState({ top: 0, left: 0 });
@@ -110,7 +111,7 @@ export default function FilterDropdown({
                   </svg>
                 )}
               </span>
-              {cat.name}
+              {(locale === "en" && cat.name_en) ? cat.name_en : cat.name}
             </button>
           );
         })}

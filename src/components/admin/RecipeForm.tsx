@@ -376,8 +376,11 @@ export default function RecipeForm({ recipeId, defaultValues }: RecipeFormProps)
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ recipeId }),
       });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error || "Translation failed");
+      // Guard against non-JSON responses (e.g. Vercel timeout returning HTML)
+      const text = await res.text();
+      let json: { error?: string } = {};
+      try { json = JSON.parse(text); } catch { /* non-JSON body */ }
+      if (!res.ok) throw new Error(json.error || `Ошибка ${res.status}: ${res.statusText || "Translation failed"}`);
       setTranslateSuccess(true);
       setTimeout(() => setTranslateSuccess(false), 4000);
     } catch (err: unknown) {

@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Missing or invalid recipeId" }, { status: 400 });
   }
 
-  // 3. Fetch recipe with steps
+  // 4. Fetch recipe with steps
   const { data: recipe, error: fetchError } = await supabase
     .from("recipes")
     .select("title, description, note, ingredients, steps(order, title, description)")
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
   const steps = (recipe.steps as { order: number; title: string | null; description: string }[])
     .sort((a, b) => a.order - b.order);
 
-  // 4. Translate via Gemini
+  // 5. Translate via Gemini
   try {
     const translations = await translateRecipe({
       title: recipe.title,
@@ -50,21 +50,34 @@ export async function POST(req: NextRequest) {
       steps,
     });
 
-    // 5. Save translations to recipes table
+    // 6. Save core fields; try with ingredients_en, fall back without if column missing
+    const coreUpdate = {
+      title_en: translations.en.title,
+      description_en: translations.en.description,
+      note_en: translations.en.note,
+    };
+
+    const withIngredients = { ...coreUpdate, ingredients_en: translations.en.ingredients ?? null };
+
     const { error: updateError } = await supabase
       .from("recipes")
-      .update({
-        title_en: translations.en.title,
-        description_en: translations.en.description,
-        note_en: translations.en.note,
-        ingredients_en: translations.en.ingredients ?? null,
-      })
+      .update(withIngredients)
       .eq("id", recipeId);
 
-    if (updateError) throw updateError;
+    if (updateError) {
+      // If ingredients_en column doesn't exist yet in DB, retry without it
+      if (updateError.message?.includes("ingredients_en")) {
+        const { error: retryError } = await supabase
+          .from("recipes")
+          .update(coreUpdate)
+          .eq("id", recipeId);
+        if (retryError) throw retryError;
+      } else {
+        throw updateError;
+      }
+    }
 
-    // 6. Update step translations
-    // Fetch steps with IDs to match by order
+    // 7. Update step translations
     const { data: dbSteps } = await supabase
       .from("steps")
       .select("id, order")
@@ -74,7 +87,6 @@ export async function POST(req: NextRequest) {
     if (dbSteps) {
       for (const dbStep of dbSteps) {
         const enStep = translations.en.steps.find((s) => s.order === dbStep.order);
-
         if (enStep) {
           await supabase
             .from("steps")

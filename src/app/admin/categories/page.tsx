@@ -20,6 +20,7 @@ export default function AdminCategoriesPage() {
 
   // New category form
   const [name, setName] = useState("");
+  const [nameEn, setNameEn] = useState("");
   const [type, setType] = useState<CategoryType>("meal_type");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -27,6 +28,7 @@ export default function AdminCategoriesPage() {
   // Edit state
   const [editId, setEditId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
+  const [editNameEn, setEditNameEn] = useState("");
   const [editType, setEditType] = useState<CategoryType>("meal_type");
 
   const load = useCallback(async () => {
@@ -52,12 +54,13 @@ export default function AdminCategoriesPage() {
     const slug = toSlug(name);
     const { error: err } = await supabase
       .from("categories")
-      .insert({ name: name.trim(), slug, type });
+      .insert({ name: name.trim(), name_en: nameEn.trim() || null, slug, type });
 
     if (err) {
       setError(err.message.includes("duplicate") ? "Категория с таким slug уже существует" : err.message);
     } else {
       setName("");
+      setNameEn("");
       await load();
     }
     setSaving(false);
@@ -72,6 +75,7 @@ export default function AdminCategoriesPage() {
   const startEdit = (cat: Category) => {
     setEditId(cat.id);
     setEditName(cat.name);
+    setEditNameEn(cat.name_en ?? "");
     setEditType(cat.type);
   };
 
@@ -80,7 +84,7 @@ export default function AdminCategoriesPage() {
     const supabase = createClient();
     await supabase
       .from("categories")
-      .update({ name: editName.trim(), slug: toSlug(editName), type: editType })
+      .update({ name: editName.trim(), name_en: editNameEn.trim() || null, slug: toSlug(editName), type: editType })
       .eq("id", editId);
     setEditId(null);
     await load();
@@ -107,8 +111,14 @@ export default function AdminCategoriesPage() {
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Название категории"
-            className="flex-1 min-w-[200px] bg-cream rounded-xl px-4 py-3 text-sm text-charcoal placeholder:text-charcoal/25 outline-none focus:ring-2 focus:ring-peach/30 transition"
+            placeholder="Название (рус)"
+            className="flex-1 min-w-[160px] bg-cream rounded-xl px-4 py-3 text-sm text-charcoal placeholder:text-charcoal/25 outline-none focus:ring-2 focus:ring-peach/30 transition"
+          />
+          <input
+            value={nameEn}
+            onChange={(e) => setNameEn(e.target.value)}
+            placeholder="Name (EN)"
+            className="flex-1 min-w-[160px] bg-cream rounded-xl px-4 py-3 text-sm text-charcoal placeholder:text-charcoal/25 outline-none focus:ring-2 focus:ring-peach/30 transition"
           />
           <select
             value={type}
@@ -156,8 +166,19 @@ export default function AdminCategoriesPage() {
                           <input
                             value={editName}
                             onChange={(e) => setEditName(e.target.value)}
-                            className="bg-transparent text-xs text-charcoal outline-none w-24"
+                            className="bg-transparent text-xs text-charcoal outline-none w-20"
+                            placeholder="RU"
                             autoFocus
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") handleEditSave();
+                              if (e.key === "Escape") setEditId(null);
+                            }}
+                          />
+                          <input
+                            value={editNameEn}
+                            onChange={(e) => setEditNameEn(e.target.value)}
+                            className="bg-transparent text-xs text-charcoal/60 outline-none w-20"
+                            placeholder="EN"
                             onKeyDown={(e) => {
                               if (e.key === "Enter") handleEditSave();
                               if (e.key === "Escape") setEditId(null);

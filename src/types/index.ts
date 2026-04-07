@@ -16,6 +16,7 @@ export type CategoryType =
 export interface Category {
   id: string;
   name: string;
+  name_en?: string | null;
   slug: string;
   type: CategoryType;
 }
