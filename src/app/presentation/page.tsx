@@ -181,7 +181,7 @@ const slides: Slide[] = [
     ),
     right: <IframePanel src="/" />,
     notes:
-      "Uvítací slide. Přivítejte publikum — nejste vývojář, nejste technik. Jen člověk s nápadem. Dnešní prezentace je o tom, jak AI změnila přístup k tvorbě webů pro netech lidi. Napravo vidíte živý výsledek.",
+      "Ahoj všichni! Jsem Daria. Pracuju v IT, ale na byznysové straně — ne jako vývojářka. Přesto jsem za víkend postavila fungující web s databází, přihlašováním a admin panelem. Napravo na obrazovce vidíte živý výsledek — to není mockup, to je skutečný web běžící na internetu. Dnes vám ukážu jak, co mě to stálo a co jsem se naučila.",
   },
 
   /* 2 ─ Kdo jsem */
@@ -262,7 +262,7 @@ const slides: Slide[] = [
       />
     ),
     notes:
-      "Ukažte CLAUDE.md — to je soubor, který jsem napsala Claudovi jako zadání projektu. Popsala jsem v něm celý design systém, databázové schéma, strukturu souborů. Čím lepší zadání, tím lepší výsledek.",
+      "Kde jsem začínala? HTML a CSS z kurzů — to bylo vše. Backend, databáze, deployment — černý box. Ale měla jsem konkrétní vizi: osobní kuchařku, která vypadá jako umělecký objekt, ne generický web. Klíčový posun byl, když jsem si uvědomila: nemusím znát kód, musím znát svůj produkt. A to jsem znala. Napravo vidíte CLAUDE.md — to je soubor, který jsem napsala jako zadání pro AI. Popsala jsem v něm design systém, barvy, fonty, strukturu databáze. Čím lepší zadání, tím lepší výsledek. Věnujte mu čas.",
   },
 
   /* 3 ─ Nástroje */
@@ -300,7 +300,14 @@ const slides: Slide[] = [
               role: "Hosting a deploy",
               color: "bg-charcoal/5",
               icon: "🚀",
-              desc: "Automatický deploy z GitHubu — push = live za 2 minuty",
+              desc: "Automatický deploy z GitHubu — push = live za ~1 minutu",
+            },
+            {
+              name: "Google Translate API",
+              role: "Překlad obsahu receptů",
+              color: "bg-blue-50",
+              icon: "🌐",
+              desc: "Překlad receptů RU↔EN↔CS — použito pro lokalizaci, cena ~0,26 Kč celkem",
             },
           ].map((tool) => (
             <div key={tool.name} className={cn("rounded-2xl p-5", tool.color)}>
@@ -315,9 +322,20 @@ const slides: Slide[] = [
             </div>
           ))}
         </div>
-        <p className="text-center text-xs text-charcoal/35 uppercase tracking-widest">
-          Vše zdarma na free tier (kromě času a nervů)
-        </p>
+        <div className="flex items-center justify-center gap-6 text-xs text-charcoal/40 border-t border-charcoal/8 pt-3">
+          <span className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-peach/60" />
+            Claude Code: <strong className="text-charcoal/60">20 €/měsíc</strong>
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-sage/60" />
+            Google Translate API: <strong className="text-charcoal/60">~0,26 Kč</strong>
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-charcoal/20" />
+            Hosting + DB + Deploy: <strong className="text-charcoal/60">0 Kč</strong>
+          </span>
+        </div>
       </div>
     ),
     right: (
@@ -349,7 +367,7 @@ const slides: Slide[] = [
       />
     ),
     notes:
-      "Claude Code se instaluje jako npm balíček a spouští přímo v terminálu uvnitř projektu. Vidí všechny soubory, spouští příkazy, čte chybové hlášky. Není to webový chatbot — je to asistent žijící uvnitř vašeho projektu.",
+      "Pojďme na nástroje. Claude Code není webový chatbot — spouštíte ho přímo v terminálu a on vidí celý váš projekt. Čte soubory, spouští příkazy, opravuje chyby. Za Claude Code platím 20 eur měsíčně — to je jak Netflix. Za Google Translate API, které jsem použila na překlad receptů do tří jazyků, jsem zaplatila 26 haléřů celkem. Hosting na Vercelu, databáze na Supabase — zdarma. Takže celková investice kromě času: 20 euro a 26 haléřů.",
   },
 
   /* 4 ─ Vibe-coding */
@@ -429,7 +447,7 @@ const slides: Slide[] = [
       />
     ),
     notes:
-      "Toto je klíčový slide. Vibe-coding = programování na základě záměru. Nemusíte znát React hooks ani TypeScript — stačí popsat výsledek přirozeným jazykem. Vaše role je být product managerem vlastního projektu.",
+      "Vibe-coding — možná jste slyšeli tento termín. Je to způsob práce, kdy popisujete záměr, ne syntaxi. Já jsem říkala věci jako 'chci, aby karty vypadaly jako na ottolenghi.co.uk' nebo 'tento font je moc fádní, chci něco teplejšího'. A Claude to přeložil do kódu. Zajímavý fakt: nemusíte ani vědět, jak se správně nazývá to, co chcete. Stačí popsat vizuální nebo funkční dojem. Vaše role se mění — přestáváte být programátorem a stáváte se product managerem svého projektu.",
   },
 
   /* 5 ─ Plan Mode */
@@ -464,9 +482,9 @@ const slides: Slide[] = [
         </div>
         <div className="bg-charcoal/5 rounded-xl p-4 text-center">
           <p className="text-sm text-charcoal/60">
-            Příkaz:{" "}
-            <code className="bg-charcoal/10 px-2 py-0.5 rounded text-xs">/plan</code> nebo{" "}
-            <code className="bg-charcoal/10 px-2 py-0.5 rounded text-xs">Shift+Tab</code> v Claude Code
+            Aktivace:{" "}
+            <code className="bg-charcoal/10 px-2 py-0.5 rounded text-xs">/plan</code>{" "}
+            v Claude Code — nebo zaškrtnout v nastavení konverzace
           </p>
         </div>
       </div>
@@ -508,7 +526,7 @@ const slides: Slide[] = [
       />
     ),
     notes:
-      "Plan Mode zabrání AI psát kód bez schválení. Obzvlášť důležité pro větší featury. Claude popíše co chce udělat, vy to odsouhlasíte nebo upravíte — teprve pak vzniká kód. Ušetří to hodiny refaktoringu.",
+      "Plan Mode je funkce, která vám zachrání hodiny. Místo aby Claude okamžitě psal kód, nejdřív navrhne plán — co vytvoří, v jakém pořadí, jaká bude architektura. Vy to schválíte nebo upravíte. Teprve pak vzniká kód. Aktivuje se příkazem /plan. Poznámka: v dokumentaci se zmiňuje Shift+Tab, ale mně na Macu nefungovalo — zkoušejte /plan. Praktický tip: Plan Mode je obzvlášť cenný, když přidáváte velkou novou funkci. Bez něj skončíte s kódem, kterému nerozumíte a nedokážete ho sami opravit.",
   },
 
   /* 6 ─ Problémy */
@@ -593,7 +611,7 @@ const slides: Slide[] = [
       />
     ),
     notes:
-      "Ukažte reálné chybové hlášky z Vercelu. Tyto chyby nevypadají na lokálním serveru — Next.js dev mode je mírnější. Ale produkční build selhal. AI pomohl každou chybu opravit — stačilo zkopírovat error log do chatu.",
+      "Všechno šlo hladce? Vůbec ne. Tři typy problémů. Za prvé: cyrilická URL — sdílela jsem odkaz na recept Муравейник a URL vypadalo hrozně. Za druhé: hodinu jsem psala recept v admin panelu, klikla jinam a vše zmizelo. To bolelo. Za třetí: Vercel deploy selhal třikrát za sebou — lokálně vše fungovalo, ale produkční build má přísnější pravidla. Každý problém jsem zkopírovala Claudovi a on ho opravil. Klíčové zjištění: čím přesnější popis problému, tím rychlejší řešení. Chybové hlášky jsou vaší nejlepší zbraní — nekopírujte jen část, kopírujte vše.",
   },
 
   /* 7 ─ API endpoint */
@@ -601,31 +619,44 @@ const slides: Slide[] = [
     id: 7,
     title: "Vygenerování receptu přes API",
     content: (
-      <div className="flex flex-col justify-center h-full gap-6">
-        <h2 className="font-serif text-4xl text-charcoal">API endpoint pro recepty</h2>
+      <div className="flex flex-col justify-center h-full gap-5">
+        <h2 className="font-serif text-4xl text-charcoal">Jak jsem přidávala recepty</h2>
         <p className="text-charcoal/60 text-sm">
-          Místo ručního klikání v admin panelu — programatické přidávání receptů
+          Tři způsoby — žádný nevyžadoval ruční psaní do formuláře
         </p>
-        <div className="flex flex-col gap-3">
+        <div className="grid grid-cols-3 gap-4">
           {[
-            { n: "1", text: "AI načte recept z externího webu" },
-            { n: "2", text: "Přeloží ho do ruštiny" },
-            { n: "3", text: "Zformátuje do JSON struktury" },
-            { n: "4", text: "Pošle POST request na API endpoint" },
-            { n: "5", text: "Recept se uloží do databáze" },
-          ].map((s) => (
-            <div key={s.n} className="flex items-center gap-4 bg-sand/40 rounded-xl p-3">
-              <span className="w-7 h-7 rounded-full bg-peach/20 flex items-center justify-center text-peach text-sm font-medium shrink-0">
-                {s.n}
-              </span>
-              <p className="text-sm text-charcoal/70">{s.text}</p>
+            {
+              icon: "🔗",
+              label: "URL odkaz",
+              desc: "Poslala jsem link na recept a Claude načetl stránku, přeložil a uložil",
+              color: "bg-peach/10",
+            },
+            {
+              icon: "📸",
+              label: "Screenshot",
+              desc: "Vyfotila jsem stránku s receptem, vložila obrázek do Claude Code — přečetl ho",
+              color: "bg-sand/60",
+            },
+            {
+              icon: "🎙️",
+              label: "Hlasové diktování",
+              desc: "Diktovala jsem ingredience a kroky ústně — Claude je přepsal a zformátoval",
+              color: "bg-sage/10",
+            },
+          ].map((m) => (
+            <div key={m.label} className={cn("rounded-2xl p-5", m.color)}>
+              <div className="text-3xl mb-3">{m.icon}</div>
+              <p className="font-medium text-charcoal text-sm mb-2">{m.label}</p>
+              <p className="text-xs text-charcoal/60 leading-relaxed">{m.desc}</p>
             </div>
           ))}
         </div>
-        <div className="bg-sage/10 rounded-2xl p-4 text-center">
-          <p className="text-sm text-charcoal/70">
-            Recept <strong>Муравейник</strong> přidán z českého webu za ~3 minuty.
-            Přeložen, formátován, uložen — bez jediného kliknutí v UI.
+        <div className="bg-charcoal/5 rounded-xl p-4">
+          <p className="text-xs text-charcoal/50 text-center mb-2 uppercase tracking-widest">A pak programaticky přes API</p>
+          <p className="text-sm text-charcoal/70 text-center">
+            POST na <code className="bg-charcoal/10 px-1.5 rounded text-xs">/api/admin/recipes</code> s JSON tělem →
+            recept uložen v databázi za ~3 minuty
           </p>
         </div>
       </div>
@@ -659,7 +690,7 @@ const slides: Slide[] = [
       />
     ),
     notes:
-      "Toto je jeden z nejimpresivnějších momentů. AI může nejen psát kód, ale i obsah. Načetl recept z jiného webu, přeložil ho, strukturoval a uložil — vše v jednom příkazu. Úroveň automatizace, která dříve vyžadovala vývojáře.",
+      "Toto je moment, který mě opravdu překvapil. Recept Муравейник jsem přidala třemi různými způsoby a všechny fungovaly. Poslala jsem URL z českého webu — Claude stránku načetl, přeložil do ruštiny a uložil. Pak jsem zkusila vložit screenshot adminpanelu s poznámkou co chci doplnit — přečetl obrázek a pochopil. A nakonec jsem ingredience jednoduše nadiktovala ústně. Všechny tři způsoby vedly ke stejnému výsledku. Pro vás to znamená: nemusíte umět psát JSON ani SQL. Stačí říct nebo ukázat, co chcete.",
   },
 
   /* 8 ─ Bezpečnost */
@@ -710,38 +741,38 @@ const slides: Slide[] = [
     ),
     right: (
       <CodePanel
-        title=".env.local"
+        title=".env.local  →  Vercel Environment Variables"
         lang="dotenv"
         lines={[
-          { text: "# Supabase — zkopírujte z Supabase dashboardu" },
+          { text: "# ── LOKÁLNĚ: soubor .env.local ──────────" },
+          { text: "# (přidán do .gitignore, nikdy na GitHub!)" },
           { text: "" },
-          { text: "NEXT_PUBLIC_SUPABASE_URL=", highlight: true },
-          { text: "  https://xyzxyzxyz.supabase.co", highlight: true },
+          { text: "# Supabase — DB, přihlašování, storage" },
+          { text: "NEXT_PUBLIC_SUPABASE_URL=https://xyz.supabase.co", highlight: true },
+          { text: "NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGci...", highlight: true },
+          { text: "SUPABASE_SERVICE_ROLE_KEY=eyJhbGci...", dim: true },
+          { text: "  # ↑ pouze na serveru, NIKDY na frontend!" },
           { text: "" },
-          { text: "NEXT_PUBLIC_SUPABASE_ANON_KEY=", highlight: true },
-          { text: "  eyJhbGciOiJIUzI1NiIsInR5cCI6...", highlight: true },
+          { text: "# Google Translate API — překlad receptů" },
+          { text: "GOOGLE_TRANSLATE_API_KEY=AIzaSyD...", highlight: true },
+          { text: "  # ↑ stálo mě celkem ~0,26 Kč 😄" },
           { text: "" },
-          { text: "# POZOR: tento klíč NIKDY na frontend!" },
-          { text: "SUPABASE_SERVICE_ROLE_KEY=", dim: true },
-          { text: "  eyJhbGciOiJIUzI1NiIsInR5cCI6...", dim: true },
+          { text: "# ── PRODUKCE: Vercel Dashboard ──────────" },
+          { text: "# Settings → Environment Variables" },
+          { text: "# Stejné klíče, přidané ručně v UI" },
           { text: "" },
-          { text: "────────────────────────────────" },
+          { text: "# ── KDE KLÍČE NEJSOU ────────────────────" },
+          { text: "# ✗ Supabase DB — tam jsou jen data receptů" },
+          { text: "# ✗ GitHub — .gitignore to zabraňuje" },
+          { text: "# ✗ V kódu napevno — nikdy!" },
           { text: "" },
-          { text: "# .gitignore" },
-          { text: ".env" },
-          { text: ".env.local", highlight: true },
-          { text: ".env.development.local" },
-          { text: ".env.test.local" },
-          { text: ".env.production.local" },
-          { text: "" },
-          { text: "# nikdy necommitujte tyto soubory!" },
-          { text: "# GitHub botové je prohledávají" },
-          { text: "# a mohou způsobit velké účty 💸" },
+          { text: "# Pravidlo: klíče = .env.local + Vercel" },
+          { text: "# Data = Supabase PostgreSQL" },
         ]}
       />
     ),
     notes:
-      "Klíče omylem commitované na GitHub jsou velký problém. Botové prohledávají GitHub a hledají Supabase/AWS/Vercel klíče. Claude mě hned varoval a připomněl správný postup. Ukažte konkrétní .env soubor.",
+      "Bezpečnost — tohle jsem ze začátku podceňovala. Klíče jsou jako hesla: pokud skončí na GitHubu, botové je najdou během minut a začnou je zneužívat. Claude mě hned na začátku upozornil. Správný postup: lokálně klíče v .env.local, ten je v .gitignore. Na Vercelu klíče přidáte ručně v dashboard under Settings → Environment Variables. Důležité: v Supabase databázi nejsou žádné API klíče — tam jsou jen data receptů a uživatelů. API klíče patří do .env souborů a Vercel dashboardu, nikam jinam. Google Translate klíč je tam taky — stál mě 26 haléřů, ale bezpečně schovaný.",
   },
 
   /* 9 ─ Refaktoring */
@@ -844,7 +875,7 @@ const slides: Slide[] = [
       />
     ),
     notes:
-      "Konkrétní příklad refaktoringu — slug funkce pro Cyrilici. Původní verze generovala URL s ruskými znaky, které nefungovaly. Po refaktoringu čisté latinské URL. Ukažte, jak AI vysvětlil problém a navrhl řešení.",
+      "Tokeny jsou jako minuty telefonního tarifu — platíte za každé slovo, které AI přečte i napíše. Čím větší a chaotičtější soubory, tím více platíte. Proto se vyplatí kód čistit. Konkrétní příklad napravo: funkce pro generování URL z ruského názvu receptu. Původní verze nefungovala — URL obsahovala Cyrilici. Nová verze má mapu 33 znaků a funguje perfektně. Tohle je refaktoring, který se vyplatí: čistší kód, méně tokenů při dalších úpravách, a hlavně — kód, kterému rozumíte i za půl roku.",
   },
 
   /* 10 ─ Přepínání modelů */
@@ -935,7 +966,7 @@ const slides: Slide[] = [
       />
     ),
     notes:
-      "Přepínání modelů je jako volba nástroje. Pro rutinní práci Haiku stačí. Sonnet je sweet spot. Opus jen kdy opravdu potřebujete — třeba na těžký bug. Tohle vědění šetří peníze.",
+      "Claude Code má tři modely a přepínáte je příkazem /model uprostřed konverzace. Opus je jako seniorní architekt — pomalý, drahý, ale zachrání vás při těžkém debugging. Sonnet je váš každodenní kolega — vyvážený výkon a cena, používám ho 90 % času. Haiku je junior pro rutinu — přejmenovat soubor, opravit překlep. Tip: začněte se Sonnetem, na Opus přejděte jen když opravdu nevíte co dál. Ušetříte peníze a čas.",
   },
 
   /* 11 ─ Over-engineering */
@@ -1033,7 +1064,7 @@ const slides: Slide[] = [
       />
     ),
     notes:
-      "Over-engineering je skutečný problém. AI je jako šikovný inženýr — chce udělat nejlepší práci a 'nejlepší' může znamenat enterprise architekturu. Vy chcete osobní kuchařku, ne Amazon. Naučte se říkat ne a udržet focus.",
+      "Největší past, do které jsem spadla: AI je tak schopný, že navrhne víc, než potřebujete. Zeptala jsem se na databázi pro recepty a Claude navrhoval Redis cache a GraphQL API. Pro osobní kuchařku s třemi recepty! Naučila jsem se přidávat kontext: 'osobní projekt, free tier, max 100 receptů, žádný tým'. To zásadně mění výsledek. Pamatujte si zkratku YAGNI — You Aren't Gonna Need It. MVP nejdřív, složitost přidejte až když ji opravdu potřebujete.",
   },
 
   /* 12 ─ Co web umí */
@@ -1090,7 +1121,7 @@ const slides: Slide[] = [
           {[
             { label: "Recepty v DB", value: "3 reálné" },
             { label: "Jazyky", value: "RU + EN" },
-            { label: "Deploy čas", value: "~2 min" },
+            { label: "Deploy čas", value: "~1 min" },
             { label: "Cena hostingu", value: "0 Kč" },
           ].map((stat) => (
             <div key={stat.label} className="bg-charcoal/5 rounded-xl p-3 text-center">
@@ -1103,7 +1134,7 @@ const slides: Slide[] = [
     ),
     right: <IframePanel src="/recipes" />,
     notes:
-      "Ukažte živé recepty. Zdůrazněte 0 Kč na hostingu. Celé bylo postaveno za víkend bez týmu vývojářů.",
+      "Takže co web nakonec umí? Napravo vidíte živý katalog receptů — vyhledávání, filtry, detail s kroky a fotografiemi. Přihlašování, oblíbené recepty, osobní poznámky. Admin panel kde přidávám recepty třemi způsoby. Dvě jazykové verze. A deploy trvá méně než minutu — pushnu na GitHub a za 60 vteřin je změna živá po celém světě. Hosting: 0 Kč. Databáze: 0 Kč. Celé postaveno za víkend, bez týmu, bez předchozích zkušeností s backendem.",
   },
 
   /* 13 ─ Roadmapa */
@@ -1191,7 +1222,7 @@ const slides: Slide[] = [
       />
     ),
     notes:
-      "Roadmapa ukazuje, že projekt je živý. AI generování receptů je přirozený next step. Ukažte, jak by Claude API vypadal v kódu — to je přímá ukázka future feature.",
+      "Co bude dál? Hlavní plán je AI generování receptů přímo ve webu — napíšete 'chci proteinovou snídani do 10 minut' a web vygeneruje recept pomocí Claude API. To je přirozené využití AI v produktu. Ale nejdůležitější věc, co jsem se naučila: technologie přestala být bariérou. Dřív jsem říkala 'tohle neumím'. Teď říkám 'jak to popíšu Claudovi'. To je zásadní změna myšlení, která je dostupná každému z vás.",
   },
 
   /* 14 ─ Díky */
@@ -1227,7 +1258,7 @@ const slides: Slide[] = [
     ),
     right: <IframePanel src="/" />,
     notes:
-      "Závěrečný slide. Nechte otevřený web v iframe. Nejčastější otázka: 'Musím umět programovat?' Odpověď: trochu pomáhá, ale není nutné — důležitější je schopnost přesně popsat, co chcete.",
+      "Díky za pozornost! Otázky? Ptejte se na cokoliv — na konkrétní nástroje, na náklady, na problémy. Nejčastější otázka, kterou dostávám: musím umět programovat? Odpověď: trochu pomáhá, ale není to podmínka. Důležitější je logické myšlení a schopnost přesně popsat, co chcete. To jsou skills, které máte všichni. AI demokratizuje vývoj softwaru — a to je teprve začátek.",
   },
 ];
 
