@@ -698,44 +698,56 @@ const slides: Slide[] = [
     id: 8,
     title: "Bezpečnost a .env soubory",
     content: (
-      <div className="flex flex-col justify-center h-full gap-6">
-        <h2 className="font-serif text-4xl text-charcoal">Bezpečnost</h2>
-        <p className="text-charcoal/60">Co jsem se naučila o ochraně tajných klíčů</p>
-        <div className="grid grid-cols-2 gap-6">
-          <div className="flex flex-col gap-4">
-            <div className="bg-red-50 border border-red-100 rounded-2xl p-5">
-              <p className="text-sm font-medium text-red-500 mb-2">❌ Co nikdy nedělat</p>
-              <ul className="space-y-1 text-xs text-charcoal/60">
-                <li>• Commitovat <code>.env</code> soubor do GitHubu</li>
-                <li>• Sdílet API klíče v chatu nebo emailu</li>
-                <li>• Používat service role key na frontendu</li>
-              </ul>
+      <div className="flex flex-col justify-center h-full gap-5">
+        <h2 className="font-serif text-4xl text-charcoal">Kde jsou klíče?</h2>
+        <p className="text-charcoal/60 text-sm">Supabase vs Vercel — co kam patří</p>
+
+        {/* Hlavní rozdělení */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-sage/10 border border-sage/20 rounded-2xl p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-xl">🗄️</span>
+              <p className="font-medium text-charcoal text-sm">Supabase</p>
+              <span className="ml-auto text-xs bg-sage/20 text-sage px-2 py-0.5 rounded-full">data</span>
             </div>
-            <div className="bg-sage/10 rounded-2xl p-5">
-              <p className="text-sm font-medium text-sage mb-2">✓ Správný postup</p>
-              <ul className="space-y-1 text-xs text-charcoal/60">
-                <li>• <code>.env.local</code> v <code>.gitignore</code></li>
-                <li>• Klíče přidat ručně do Vercel dashboardu</li>
-                <li>• Service role key pouze na serveru</li>
-              </ul>
-            </div>
+            <ul className="space-y-1.5 text-xs text-charcoal/65">
+              <li className="flex gap-2"><span className="text-sage">✓</span>Recepty, kroky, fotky</li>
+              <li className="flex gap-2"><span className="text-sage">✓</span>Uživatelé, oblíbené, poznámky</li>
+              <li className="flex gap-2"><span className="text-sage">✓</span>Přihlašování (Auth)</li>
+              <li className="flex gap-2 mt-2 pt-2 border-t border-sage/20"><span className="text-red-400">✗</span><span className="text-charcoal/40">API klíče zde nejsou!</span></li>
+            </ul>
           </div>
-          <div className="bg-sand/50 rounded-2xl p-6 flex flex-col justify-between">
-            <div>
-              <p className="text-xs uppercase tracking-widest text-charcoal/40 mb-4">
-                Supabase RLS
-              </p>
-              <p className="text-sm text-charcoal/70 leading-relaxed">
-                Databáze sama chrání data. Každý řádek má pravidla: kdo ho může číst, upravovat,
-                mazat. Admin vidí vše. Host jen veřejné recepty.
-              </p>
+
+          <div className="bg-peach/10 border border-peach/20 rounded-2xl p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-xl">▲</span>
+              <p className="font-medium text-charcoal text-sm">Vercel</p>
+              <span className="ml-auto text-xs bg-peach/20 text-peach px-2 py-0.5 rounded-full">klíče</span>
             </div>
-            <div className="bg-charcoal/5 rounded-xl p-3 mt-4">
-              <p className="font-handwritten text-lg text-charcoal/50 text-center">
-                Bezpečnost není volitelná
-              </p>
-            </div>
+            <ul className="space-y-1.5 text-xs text-charcoal/65">
+              <li className="flex gap-2"><span className="text-peach">✓</span>SUPABASE_URL</li>
+              <li className="flex gap-2"><span className="text-peach">✓</span>SUPABASE_ANON_KEY</li>
+              <li className="flex gap-2"><span className="text-peach">✓</span>SUPABASE_SERVICE_ROLE_KEY</li>
+              <li className="flex gap-2"><span className="text-peach">✓</span>GOOGLE_TRANSLATE_API_KEY</li>
+            </ul>
+            <p className="text-[10px] text-charcoal/35 mt-3">Settings → Environment Variables</p>
           </div>
+        </div>
+
+        {/* Lokálně */}
+        <div className="bg-charcoal/5 rounded-xl p-4 flex items-center gap-4">
+          <span className="text-2xl shrink-0">💻</span>
+          <div>
+            <p className="text-sm font-medium text-charcoal">Lokálně (na mém počítači)</p>
+            <p className="text-xs text-charcoal/55 mt-0.5">
+              Soubor <code className="bg-charcoal/10 px-1 rounded">.env.local</code> — stejné klíče jako na Vercelu, ale jen u mě. Nikdy na GitHub!
+            </p>
+          </div>
+        </div>
+
+        <div className="bg-red-50 rounded-xl px-4 py-2.5 flex items-center gap-3">
+          <span className="text-lg">⚠️</span>
+          <p className="text-xs text-red-500">GitHub je veřejný — botové prohledávají commity a kradou klíče během minut</p>
         </div>
       </div>
     ),
@@ -772,7 +784,7 @@ const slides: Slide[] = [
       />
     ),
     notes:
-      "Bezpečnost — tohle jsem ze začátku podceňovala. Klíče jsou jako hesla: pokud skončí na GitHubu, botové je najdou během minut a začnou je zneužívat. Claude mě hned na začátku upozornil. Správný postup: lokálně klíče v .env.local, ten je v .gitignore. Na Vercelu klíče přidáte ručně v dashboard under Settings → Environment Variables. Důležité: v Supabase databázi nejsou žádné API klíče — tam jsou jen data receptů a uživatelů. API klíče patří do .env souborů a Vercel dashboardu, nikam jinam. Google Translate klíč je tam taky — stál mě 26 haléřů, ale bezpečně schovaný.",
+      "Tohle je otázka, která mátla i mě: kde jsou klíče — v Supabase nebo ve Vercelu? Odpověď je jednoduchá. Supabase je databáze — tam jsou recepty, uživatelé, fotky. Žádné API klíče. Vercel je hosting — a tam v nastavení pod 'Environment Variables' jsou všechny klíče: Supabase URL, Supabase klíče, Google Translate API klíč. Lokálně mám ten samý seznam v souboru .env.local, který je schovaný v .gitignore, takže nikdy nejde na GitHub. Pravidlo: klíče = Vercel. Data = Supabase. Nikdy neplést.",
   },
 
   /* 9 ─ Refaktoring */
