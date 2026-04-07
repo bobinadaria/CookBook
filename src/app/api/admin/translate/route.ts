@@ -3,6 +3,9 @@ import { isAdmin, isValidUUID } from "@/lib/supabase/admin";
 import { translateRecipe } from "@/lib/translate";
 import { NextRequest, NextResponse } from "next/server";
 
+// Allow up to 60s — Gemini translation of a long recipe can take 15-30s
+export const maxDuration = 60;
+
 export async function POST(req: NextRequest) {
   // 1. Verify authentication
   const supabase = createClient();
@@ -101,7 +104,8 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, translations });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Translation failed";
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error("[translate] error:", err);
+    const message = err instanceof Error ? err.message : String(err);
+    return NextResponse.json({ error: message || "Translation failed" }, { status: 500 });
   }
 }

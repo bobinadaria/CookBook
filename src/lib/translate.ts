@@ -30,7 +30,7 @@ function parseRetryDelay(message: string): number {
 }
 
 export async function translateRecipe(input: TranslateInput): Promise<TranslateOutput> {
-  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
   const prompt = `You are a professional translator for a personal recipe book website.
 Translate the following recipe from Russian to English.
