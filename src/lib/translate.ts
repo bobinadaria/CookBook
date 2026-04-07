@@ -6,6 +6,7 @@ interface TranslateInput {
   title: string;
   description: string | null;
   note: string | null;
+  ingredients: string | null;
   steps: { order: number; title: string | null; description: string }[];
 }
 
@@ -13,6 +14,7 @@ interface TranslationResult {
   title: string;
   description: string | null;
   note: string | null;
+  ingredients: string | null;
   steps: { order: number; title: string | null; description: string }[];
 }
 
@@ -37,6 +39,8 @@ IMPORTANT RULES:
 - Keep the tone warm, personal, and cozy — this is a personal recipe book
 - Preserve any cultural references or dish names that don't have direct translations (transliterate them)
 - For cooking steps, be precise and clear
+- For ingredients: translate ingredient names but keep measurements/quantities as-is (e.g. "2 ст.л." stays, just translate the ingredient name)
+- The ingredients field uses "—" as section header delimiters (e.g. "— Для теста —"), translate those headers too
 - Return ONLY valid JSON, no markdown, no code blocks
 
 Input recipe (JSON):
@@ -48,6 +52,7 @@ Return JSON in this exact format:
     "title": "...",
     "description": "..." or null,
     "note": "..." or null,
+    "ingredients": "..." or null,
     "steps": [{ "order": 1, "title": "..." or null, "description": "..." }]
   }
 }`;

@@ -73,7 +73,8 @@ export default async function RecipePage({ params }: RecipePageProps) {
   const description = localizedField(recipe, "description", l);
   const note = localizedField(recipe, "note", l);
 
-  const ingredientSections = recipe.ingredients ? parseIngredients(recipe.ingredients) : [];
+  const ingredientsRaw = localizedField(recipe, "ingredients", l) ?? recipe.ingredients ?? null;
+  const ingredientSections = ingredientsRaw ? parseIngredients(ingredientsRaw) : [];
   const hasMultipleSections = ingredientSections.some((s) => s.header !== null);
 
   return (

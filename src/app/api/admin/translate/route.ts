@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
   // 3. Fetch recipe with steps
   const { data: recipe, error: fetchError } = await supabase
     .from("recipes")
-    .select("title, description, note, steps(order, title, description)")
+    .select("title, description, note, ingredients, steps(order, title, description)")
     .eq("id", recipeId)
     .single();
 
@@ -46,6 +46,7 @@ export async function POST(req: NextRequest) {
       title: recipe.title,
       description: recipe.description,
       note: recipe.note,
+      ingredients: (recipe as unknown as { ingredients: string | null }).ingredients ?? null,
       steps,
     });
 
@@ -56,6 +57,7 @@ export async function POST(req: NextRequest) {
         title_en: translations.en.title,
         description_en: translations.en.description,
         note_en: translations.en.note,
+        ingredients_en: translations.en.ingredients ?? null,
       })
       .eq("id", recipeId);
 
