@@ -819,13 +819,13 @@ const slides: Slide[] = [
             </div>
           </div>
           <div className="flex flex-col gap-3">
-            <div className="bg-peach/10 rounded-2xl p-4 text-center">
-              <p className="font-handwritten text-3xl text-peach mb-1">~30</p>
-              <p className="text-xs text-charcoal/40">mock receptů pro vývoj</p>
-            </div>
             <div className="bg-sage/10 rounded-2xl p-4 text-center">
               <p className="font-handwritten text-3xl text-sage mb-1">3</p>
-              <p className="text-xs text-charcoal/40">reálné recepty</p>
+              <p className="text-xs text-charcoal/40">reálné recepty v DB</p>
+            </div>
+            <div className="bg-charcoal/5 rounded-2xl p-4 text-center">
+              <p className="font-handwritten text-3xl text-charcoal/50 mb-1">−357</p>
+              <p className="text-xs text-charcoal/40">řádků smazaného mrtvého kódu</p>
             </div>
           </div>
         </div>
@@ -887,7 +887,7 @@ const slides: Slide[] = [
       />
     ),
     notes:
-      "Tokeny jsou jako minuty telefonního tarifu — platíte za každé slovo, které AI přečte i napíše. Čím větší a chaotičtější soubory, tím více platíte. Proto se vyplatí kód čistit. Konkrétní příklad napravo: funkce pro generování URL z ruského názvu receptu. Původní verze nefungovala — URL obsahovala Cyrilici. Nová verze má mapu 33 znaků a funguje perfektně. Tohle je refaktoring, který se vyplatí: čistší kód, méně tokenů při dalších úpravách, a hlavně — kód, kterému rozumíte i za půl roku.",
+      "Tokeny jsou jako minuty telefonního tarifu — platíte za každé slovo, které AI přečte i napíše. Čím větší a chaotičtější soubory, tím více platíte. Proto se vyplatí kód čistit. Praktický příklad: měla jsem soubor mock-data.ts se 357 řádky falešných receptů, které jsem používala při vývoji. Jakmile jsem napojila skutečnou databázi, soubor byl mrtvý — ale AI ho četl při každém dotazu a plýtval tokeny. Smazala jsem ho. Napravo vidíte další refaktoring: funkce pro URL slugy s cyrilicí. Čistší kód = méně tokenů = levnější vývoj.",
   },
 
   /* 10 ─ Přepínání modelů */
