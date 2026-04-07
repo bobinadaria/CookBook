@@ -222,14 +222,6 @@ Load via `next/font/google`.
 - **Library:** `next-intl`
 - **Locale files:** `/messages/ru.json` and `/messages/en.json`
 
-## Environment Variables
-```env
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE_KEY=
-NEXTAUTH_SECRET=                    # if needed
-```
-
 ## Photography Strategy (MVP)
 All recipe images generated via **Midjourney** or **Leonardo.AI** using a consistent style prompt:
 ```
