@@ -1,6 +1,5 @@
-// Google Cloud Translation API v2 (Basic)
-// Key from: Google Cloud Console → APIs & Services → Credentials
-// This is different from Gemini/Generative AI — it's a pure translation REST API
+// Translation via Google Gemini API (Google AI Studio)
+// Key from: https://aistudio.google.com/app/apikey
 
 interface TranslateInput {
   title: string;
@@ -22,53 +21,75 @@ interface TranslateOutput {
   en: TranslationResult;
 }
 
-/** Translate a single string via Google Cloud Translation API v2 */
-async function translateText(text: string, apiKey: string): Promise<string> {
-  if (!text) return text;
-  const url = `https://translation.googleapis.com/language/translate/v2?key=${apiKey}`;
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ q: text, source: "ru", target: "en", format: "text" }),
-  });
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Google Translate API error ${res.status}: ${err}`);
-  }
-  const data = await res.json() as {
-    data: { translations: { translatedText: string }[] };
-  };
-  return data.data.translations[0].translatedText;
-}
-
-/** Translate nullable string — returns null if input is null */
-async function translateNullable(text: string | null, apiKey: string): Promise<string | null> {
-  if (!text) return null;
-  return translateText(text, apiKey);
-}
-
 export async function translateRecipe(input: TranslateInput): Promise<TranslateOutput> {
-  const apiKey = process.env.GOOGLE_TRANSLATE_API_KEY;
-  if (!apiKey) throw new Error("GOOGLE_TRANSLATE_API_KEY is not set");
+  const apiKey = process.env.GOOGLE_AI_API_KEY;
+  if (!apiKey) throw new Error("GOOGLE_AI_API_KEY is not set");
 
-  // Translate all fields in parallel
-  const [title, description, note, ingredients] = await Promise.all([
-    translateText(input.title, apiKey),
-    translateNullable(input.description, apiKey),
-    translateNullable(input.note, apiKey),
-    translateNullable(input.ingredients, apiKey),
-  ]);
+  // Build a single prompt with all content to translate in one API call
+  const payload = {
+    title: input.title,
+    description: input.description ?? "",
+    note: input.note ?? "",
+    ingredients: input.ingredients ?? "",
+    steps: input.steps.map((s) => ({
+      order: s.order,
+      title: s.title ?? "",
+      description: s.description,
+    })),
+  };
 
-  // Translate steps in parallel
-  const steps = await Promise.all(
-    input.steps.map(async (step) => ({
-      order: step.order,
-      title: step.title ? await translateText(step.title, apiKey) : null,
-      description: await translateText(step.description, apiKey),
-    }))
+  const prompt = `You are a professional culinary translator. Translate the following recipe JSON from Russian to English.
+Return ONLY valid JSON with the exact same structure. Do not add explanations. Preserve formatting (newlines, dashes).
+If a field is empty string "", keep it as "".
+
+Input JSON:
+${JSON.stringify(payload, null, 2)}`;
+
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          temperature: 0.1,
+          responseMimeType: "application/json",
+        },
+      }),
+    }
   );
 
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Gemini API error ${res.status}: ${err}`);
+  }
+
+  const data = await res.json() as {
+    candidates: { content: { parts: { text: string }[] } }[];
+  };
+
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!text) throw new Error("Gemini returned empty response");
+
+  let translated: typeof payload;
+  try {
+    translated = JSON.parse(text);
+  } catch {
+    throw new Error(`Gemini returned invalid JSON: ${text.slice(0, 200)}`);
+  }
+
   return {
-    en: { title, description, note, ingredients, steps },
+    en: {
+      title: translated.title || input.title,
+      description: translated.description || null,
+      note: translated.note || null,
+      ingredients: translated.ingredients || null,
+      steps: translated.steps.map((s) => ({
+        order: s.order,
+        title: s.title || null,
+        description: s.description,
+      })),
+    },
   };
 }

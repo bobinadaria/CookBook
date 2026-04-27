@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { isAdmin, isValidUUID } from "@/lib/supabase/admin";
 import { translateRecipe } from "@/lib/translate";
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 
 // Allow up to 60s — Gemini translation of a long recipe can take 15-30s
 export const maxDuration = 60;
@@ -29,10 +30,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Missing or invalid recipeId" }, { status: 400 });
   }
 
-  // 4. Fetch recipe with steps
+  // 4. Fetch recipe with steps (also fetch slug for cache revalidation)
   const { data: recipe, error: fetchError } = await supabase
     .from("recipes")
-    .select("title, description, note, ingredients, steps(order, title, description)")
+    .select("slug, title, description, note, ingredients, steps(order, title, description)")
     .eq("id", recipeId)
     .single();
 
@@ -91,16 +92,37 @@ export async function POST(req: NextRequest) {
       for (const dbStep of dbSteps) {
         const enStep = translations.en.steps.find((s) => s.order === dbStep.order);
         if (enStep) {
-          await supabase
+          const updatePayload = {
+            title_en: enStep.title ?? null,
+            description_en: enStep.description ?? null,
+          };
+          console.log(`[translate] updating step ${dbStep.id} with:`, JSON.stringify(updatePayload).slice(0, 120));
+          const { data: stepData, error: stepError } = await supabase
             .from("steps")
-            .update({
-              title_en: enStep.title ?? null,
-              description_en: enStep.description ?? null,
-            })
-            .eq("id", dbStep.id);
+            .update(updatePayload)
+            .eq("id", dbStep.id)
+            .select("id, title_en, description_en");
+          console.log(`[translate] step update result — data:`, stepData, "error:", stepError?.message ?? "none");
+
+          if (stepError) {
+            console.error("[translate] step update error:", stepError.message);
+            // If _en columns are missing in the steps table, surface a clear message
+            if (stepError.message?.includes("title_en") || stepError.message?.includes("description_en")) {
+              throw new Error(
+                "Steps table is missing title_en / description_en columns. " +
+                "Run in Supabase SQL editor:\n" +
+                "ALTER TABLE steps ADD COLUMN IF NOT EXISTS title_en text;\n" +
+                "ALTER TABLE steps ADD COLUMN IF NOT EXISTS description_en text;"
+              );
+            }
+            throw stepError;
+          }
         }
       }
     }
+
+    // Revalidate the public recipe page so it reflects the new translations
+    revalidatePath(`/recipes/${recipe.slug}`);
 
     return NextResponse.json({ success: true, translations });
   } catch (err) {

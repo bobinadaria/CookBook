@@ -6,6 +6,8 @@ import { createClient } from "@/lib/supabase/server";
 import { localizedField, type Locale } from "@/lib/localized-content";
 import type { Category, Step } from "@/types";
 
+export const dynamic = "force-dynamic";
+
 interface RecipePageProps {
   params: { slug: string };
 }
@@ -23,6 +25,10 @@ async function getRecipe(slug: string) {
     .maybeSingle();
 
   if (!data) return null;
+
+  const firstStep = data.steps?.[0];
+  console.log("[getRecipe] first step keys:", firstStep ? Object.keys(firstStep) : "no steps");
+  console.log("[getRecipe] first step _en fields:", { title_en: firstStep?.title_en, description_en: firstStep?.description_en });
 
   return {
     ...data,
@@ -92,7 +98,7 @@ export default async function RecipePage({ params }: RecipePageProps) {
             <div className="flex gap-2 flex-wrap mb-4">
               {recipe.categories.map((cat: Category) => (
                 <span key={cat.id} className="text-xs font-medium bg-sand text-charcoal px-3 py-1 rounded-full">
-                  {cat.name}
+                  {localizedField(cat as unknown as Record<string, unknown>, "name", l) ?? cat.name}
                 </span>
               ))}
             </div>
