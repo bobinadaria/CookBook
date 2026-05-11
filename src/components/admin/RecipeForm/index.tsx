@@ -1,7 +1,6 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import type { RecipeInput } from "@/types";
 import { useRecipeForm, type RecipeFormDefaults } from "./useRecipeForm";
 import BasicInfoSection from "./BasicInfoSection";
 import StepsSection from "./StepsSection";
