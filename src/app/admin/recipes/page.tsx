@@ -5,6 +5,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { fetchAdminRecipes, deleteRecipe } from "@/lib/supabase/recipes";
 import { cn } from "@/lib/utils";
+import QuickCreateModal from "@/components/admin/QuickCreateModal";
+import ConfirmModal from "@/components/admin/ConfirmModal";
 
 type AdminRecipe = {
   id: string;
@@ -19,6 +21,8 @@ export default function AdminRecipesPage() {
   const [recipes, setRecipes] = useState<AdminRecipe[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<AdminRecipe | null>(null);
 
   useEffect(() => {
     fetchAdminRecipes()
@@ -26,14 +30,16 @@ export default function AdminRecipesPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const handleDelete = async (id: string, title: string) => {
-    if (!confirm(`Удалить рецепт «${title}»? Это действие необратимо.`)) return;
+  const handleDeleteConfirmed = async () => {
+    if (!deleteTarget) return;
+    const { id } = deleteTarget;
+    setDeleteTarget(null);
     setDeleting(id);
     try {
       await deleteRecipe(id);
       setRecipes((prev) => prev.filter((r) => r.id !== id));
     } catch {
-      alert("Не удалось удалить рецепт");
+      // could show an inline error here in the future
     } finally {
       setDeleting(null);
     }
@@ -46,15 +52,15 @@ export default function AdminRecipesPage() {
           <span className="font-handwritten text-peach text-xl block mb-2">управление</span>
           <h1 className="font-serif text-4xl text-charcoal">Рецепты</h1>
         </div>
-        <Link
-          href="/admin/recipes/new"
+        <button
+          onClick={() => setShowCreateModal(true)}
           className="flex items-center gap-2 bg-charcoal text-cream px-5 py-2.5 rounded-full text-sm font-medium hover:bg-peach transition-colors"
         >
           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
           </svg>
           Новый
-        </Link>
+        </button>
       </div>
 
       {loading ? (
@@ -62,9 +68,12 @@ export default function AdminRecipesPage() {
       ) : recipes.length === 0 ? (
         <div className="text-center py-24">
           <p className="font-handwritten text-2xl text-charcoal/25 mb-3">Пока пусто</p>
-          <Link href="/admin/recipes/new" className="text-sm text-peach hover:underline">
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="text-sm text-peach hover:underline"
+          >
             Добавить первый рецепт →
-          </Link>
+          </button>
         </div>
       ) : (
         <div className="flex flex-col gap-2">
@@ -130,7 +139,7 @@ export default function AdminRecipesPage() {
                   </svg>
                 </Link>
                 <button
-                  onClick={() => handleDelete(recipe.id, recipe.title)}
+                  onClick={() => setDeleteTarget(recipe)}
                   disabled={deleting === recipe.id}
                   className="p-2 rounded-lg text-charcoal/40 hover:text-red-400 hover:bg-red-50 transition-colors disabled:opacity-40"
                   title="Удалить"
@@ -143,6 +152,20 @@ export default function AdminRecipesPage() {
             </div>
           ))}
         </div>
+      )}
+
+      {showCreateModal && (
+        <QuickCreateModal onClose={() => setShowCreateModal(false)} />
+      )}
+
+      {deleteTarget && (
+        <ConfirmModal
+          title="Удалить рецепт?"
+          message={`«${deleteTarget.title}» будет удалён безвозвратно.`}
+          confirmLabel="Удалить"
+          onConfirm={handleDeleteConfirmed}
+          onCancel={() => setDeleteTarget(null)}
+        />
       )}
     </div>
   );

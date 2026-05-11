@@ -238,6 +238,9 @@ export default function RecipeForm({ recipeId, defaultValues }: RecipeFormProps)
   const [generatingCover, setGeneratingCover] = useState(false);
   const [generateError, setGenerateError] = useState<string | null>(null);
 
+  // Combined translate + generate step tracker
+  const [combinedStep, setCombinedStep] = useState<null | "translating" | "generating">(null);
+
   // Restore draft from localStorage (only for new recipes)
   const draftRestored = useRef(false);
   useEffect(() => {
@@ -379,7 +382,12 @@ export default function RecipeForm({ recipeId, defaultValues }: RecipeFormProps)
       const res = await fetch("/api/admin/generate-image", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: title.trim(), description: description.trim() || undefined }),
+        body: JSON.stringify({
+          title: title.trim(),
+          description: description.trim() || undefined,
+          ingredients: ingredients.trim() || undefined,
+          recipeId: recipeId || undefined, // lets the API use EN translations if available
+        }),
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || `Ошибка ${res.status}`);
@@ -420,6 +428,51 @@ export default function RecipeForm({ recipeId, defaultValues }: RecipeFormProps)
     }
   };
 
+  // Combined: translate → generate cover in one click
+  const handleTranslateAndGenerate = async () => {
+    if (!recipeId) return;
+    setError(null);
+    setGenerateError(null);
+
+    try {
+      // Step 1: Translate
+      setCombinedStep("translating");
+      const translateRes = await fetch("/api/admin/translate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ recipeId }),
+      });
+      const text = await translateRes.text();
+      let json: { error?: string } = {};
+      try { json = JSON.parse(text); } catch { /* non-JSON */ }
+      if (!translateRes.ok) throw new Error(json.error || `Ошибка перевода ${translateRes.status}`);
+
+      // Step 2: Generate cover (now uses freshly saved EN translations)
+      setCombinedStep("generating");
+      const genRes = await fetch("/api/admin/generate-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: title.trim(),
+          description: description.trim() || undefined,
+          ingredients: ingredients.trim() || undefined,
+          recipeId, // API will read EN translations from DB
+        }),
+      });
+      const genJson = await genRes.json();
+      if (!genRes.ok) throw new Error(genJson.error || `Ошибка генерации ${genRes.status}`);
+      setCoverPreview(genJson.url);
+      setCoverFile(undefined);
+
+      setTranslateSuccess(true);
+      setTimeout(() => setTranslateSuccess(false), 4000);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Ошибка");
+    } finally {
+      setCombinedStep(null);
+    }
+  };
+
   // Group categories by type for display
   const grouped = allCategories.reduce<Record<string, Category[]>>((acc, cat) => {
     (acc[cat.type] ??= []).push(cat);
@@ -428,78 +481,6 @@ export default function RecipeForm({ recipeId, defaultValues }: RecipeFormProps)
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-10">
-
-      {/* ── Cover image ── */}
-      <section>
-        <FieldLabel>Фото обложки</FieldLabel>
-        <div
-          onClick={() => coverInputRef.current?.click()}
-          className={cn(
-            "relative w-full aspect-[16/7] rounded-2xl overflow-hidden cursor-pointer",
-            "border-2 border-dashed border-charcoal/10 hover:border-peach/40 transition-colors",
-            coverPreview ? "border-0" : "bg-sand flex items-center justify-center"
-          )}
-        >
-          {coverPreview ? (
-            <Image src={coverPreview} alt="cover" fill className="object-cover" />
-          ) : (
-            <div className="flex flex-col items-center gap-2 text-charcoal/30 pointer-events-none">
-              <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              <span className="text-sm">Выбрать фото</span>
-            </div>
-          )}
-          {coverPreview && (
-            <div className="absolute inset-0 bg-black/0 hover:bg-black/20 transition-colors flex items-center justify-center">
-              <span className="opacity-0 hover:opacity-100 text-white text-sm font-medium">
-                Заменить
-              </span>
-            </div>
-          )}
-        </div>
-        <input ref={coverInputRef} type="file" accept="image/*" className="hidden" onChange={handleCover} />
-
-        {/* AI generate button */}
-        <div className="mt-3 flex items-center gap-3">
-          <button
-            type="button"
-            onClick={handleGenerateCover}
-            disabled={generatingCover}
-            className={cn(
-              "flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all",
-              "bg-peach/10 text-peach hover:bg-peach/20 border border-peach/20",
-              "disabled:opacity-50 disabled:cursor-not-allowed"
-            )}
-          >
-            {generatingCover ? (
-              <>
-                <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-                </svg>
-                Генерирую…
-              </>
-            ) : (
-              <>
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z" />
-                </svg>
-                ✦ Сгенерировать обложку
-              </>
-            )}
-          </button>
-          {coverPreview && !generatingCover && (
-            <span className="text-xs text-charcoal/40">
-              Нажми снова, чтобы перегенерировать
-            </span>
-          )}
-          {generateError && (
-            <span className="text-xs text-red-500">{generateError}</span>
-          )}
-        </div>
-      </section>
 
       {/* ── Basic fields ── */}
       <section className="flex flex-col gap-5">
@@ -636,6 +617,69 @@ export default function RecipeForm({ recipeId, defaultValues }: RecipeFormProps)
         </button>
       </section>
 
+      {/* ── Cover image ── (after recipe data so generate is meaningful) */}
+      <section>
+        <FieldLabel>Фото обложки</FieldLabel>
+        <div
+          onClick={() => coverInputRef.current?.click()}
+          className={cn(
+            "relative w-full aspect-[16/7] rounded-2xl overflow-hidden cursor-pointer",
+            "border-2 border-dashed border-charcoal/10 hover:border-peach/40 transition-colors",
+            coverPreview ? "border-0" : "bg-sand flex items-center justify-center"
+          )}
+        >
+          {coverPreview ? (
+            <Image src={coverPreview} alt="cover" fill sizes="100vw" style={{ objectFit: "cover" }} />
+          ) : (
+            <div className="flex flex-col items-center gap-2 text-charcoal/30 pointer-events-none">
+              <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <span className="text-sm">Загрузить своё фото</span>
+              {recipeId && (
+                <span className="text-xs text-charcoal/20">или сгенерировать кнопкой ниже</span>
+              )}
+            </div>
+          )}
+          {coverPreview && (
+            <div className="absolute inset-0 bg-black/0 hover:bg-black/20 transition-colors flex items-center justify-center">
+              <span className="opacity-0 hover:opacity-100 text-white text-sm font-medium">Заменить</span>
+            </div>
+          )}
+        </div>
+        <input ref={coverInputRef} type="file" accept="image/*" className="hidden" onChange={handleCover} />
+
+        {/* Regenerate button — only in edit mode when cover already exists */}
+        {recipeId && coverPreview && (
+          <div className="mt-3 flex items-center gap-3">
+            <button
+              type="button"
+              onClick={handleGenerateCover}
+              disabled={generatingCover || !!combinedStep}
+              className="flex items-center gap-1.5 text-xs text-charcoal/40 hover:text-peach transition-colors disabled:opacity-40"
+            >
+              {generatingCover ? (
+                <>
+                  <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                  </svg>
+                  Генерирую…
+                </>
+              ) : (
+                <>
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                  </svg>
+                  Перегенерировать обложку
+                </>
+              )}
+            </button>
+            {generateError && <span className="text-xs text-red-500">{generateError}</span>}
+          </div>
+        )}
+      </section>
+
       {/* ── Publish + submit ── */}
       <section className="flex flex-col gap-4 pb-10">
         {error && (
@@ -697,40 +741,60 @@ export default function RecipeForm({ recipeId, defaultValues }: RecipeFormProps)
             {saving ? "Сохраняем..." : recipeId ? "Сохранить изменения" : "Создать рецепт"}
           </button>
 
+          {/* Combined translate + generate — main CTA in edit mode */}
           {recipeId && (
             <button
               type="button"
-              onClick={handleTranslate}
-              disabled={translating}
+              onClick={handleTranslateAndGenerate}
+              disabled={!!combinedStep || translating}
               className={cn(
-                "inline-flex items-center gap-2 px-6 py-3.5 rounded-full text-sm font-medium transition-colors disabled:opacity-50",
-                translateSuccess
+                "inline-flex items-center gap-2 px-6 py-3.5 rounded-full text-sm font-medium transition-all disabled:opacity-50",
+                translateSuccess && !combinedStep
                   ? "bg-sage text-cream"
-                  : "bg-sand text-charcoal/70 hover:bg-peach/20 hover:text-peach"
+                  : "bg-peach/10 text-peach hover:bg-peach/20 border border-peach/20"
               )}
             >
-              {translating ? (
+              {combinedStep === "translating" ? (
                 <>
                   <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
                     <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" strokeDasharray="32" strokeLinecap="round" />
                   </svg>
-                  Переводим...
+                  Переводим…
+                </>
+              ) : combinedStep === "generating" ? (
+                <>
+                  <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" strokeDasharray="32" strokeLinecap="round" />
+                  </svg>
+                  Генерируем обложку…
                 </>
               ) : translateSuccess ? (
                 <>
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                   </svg>
-                  Переведено
+                  Готово
                 </>
               ) : (
                 <>
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" />
                   </svg>
-                  Перевести на EN
+                  ✦ Перевести и создать обложку
                 </>
               )}
+            </button>
+          )}
+
+          {/* Secondary: translate only */}
+          {recipeId && !combinedStep && (
+            <button
+              type="button"
+              onClick={handleTranslate}
+              disabled={translating}
+              className="px-4 py-3.5 rounded-full text-sm text-charcoal/40 hover:text-charcoal/70 transition-colors disabled:opacity-50"
+            >
+              {translating ? "Переводим…" : "Только перевести"}
             </button>
           )}
 

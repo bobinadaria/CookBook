@@ -148,6 +148,24 @@ async function uploadFile(bucket: string, path: string, file: File): Promise<str
   return json.url;
 }
 
+// ── Create draft recipe (title only) ────────────────────────────────────────
+/** Creates a minimal draft recipe with just a title and returns its ID.
+ *  Used by the quick-create modal so the admin is immediately taken to the
+ *  full edit page rather than filling a long form from scratch. */
+export async function createDraftRecipe(title: string): Promise<{ id: string; slug: string }> {
+  const supabase = createClient();
+  const slug = toSlug(title);
+
+  const { data, error } = await supabase
+    .from("recipes")
+    .insert({ title, slug, published: false, featured: false })
+    .select("id, slug")
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
 // ── Create recipe ────────────────────────────────────────────────────────────
 export async function createRecipe(input: RecipeInput): Promise<string> {
   const supabase = createClient();
