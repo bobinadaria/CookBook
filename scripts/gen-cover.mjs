@@ -140,11 +140,8 @@ async function main() {
   }
 
   // 3. Upload to Supabase Storage
-  const slug = title
-    .toLowerCase()
-    .replace(/[^a-zа-яё0-9]+/gi, "-")
-    .replace(/^-|-$/g, "");
-  const fileName = `ai-${slug}-${Date.now()}.webp`;
+  // Use timestamp-only name — Supabase Storage rejects Cyrillic characters in paths
+  const fileName = `ai-${Date.now()}.webp`;
   const storagePath = `covers/${fileName}`;
 
   const supabase = createClient(supabaseUrl, supabaseServiceKey);

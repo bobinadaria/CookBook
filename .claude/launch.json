@@ -4,8 +4,8 @@
     {
       "name": "dev",
       "runtimeExecutable": "/bin/bash",
-      "runtimeArgs": ["-c", "source ~/.nvm/nvm.sh && npm run dev"],
-      "port": 3000,
+      "runtimeArgs": ["-c", "source ~/.nvm/nvm.sh && npm run dev -- --port 3002"],
+      "port": 3002,
       "autoPort": true
     }
   ]
