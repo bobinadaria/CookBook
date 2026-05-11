@@ -41,6 +41,20 @@ const ASPECT_CYCLE = [
 
 const PAGE_SIZE = 28;
 
+/** Собирает весь текстовый контент рецепта по всем языкам для поиска. */
+function getSearchableText(recipe: Recipe): string {
+  return [
+    recipe.title,
+    recipe.title_en,
+    (recipe as Recipe & { title_cs?: string | null }).title_cs,
+    recipe.description,
+    recipe.description_en,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+}
+
 export default function RecipesPage() {
   const t = useTranslations("recipes");
   const tf = useTranslations("filters");
@@ -61,7 +75,7 @@ export default function RecipesPage() {
       supabase
         .from("recipes")
         .select(`
-          id, title, title_en, title_cs, slug, description, note, cover_image, published, created_at, updated_at,
+          id, title, title_en, title_cs, slug, description, description_en, note, cover_image, published, created_at, updated_at,
           recipe_categories ( categories ( id, name, slug, type ) )
         `)
         .eq("published", true)
@@ -122,10 +136,7 @@ export default function RecipesPage() {
     return recipes.filter((recipe) => {
       if (search) {
         const q = search.toLowerCase();
-        if (
-          !recipe.title.toLowerCase().includes(q) &&
-          !(recipe.description?.toLowerCase().includes(q) ?? false)
-        ) return false;
+        if (!getSearchableText(recipe).includes(q)) return false;
       }
       for (const [groupType, ids] of Object.entries(activeFilters)) {
         if (ids.size === 0) continue;
@@ -141,7 +152,7 @@ export default function RecipesPage() {
   const countLabel = (n: number) => t("recipeCount", { count: n });
 
   return (
-    <main className="min-h-screen">
+    <main className="min-h-dvh">
       {/* ── Page header ── */}
       <div className="px-8 pt-10 pb-8 flex items-end justify-between">
         <div>
@@ -159,7 +170,7 @@ export default function RecipesPage() {
 
       {/* ── Filter bar ── */}
       <div className="border-y border-sand bg-cream">
-        <div className="px-8 py-3 flex items-center gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="px-8 py-3 flex items-center gap-2 overflow-x-auto scrollbar-hide">
 
           {/* Search */}
           <div className="relative flex-shrink-0">

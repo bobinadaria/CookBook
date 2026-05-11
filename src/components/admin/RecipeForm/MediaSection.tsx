@@ -1,0 +1,97 @@
+"use client";
+
+import Image from "next/image";
+
+interface MediaSectionProps {
+  coverPreview: string | null;
+  recipeId?: string;
+  generatingCover: boolean;
+  generateError: string | null;
+  combinedStep: null | "translating" | "generating";
+  inputRef: React.RefObject<HTMLInputElement>;
+  onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onGenerate: () => void;
+}
+
+export default function MediaSection({
+  coverPreview,
+  recipeId,
+  generatingCover,
+  generateError,
+  combinedStep,
+  inputRef,
+  onFileChange,
+  onGenerate,
+}: MediaSectionProps) {
+  return (
+    <section>
+      <label className="block text-xs text-charcoal/40 uppercase tracking-wider mb-2">
+        Фото обложки
+      </label>
+
+      {/* Drop zone / preview */}
+      <div
+        onClick={() => inputRef.current?.click()}
+        className={[
+          "relative w-full aspect-[16/7] rounded-2xl overflow-hidden cursor-pointer",
+          "border-2 border-dashed border-charcoal/10 hover:border-peach/40 transition-colors",
+          coverPreview ? "border-0" : "bg-sand flex items-center justify-center",
+        ].join(" ")}
+      >
+        {coverPreview ? (
+          <Image src={coverPreview} alt="cover" fill sizes="100vw" style={{ objectFit: "cover" }} />
+        ) : (
+          <div className="flex flex-col items-center gap-2 text-charcoal/30 pointer-events-none">
+            <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round"
+                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
+            </svg>
+            <span className="text-sm">Загрузить своё фото</span>
+            {recipeId && (
+              <span className="text-xs text-charcoal/20">или сгенерировать кнопкой ниже</span>
+            )}
+          </div>
+        )}
+        {coverPreview && (
+          <div className="absolute inset-0 bg-black/0 hover:bg-black/20 transition-colors flex items-center justify-center">
+            <span className="opacity-0 hover:opacity-100 text-white text-sm font-medium">Заменить</span>
+          </div>
+        )}
+      </div>
+      <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={onFileChange} />
+
+      {/* Re-generate button — shown only in edit mode with existing cover */}
+      {recipeId && coverPreview && (
+        <div className="mt-3 flex items-center gap-3">
+          <button
+            type="button"
+            onClick={onGenerate}
+            disabled={generatingCover || !!combinedStep}
+            className="flex items-center gap-1.5 text-xs text-charcoal/40 hover:text-peach transition-colors disabled:opacity-40"
+          >
+            {generatingCover ? (
+              <>
+                <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                </svg>
+                Генерирую…
+              </>
+            ) : (
+              <>
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round"
+                    d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"
+                  />
+                </svg>
+                Перегенерировать обложку
+              </>
+            )}
+          </button>
+          {generateError && <span className="text-xs text-red-500">{generateError}</span>}
+        </div>
+      )}
+    </section>
+  );
+}

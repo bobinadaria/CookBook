@@ -1,3 +1,5 @@
+import { cache } from "react";
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -8,11 +10,15 @@ import type { Category, Step } from "@/types";
 
 export const dynamic = "force-dynamic";
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "";
+
 interface RecipePageProps {
   params: { slug: string };
 }
 
-async function getRecipe(slug: string) {
+// cache() ensures the DB query runs only once per request even though both
+// generateMetadata and the page component call this function.
+const getRecipe = cache(async function getRecipe(slug: string) {
   const supabase = createClient();
   const { data } = await supabase
     .from("recipes")
@@ -37,7 +43,7 @@ async function getRecipe(slug: string) {
       .filter(Boolean) as Category[],
     steps: ((data.steps ?? []) as Step[]).sort((a, b) => a.order - b.order),
   };
-}
+});
 
 /** Parse ingredients string into sections and items */
 function parseIngredients(raw: string) {
@@ -65,6 +71,57 @@ function parseIngredients(raw: string) {
   return sections;
 }
 
+export async function generateMetadata({ params }: RecipePageProps): Promise<Metadata> {
+  const slug = decodeURIComponent(params.slug);
+  const recipe = await getRecipe(slug);
+
+  // If the recipe doesn't exist, Next.js will call notFound() in the page
+  // component — return a minimal fallback here so the build doesn't break.
+  if (!recipe) {
+    return { title: "Recipe not found — CookBook" };
+  }
+
+  const locale = (await getLocale()) as Locale;
+  const title = localizedField(recipe, "title", locale) ?? recipe.title;
+  const rawDesc =
+    localizedField(recipe, "description", locale) ??
+    localizedField(recipe, "note", locale);
+
+  // Trim description to ~155 chars for search result snippets.
+  const description = rawDesc
+    ? rawDesc.length > 155
+      ? rawDesc.slice(0, 152) + "…"
+      : rawDesc
+    : undefined;
+
+  const pageUrl = `${SITE_URL}/recipes/${slug}`;
+  const images = recipe.cover_image
+    ? [{ url: recipe.cover_image, width: 1200, height: 900, alt: title }]
+    : [];
+
+  return {
+    title: `${title} — CookBook`,
+    description,
+    alternates: {
+      canonical: pageUrl,
+    },
+    openGraph: {
+      type: "article",
+      url: pageUrl,
+      title,
+      description,
+      images,
+      siteName: "CookBook",
+    },
+    twitter: {
+      card: images.length ? "summary_large_image" : "summary",
+      title,
+      description,
+      images: images.map((img) => img.url),
+    },
+  };
+}
+
 export default async function RecipePage({ params }: RecipePageProps) {
   const recipe = await getRecipe(decodeURIComponent(params.slug));
   if (!recipe) notFound();
@@ -84,7 +141,7 @@ export default async function RecipePage({ params }: RecipePageProps) {
   const hasMultipleSections = ingredientSections.some((s) => s.header !== null);
 
   return (
-    <main className="min-h-screen">
+    <main className="min-h-dvh">
       <div className="px-6 pt-10 max-w-5xl mx-auto">
         <Link href="/recipes" className="text-sm text-charcoal/50 hover:text-charcoal transition-colors">
           {t("backToAll")}

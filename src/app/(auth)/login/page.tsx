@@ -32,7 +32,7 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="min-h-screen bg-cream flex flex-col">
+    <main className="min-h-dvh bg-cream flex flex-col">
       {/* Top bar */}
       <div className="px-8 py-6 flex items-center justify-between">
         <Link

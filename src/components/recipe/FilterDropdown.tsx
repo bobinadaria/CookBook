@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useTranslations, useLocale } from "next-intl";
 import { Category } from "@/types";
 import { cn } from "@/lib/utils";
+
+const PANEL_MIN_WIDTH = 220; // px — matches min-w in className
 
 interface FilterDropdownProps {
   label: string;
@@ -37,53 +39,101 @@ export default function FilterDropdown({
 
   useEffect(() => { setMounted(true); }, []);
 
-  // Calculate panel position from trigger's bounding rect
-  const updatePos = () => {
-    if (triggerRef.current) {
-      const r = triggerRef.current.getBoundingClientRect();
-      setPanelPos({ top: r.bottom + 6, left: r.left });
-    }
-  };
+  /**
+   * Calculates the panel position anchored to the trigger button.
+   *
+   * iOS Safari / Chrome on iOS problem:
+   * When the virtual keyboard opens, `window.scrollY` shifts but
+   * `getBoundingClientRect()` reports coords relative to the *visual* viewport,
+   * not the layout viewport. The `visualViewport` API gives us the correct
+   * offset caused by the keyboard so we can compensate.
+   *
+   * Also clamps the left position so the panel never overflows off the right
+   * edge of the screen — critical on small phones (375px, iPhone SE).
+   */
+  const updatePos = useCallback(() => {
+    if (!triggerRef.current) return;
+
+    const r = triggerRef.current.getBoundingClientRect();
+
+    // visualViewport offset — non-zero when virtual keyboard is open on iOS/Android
+    const vv = window.visualViewport;
+    const offsetTop  = vv ? vv.offsetTop  : 0;
+    const offsetLeft = vv ? vv.offsetLeft : 0;
+
+    // Viewport width (use visualViewport when available — more accurate on mobile)
+    const vWidth = vv ? vv.width : window.innerWidth;
+
+    // Clamp left so the panel doesn't overflow the right screen edge
+    const rawLeft  = r.left + offsetLeft;
+    const maxLeft  = vWidth - PANEL_MIN_WIDTH - 8; // 8px breathing room
+    const clampedLeft = Math.min(rawLeft, Math.max(0, maxLeft));
+
+    setPanelPos({
+      top:  r.bottom + 6 + offsetTop,
+      left: clampedLeft,
+    });
+  }, []);
 
   useEffect(() => {
     if (isOpen) updatePos();
-  }, [isOpen]);
+  }, [isOpen, updatePos]);
 
-  // Keep panel aligned while open (scroll / resize)
+  // Keep panel aligned while open: window scroll/resize + iOS virtual keyboard
   useEffect(() => {
     if (!isOpen) return;
-    window.addEventListener("scroll", updatePos, { passive: true });
-    window.addEventListener("resize", updatePos);
+
+    const vv = window.visualViewport;
+
+    window.addEventListener("scroll",  updatePos, { passive: true });
+    window.addEventListener("resize",  updatePos);
+    // visualViewport fires when the virtual keyboard opens/closes on iOS/Android
+    vv?.addEventListener("resize", updatePos);
+    vv?.addEventListener("scroll", updatePos);
+
     return () => {
-      window.removeEventListener("scroll", updatePos);
-      window.removeEventListener("resize", updatePos);
+      window.removeEventListener("scroll",  updatePos);
+      window.removeEventListener("resize",  updatePos);
+      vv?.removeEventListener("resize", updatePos);
+      vv?.removeEventListener("scroll", updatePos);
     };
-  }, [isOpen]);
+  }, [isOpen, updatePos]);
 
-  // Close on outside click or Escape
+  // Close on outside tap/click or Escape
   useEffect(() => {
     if (!isOpen) return;
-    const onClick = (e: MouseEvent) => {
-      const t = e.target as Node;
-      if (
-        !triggerRef.current?.contains(t) &&
-        !panelRef.current?.contains(t)
-      ) onClose();
+    const onPointer = (e: MouseEvent | TouchEvent) => {
+      const target = ("touches" in e ? e.touches[0]?.target : e.target) as Node | null;
+      if (!target) return;
+      if (!triggerRef.current?.contains(target) && !panelRef.current?.contains(target)) {
+        onClose();
+      }
     };
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
-    document.addEventListener("mousedown", onClick);
-    document.addEventListener("keydown", onKey);
+
+    // Use touchstart so the panel closes immediately on iOS without a 300ms delay
+    document.addEventListener("mousedown",  onPointer);
+    document.addEventListener("touchstart", onPointer, { passive: true });
+    document.addEventListener("keydown",    onKey);
     return () => {
-      document.removeEventListener("mousedown", onClick);
-      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("mousedown",  onPointer);
+      document.removeEventListener("touchstart", onPointer);
+      document.removeEventListener("keydown",    onKey);
     };
   }, [isOpen, onClose]);
 
   const panel = (
     <div
       ref={panelRef}
-      style={{ position: "fixed", top: panelPos.top, left: panelPos.left, zIndex: 9999 }}
-      className="min-w-[200px] bg-cream border border-sand rounded-2xl shadow-[0_8px_32px_rgba(28,25,23,0.12)] overflow-hidden dropdown-panel"
+      style={{
+        position: "fixed",
+        top:  panelPos.top,
+        left: panelPos.left,
+        zIndex: 9999,
+        // Never wider than the viewport minus a small margin
+        maxWidth: "calc(100vw - 16px)",
+      }}
+      className="min-w-[220px] bg-cream border border-sand rounded-2xl shadow-[0_8px_32px_rgba(28,25,23,0.12)] overflow-hidden dropdown-panel"
     >
       <div className="p-2">
         {items.map((cat) => {
@@ -93,7 +143,8 @@ export default function FilterDropdown({
               key={cat.id}
               onClick={() => onSelect(groupType, cat.id)}
               className={cn(
-                "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors text-left",
+                // py-3 gives a 44px+ touch target for each row
+                "w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm transition-colors text-left",
                 checked
                   ? "bg-charcoal/5 text-charcoal font-medium"
                   : "text-charcoal/60 hover:bg-sand hover:text-charcoal"
@@ -118,10 +169,10 @@ export default function FilterDropdown({
       </div>
 
       {count > 0 && (
-        <div className="border-t border-sand px-4 py-2.5">
+        <div className="border-t border-sand px-4 py-3">
           <button
             onClick={() => Array.from(activeIds).forEach((id) => onSelect(groupType, id))}
-            className="text-xs text-charcoal/35 hover:text-peach transition-colors"
+            className="text-xs text-charcoal/35 hover:text-peach transition-colors py-1"
           >
             {t("clearSelection")}
           </button>
@@ -135,8 +186,10 @@ export default function FilterDropdown({
       <button
         ref={triggerRef}
         onClick={onToggle}
+        // min-h-[44px] ensures the trigger itself meets the touch target minimum
         className={cn(
-          "flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-200 whitespace-nowrap border",
+          "flex items-center gap-2 px-4 py-2.5 min-h-[44px] rounded-full text-sm font-medium",
+          "transition-all duration-200 whitespace-nowrap border",
           isOpen
             ? "bg-charcoal text-cream border-charcoal"
             : count > 0
@@ -153,6 +206,7 @@ export default function FilterDropdown({
         <svg
           className={cn("w-3.5 h-3.5 transition-transform duration-200", isOpen ? "rotate-180" : "")}
           fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}
+          aria-hidden
         >
           <path d="m6 9 6 6 6-6" />
         </svg>

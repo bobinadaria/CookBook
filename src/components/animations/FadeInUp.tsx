@@ -27,7 +27,17 @@ export default function FadeInUp({
     const el = ref.current;
     if (!el) return;
 
+    // Skip animation entirely when user requests reduced motion.
+    // Also skips on touch devices where GSAP ScrollTrigger can be janky
+    // due to inertial scrolling and viewport resizes from the address bar.
+    const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReduced) return;
+
     const targets = stagger ? Array.from(el.children) : [el];
+
+    // Apply willChange only during animation — constant willChange on many
+    // elements causes GPU memory pressure on mobile devices.
+    gsap.set(targets, { willChange: "transform, opacity" });
 
     const anim = gsap.fromTo(
       targets,
@@ -44,6 +54,10 @@ export default function FadeInUp({
           start: "top 85%",
           once: true,
         },
+        onComplete: () => {
+          // Release GPU layer after animation finishes
+          gsap.set(targets, { willChange: "auto" });
+        },
       }
     );
 
@@ -52,8 +66,9 @@ export default function FadeInUp({
     };
   }, [delay, stagger]);
 
+  // No inline willChange — it's set/unset dynamically by GSAP above
   return (
-    <div ref={ref} className={cn(className)} style={{ willChange: "transform" }}>
+    <div ref={ref} className={cn(className)}>
       {children}
     </div>
   );

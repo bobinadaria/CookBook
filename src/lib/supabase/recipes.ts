@@ -80,30 +80,12 @@
  *   -- step-photos    (public)
  */
 
+// StepInput and RecipeInput are defined in @/types and re-exported here
+// for backward compatibility with existing admin component imports.
+import type { StepInput, RecipeInput } from "@/types";
 import { createClient } from "./client";
 
-export interface StepInput {
-  id?: string;         // existing step id (for edits)
-  order: number;
-  title: string;
-  description: string;
-  photo_url: string | null;
-  photoFile?: File;    // new local file to upload
-}
-
-export interface RecipeInput {
-  title: string;
-  slug: string;
-  description: string;
-  note: string;
-  ingredients: string;
-  published: boolean;
-  featured: boolean;
-  categoryIds: string[];
-  steps: StepInput[];
-  coverFile?: File;    // new local file
-  cover_image?: string; // existing URL
-}
+export type { StepInput, RecipeInput };
 
 // ── Slug helper ─────────────────────────────────────────────────────────────
 

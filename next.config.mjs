@@ -4,6 +4,12 @@ const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  reactStrictMode: true,
+
+  // Fail the build on type errors and lint errors (no silent surprises on Vercel)
+  typescript: { ignoreBuildErrors: false },
+  eslint: { ignoreDuringBuilds: false },
+
   async headers() {
     return [
       {
@@ -18,6 +24,7 @@ const nextConfig = {
       },
     ];
   },
+
   images: {
     remotePatterns: [
       {
@@ -25,6 +32,7 @@ const nextConfig = {
         hostname: "images.unsplash.com",
       },
       {
+        // Supabase Storage — covers and step photos
         protocol: "https",
         hostname: "*.supabase.co",
         pathname: "/storage/v1/object/public/**",

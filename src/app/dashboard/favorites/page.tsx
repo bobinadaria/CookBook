@@ -57,7 +57,7 @@ function FavoritesContent() {
 
   if (!checked || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-dvh flex items-center justify-center">
         <span className="font-handwritten text-2xl text-charcoal/30">{tc("loading")}</span>
       </div>
     );
@@ -66,7 +66,7 @@ function FavoritesContent() {
   if (!user) return null;
 
   return (
-    <main className="min-h-screen">
+    <main className="min-h-dvh">
       {/* Header */}
       <div className="px-8 pt-10 pb-8 flex items-end justify-between">
         <div>

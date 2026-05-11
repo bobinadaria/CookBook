@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, DM_Serif_Display, Satisfy, Plus_Jakarta_Sans } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
@@ -37,6 +37,18 @@ const plusJakarta = Plus_Jakarta_Sans({
 export const metadata: Metadata = {
   title: "CookBook — Personal Recipe Collection",
   description: "A curated collection of personal recipes, beautifully presented.",
+};
+
+/**
+ * viewport-fit=cover — required for safe area insets to work on iPhone notch /
+ * Dynamic Island. Without this env(safe-area-inset-*) returns 0 on all devices.
+ *
+ * Chrome on iOS uses the same WebKit engine as Safari, so this applies to both.
+ */
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default async function RootLayout({

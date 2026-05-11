@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
-import { isAdmin, isValidUUID } from "@/lib/supabase/admin";
 import { translateRecipe } from "@/lib/translate";
+import { requireAdmin, isAuthSuccess } from "@/lib/api-auth";
+import { TranslateRequestSchema } from "@/lib/validations";
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 
@@ -8,27 +9,21 @@ import { revalidatePath } from "next/cache";
 export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
-  // 1. Verify authentication
+  // 1. Verify admin auth
+  const auth = await requireAdmin();
+  if (!isAuthSuccess(auth)) return auth;
+
+  // 2. Validate request body with Zod
+  const body = await req.json().catch(() => ({}));
+  const parsed = TranslateRequestSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "Invalid request", details: parsed.error.flatten() },
+      { status: 400 }
+    );
+  }
+  const { recipeId } = parsed.data;
   const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  // 2. Verify admin role using service role key (bypasses RLS)
-  const adminCheck = await isAdmin(user.id);
-  if (!adminCheck) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
-
-  // 3. Get and validate recipe ID from body
-  const { recipeId } = await req.json();
-  if (!recipeId || !isValidUUID(recipeId)) {
-    return NextResponse.json({ error: "Missing or invalid recipeId" }, { status: 400 });
-  }
 
   // 4. Fetch recipe with steps (also fetch slug for cache revalidation)
   const { data: recipe, error: fetchError } = await supabase

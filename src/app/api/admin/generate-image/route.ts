@@ -1,5 +1,5 @@
-import { createClient } from "@/lib/supabase/server";
-import { createServiceRoleClient, isAdmin, isValidUUID } from "@/lib/supabase/admin";
+import { createServiceRoleClient, isValidUUID } from "@/lib/supabase/admin";
+import { requireAdmin, isAuthSuccess } from "@/lib/api-auth";
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 
@@ -44,22 +44,11 @@ function buildPrompt(title: string, description?: string, ingredients?: string):
 }
 
 export async function POST(req: NextRequest) {
-  // 1. Verify authentication
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // 1. Verify admin auth (replaces inline user + isAdmin checks)
+  const auth = await requireAdmin();
+  if (!isAuthSuccess(auth)) return auth;
 
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  // 2. Verify admin role
-  if (!(await isAdmin(user.id))) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
-
-  // 3. Parse request body
+  // 2. Parse + validate request body
   const body = await req.json().catch(() => ({}));
   const { title, description, ingredients, recipeId } = body as {
     title?: string;

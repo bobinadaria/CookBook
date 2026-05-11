@@ -4,28 +4,18 @@ import Link from "next/link";
 import Image from "next/image";
 import { useLocale } from "next-intl";
 import { cn } from "@/lib/utils";
-import { type Locale } from "@/lib/localized-content";
+import { localizedField } from "@/lib/localized-content";
+import type { LocaleCode, RecipeCardData } from "@/types";
 import FavoriteButton from "./FavoriteButton";
 import { useFavorites } from "@/context/FavoritesContext";
 
 interface RecipeCardProps {
-  recipe: {
-    id: string;
-    title: string;
-    slug: string;
-    cover_image?: string | null;
-    title_en?: string | null;
-    title_cs?: string | null;
-  };
+  recipe: RecipeCardData;
   aspectClass?: string;
   fillHeight?: boolean;
-  locale?: string;
+  /** Override locale (e.g. when rendering in a server component that already knows the locale). */
+  locale?: LocaleCode;
   className?: string;
-}
-
-function getLocalizedTitle(recipe: RecipeCardProps["recipe"], locale: Locale): string {
-  if (locale === "en" && recipe.title_en) return recipe.title_en;
-  return recipe.title;
 }
 
 export default function RecipeCard({
@@ -35,11 +25,11 @@ export default function RecipeCard({
   locale: localeProp,
   className,
 }: RecipeCardProps) {
-  const hookLocale = useLocale();
-  const locale = (localeProp ?? hookLocale) as Locale;
+  const hookLocale = useLocale() as LocaleCode;
+  const locale = localeProp ?? hookLocale;
   const { favorites } = useFavorites();
   const isFavorited = favorites.has(recipe.slug);
-  const title = getLocalizedTitle(recipe, locale);
+  const title = localizedField(recipe as Record<string, unknown>, "title", locale) ?? recipe.title;
 
   return (
     <Link
@@ -54,7 +44,7 @@ export default function RecipeCard({
       >
         {recipe.cover_image ? (
           <Image
-            src={recipe.cover_image as string}
+            src={recipe.cover_image}
             alt={title}
             fill
             className="object-cover group-hover:scale-[1.04] transition-transform duration-500 ease-out"
@@ -66,16 +56,25 @@ export default function RecipeCard({
           </div>
         )}
 
-        <div className={cn(
-          "absolute top-3 left-3 transition-opacity duration-200",
-          isFavorited ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-        )}>
+        <div
+          className={cn(
+            "absolute top-3 left-3 transition-opacity duration-200",
+            isFavorited ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+          )}
+        >
           <FavoriteButton slug={recipe.slug} />
         </div>
 
         <div className="absolute bottom-3 right-3 opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 ease-out">
           <div className="w-8 h-8 bg-cream/95 rounded-full flex items-center justify-center shadow-sm">
-            <svg className="w-3.5 h-3.5 text-charcoal" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} aria-hidden>
+            <svg
+              className="w-3.5 h-3.5 text-charcoal"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2.5}
+              aria-hidden
+            >
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M12 5l7 7-7 7" />
             </svg>
           </div>

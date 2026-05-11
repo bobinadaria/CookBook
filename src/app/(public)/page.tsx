@@ -5,6 +5,7 @@ import FadeInUp from "@/components/animations/FadeInUp";
 import WordReveal from "@/components/animations/WordReveal";
 import RecipeCard from "@/components/recipe/RecipeCard";
 import { fetchFeaturedRecipes } from "@/lib/supabase/server-queries";
+import type { LocaleCode } from "@/types";
 
 const HERO_PHOTO = "/hero.png";
 
@@ -12,11 +13,13 @@ const ROW1 = [0, 1, 2];
 const ROW2 = [3, 4, 5];
 
 export default async function HomePage() {
-  const [featured, t, locale] = await Promise.all([
+  const [featured, t, rawLocale] = await Promise.all([
     fetchFeaturedRecipes(),
     getTranslations("home"),
     getLocale(),
   ]);
+  // getLocale() returns `string`; cast to LocaleCode — routing guarantees it's valid
+  const locale = rawLocale as LocaleCode;
 
   return (
     <main>

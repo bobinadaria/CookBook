@@ -1,14 +1,19 @@
-import { createClient } from "./server";
+/**
+ * @deprecated All server-side query helpers have moved to @/lib/supabase/queries.
+ * This file re-exports them for backward compatibility.
+ *
+ * Update your imports:
+ *   import { fetchFeaturedRecipes } from "@/lib/supabase/queries";
+ */
+export {
+  fetchFeaturedRecipes,
+  fetchPublishedRecipes,
+  fetchRecipeBySlug,
+  fetchAdminRecipeList,
+  fetchRecipeById,
+} from "@/lib/supabase/queries/recipes";
 
-export async function fetchFeaturedRecipes() {
-  const supabase = createClient();
-  const { data, error } = await supabase
-    .from("recipes")
-    .select("id, title, title_en, title_cs, slug, description, cover_image")
-    .eq("published", true)
-    .eq("featured", true)
-    .order("created_at", { ascending: false })
-    .limit(6);
-  if (error) throw error;
-  return data ?? [];
-}
+export {
+  fetchAllCategories,
+  fetchCategoriesByType,
+} from "@/lib/supabase/queries/categories";

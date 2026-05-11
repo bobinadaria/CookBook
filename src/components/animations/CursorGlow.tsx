@@ -3,13 +3,14 @@
 import { useEffect, useRef } from "react";
 
 /**
- * Replaces WaterEffect.
+ * Soft peach radial spotlight that follows the cursor — desktop only.
  *
- * — On background: soft peach radial spotlight (600px, 4% opacity) that follows the cursor.
- *   Gives a warm "flashlight on parchment" feel without distracting motion.
+ * Touch devices (iOS Safari, Chrome on iOS, Android Chrome):
+ *  - No mouse cursor exists → the effect is meaningless.
+ *  - Attaching mousemove on mobile wastes battery and memory.
+ *  - Detection: `(hover: none)` media query covers all primary touch devices.
  *
- * — On interactive elements (links, buttons): no special treatment here —
- *   see the arrow indicator in RecipeCard for the clickability affordance.
+ * Prefers-reduced-motion: also skipped for accessibility.
  */
 export default function CursorGlow() {
   const ref = useRef<HTMLDivElement>(null);
@@ -18,7 +19,12 @@ export default function CursorGlow() {
     const el = ref.current;
     if (!el) return;
 
-    // Use direct DOM manipulation (no React state) for silky-smooth 60 fps
+    // Skip on touch devices (no cursor) and when user prefers less motion
+    const isTouch   = window.matchMedia("(hover: none)").matches;
+    const isReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (isTouch || isReduced) return;
+
+    // Direct DOM manipulation — no React state — keeps it at 60fps
     const onMove = (e: MouseEvent) => {
       el.style.background = `radial-gradient(600px circle at ${e.clientX}px ${e.clientY}px, rgba(232,149,109,0.05) 0%, transparent 70%)`;
     };
