@@ -11,6 +11,7 @@ export {
   fetchRecipeBySlug,
   fetchAdminRecipeList,
   fetchRecipeById,
+  fetchRelatedRecipes,
 } from "@/lib/supabase/queries/recipes";
 
 export {

@@ -45,7 +45,14 @@
     "dishStory": "история блюда",
     "ingredients": "Состав",
     "preparation": "Приготовление",
-    "step": "Шаг {number}"
+    "step": "Шаг {number}",
+    "youMightAlsoLike": "возможно, понравится",
+    "relatedRecipes": "Похожие рецепты",
+    "cookTime": "Время",
+    "servings": "Порций",
+    "minutes": "{n} мин",
+    "hours": "{h} ч {m} мин",
+    "hoursOnly": "{h} ч"
   },
   "filters": {
     "mealType": "Тип блюда",

@@ -170,6 +170,8 @@ export async function createRecipe(input: RecipeInput): Promise<string> {
       cover_image,
       published: input.published,
       featured: input.featured,
+      cook_time: input.cook_time ?? null,
+      servings: input.servings ?? null,
     })
     .select("id")
     .single();
@@ -233,6 +235,8 @@ export async function updateRecipe(recipeId: string, input: RecipeInput): Promis
       cover_image,
       published: input.published,
       featured: input.featured,
+      cook_time: input.cook_time ?? null,
+      servings: input.servings ?? null,
       updated_at: new Date().toISOString(),
     })
     .eq("id", recipeId);

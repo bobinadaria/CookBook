@@ -7,6 +7,7 @@ import { getTranslations, getLocale } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { localizedField, type Locale } from "@/lib/localized-content";
 import type { Category, Step } from "@/types";
+import RelatedRecipes from "@/components/recipe/RelatedRecipes";
 
 export const dynamic = "force-dynamic";
 
@@ -164,7 +165,44 @@ export default async function RecipePage({ params }: RecipePageProps) {
             {title}
           </h1>
           {description && (
-            <p className="text-charcoal/70 text-lg leading-relaxed">{description}</p>
+            <p className="text-charcoal/70 text-lg leading-relaxed mb-6">{description}</p>
+          )}
+
+          {/* ── Cook time + servings pills ── */}
+          {(recipe.cook_time || recipe.servings) && (
+            <div className="flex gap-3 flex-wrap">
+              {recipe.cook_time && (
+                <div className="flex items-center gap-2 bg-sand px-4 py-2.5 rounded-2xl">
+                  <svg className="w-4 h-4 text-peach shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} aria-hidden>
+                    <circle cx="12" cy="12" r="9" />
+                    <path strokeLinecap="round" d="M12 7v5l3 3" />
+                  </svg>
+                  <div>
+                    <p className="text-[10px] uppercase tracking-widest text-charcoal/40 leading-none mb-0.5">{t("cookTime")}</p>
+                    <p className="text-sm font-medium text-charcoal leading-none">
+                      {recipe.cook_time < 60
+                        ? t("minutes", { n: recipe.cook_time })
+                        : recipe.cook_time % 60 === 0
+                          ? t("hoursOnly", { h: Math.floor(recipe.cook_time / 60) })
+                          : t("hours", { h: Math.floor(recipe.cook_time / 60), m: recipe.cook_time % 60 })}
+                    </p>
+                  </div>
+                </div>
+              )}
+              {recipe.servings && (
+                <div className="flex items-center gap-2 bg-sand px-4 py-2.5 rounded-2xl">
+                  <svg className="w-4 h-4 text-sage shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} aria-hidden>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path strokeLinecap="round" d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+                  </svg>
+                  <div>
+                    <p className="text-[10px] uppercase tracking-widest text-charcoal/40 leading-none mb-0.5">{t("servings")}</p>
+                    <p className="text-sm font-medium text-charcoal leading-none">{recipe.servings}</p>
+                  </div>
+                </div>
+              )}
+            </div>
           )}
         </div>
 
@@ -277,6 +315,12 @@ export default async function RecipePage({ params }: RecipePageProps) {
           </div>
         </section>
       )}
+
+      {/* ── Related recipes ── */}
+      <RelatedRecipes
+        recipeId={recipe.id}
+        categoryIds={recipe.categories.map((c: Category) => c.id)}
+      />
     </main>
   );
 }

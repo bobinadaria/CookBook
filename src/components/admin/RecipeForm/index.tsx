@@ -25,11 +25,15 @@ export default function RecipeForm({ recipeId, defaultValues }: RecipeFormProps)
         slug={form.slug}
         description={form.description}
         note={form.note}
+        cookTime={form.cookTime}
+        servings={form.servings}
         onTitleChange={form.setTitle}
         onSlugChange={form.setSlug}
         onSlugEdit={() => form.setSlugEdited(true)}
         onDescriptionChange={form.setDescription}
         onNoteChange={form.setNote}
+        onCookTimeChange={form.setCookTime}
+        onServingsChange={form.setServings}
       />
 
       {/* Ingredients */}

@@ -45,7 +45,14 @@
     "dishStory": "dish story",
     "ingredients": "Ingredients",
     "preparation": "Preparation",
-    "step": "Step {number}"
+    "step": "Step {number}",
+    "youMightAlsoLike": "you might also like",
+    "relatedRecipes": "Related recipes",
+    "cookTime": "Time",
+    "servings": "Servings",
+    "minutes": "{n} min",
+    "hours": "{h} h {m} min",
+    "hoursOnly": "{h} h"
   },
   "filters": {
     "mealType": "Meal type",

@@ -60,6 +60,59 @@ export async function fetchRecipeBySlug(slug: string): Promise<Recipe | null> {
   return data as Recipe;
 }
 
+/**
+ * Fetch related recipes based on shared categories.
+ *
+ * Algorithm:
+ *  1. Find all recipe_ids that share at least one category with the current recipe.
+ *  2. Count how many categories each candidate shares (more = more similar).
+ *  3. Return the top `limit` recipes sorted by overlap count, excluding the current recipe.
+ */
+export async function fetchRelatedRecipes(
+  recipeId: string,
+  categoryIds: string[],
+  limit = 3
+): Promise<RecipeCardData[]> {
+  if (categoryIds.length === 0) return [];
+
+  const supabase = createClient();
+
+  // Step 1 — find all recipe_ids that share at least one category.
+  const { data: matches, error } = await supabase
+    .from("recipe_categories")
+    .select("recipe_id")
+    .in("category_id", categoryIds)
+    .neq("recipe_id", recipeId);
+
+  if (error || !matches?.length) return [];
+
+  // Step 2 — count category overlaps per recipe_id.
+  const overlapCount = matches.reduce<Record<string, number>>(
+    (acc, { recipe_id }) => {
+      acc[recipe_id] = (acc[recipe_id] ?? 0) + 1;
+      return acc;
+    },
+    {}
+  );
+
+  // Step 3 — sort by overlap (descending), take top N ids.
+  const topIds = Object.entries(overlapCount)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, limit)
+    .map(([id]) => id);
+
+  // Step 4 — fetch the actual recipe rows (only published ones).
+  const { data: recipes } = await supabase
+    .from("recipes")
+    .select("id, title, title_en, slug, cover_image")
+    .in("id", topIds)
+    .eq("published", true);
+
+  // Restore the overlap-based order (Supabase .in() doesn't guarantee order).
+  const byId = Object.fromEntries((recipes ?? []).map((r) => [r.id, r]));
+  return topIds.map((id) => byId[id]).filter(Boolean) as RecipeCardData[];
+}
+
 // ── Admin queries ────────────────────────────────────────────────────────────
 
 /** Fetch all recipes for the admin list (published + drafts). */

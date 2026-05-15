@@ -38,6 +38,8 @@ export interface Recipe {
   cover_image: string | null;
   published: boolean;
   featured: boolean;
+  cook_time: number | null;  // total minutes
+  servings: number | null;   // number of portions
   // Translated fields stored in DB (English variant)
   title_en?: string | null;
   description_en?: string | null;
@@ -118,6 +120,8 @@ export interface RecipeInput {
   ingredients: string;
   published: boolean;
   featured: boolean;
+  cook_time: number | null;  // total minutes
+  servings: number | null;   // number of portions
   categoryIds: string[];
   steps: StepInput[];
   /** New cover file selected by the user — uploaded on save. */

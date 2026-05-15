@@ -29,6 +29,8 @@ export function useRecipeForm(recipeId?: string, defaultValues?: RecipeFormDefau
   const [ingredients, setIngredients] = useState(defaultValues?.ingredients ?? "");
   const [published, setPublished] = useState(defaultValues?.published ?? false);
   const [featured, setFeatured] = useState(defaultValues?.featured ?? false);
+  const [cookTime, setCookTime] = useState<number | null>(defaultValues?.cook_time ?? null);
+  const [servings, setServings] = useState<number | null>(defaultValues?.servings ?? null);
 
   // ── Cover ──────────────────────────────────────────────────────────────────
   const [coverFile, setCoverFile] = useState<File | undefined>();
@@ -88,6 +90,7 @@ export function useRecipeForm(recipeId?: string, defaultValues?: RecipeFormDefau
     const timer = setTimeout(() => {
       const draft = {
         title, slug, description, note, ingredients, published, featured,
+        cook_time: cookTime, servings,
         categoryIds: Array.from(selectedCategoryIds),
         steps: steps.map(({ id, order, title, description, photo_url }) => ({
           id, order, title, description, photo_url,
@@ -96,7 +99,7 @@ export function useRecipeForm(recipeId?: string, defaultValues?: RecipeFormDefau
       localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
     }, 500);
     return () => clearTimeout(timer);
-  }, [title, slug, description, note, ingredients, published, featured, selectedCategoryIds, steps, recipeId]);
+  }, [title, slug, description, note, ingredients, published, featured, cookTime, servings, selectedCategoryIds, steps, recipeId]);
 
   // ── Auto-generate slug from title ─────────────────────────────────────────
   useEffect(() => {
@@ -171,6 +174,8 @@ export function useRecipeForm(recipeId?: string, defaultValues?: RecipeFormDefau
       ingredients: ingredients.trim(),
       published,
       featured,
+      cook_time: cookTime,
+      servings,
       categoryIds: Array.from(selectedCategoryIds),
       steps,
       coverFile,
@@ -295,6 +300,8 @@ export function useRecipeForm(recipeId?: string, defaultValues?: RecipeFormDefau
     ingredients, setIngredients,
     published, setPublished,
     featured, setFeatured,
+    cookTime, setCookTime,
+    servings, setServings,
     // Cover
     coverPreview, setCoverPreview,
     coverInputRef,

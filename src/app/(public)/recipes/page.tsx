@@ -46,7 +46,6 @@ function getSearchableText(recipe: Recipe): string {
   return [
     recipe.title,
     recipe.title_en,
-    (recipe as Recipe & { title_cs?: string | null }).title_cs,
     recipe.description,
     recipe.description_en,
   ]
@@ -75,7 +74,7 @@ export default function RecipesPage() {
       supabase
         .from("recipes")
         .select(`
-          id, title, title_en, title_cs, slug, description, description_en, note, cover_image, published, created_at, updated_at,
+          id, title, title_en, slug, description, description_en, note, cover_image, published, created_at, updated_at,
           recipe_categories ( categories ( id, name, slug, type ) )
         `)
         .eq("published", true)

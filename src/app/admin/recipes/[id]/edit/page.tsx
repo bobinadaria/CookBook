@@ -23,6 +23,8 @@ export default function EditRecipePage() {
           ingredients: recipe.ingredients ?? "",
           published: recipe.published,
           featured: recipe.featured ?? false,
+          cook_time: recipe.cook_time ?? null,
+          servings: recipe.servings ?? null,
           cover_image: recipe.cover_image ?? undefined,
           categoryIds: (recipe.recipe_categories ?? []).map(
             (rc: { category_id: string }) => rc.category_id

@@ -5,11 +5,15 @@ interface BasicInfoSectionProps {
   slug: string;
   description: string;
   note: string;
+  cookTime: number | null;
+  servings: number | null;
   onTitleChange: (v: string) => void;
   onSlugChange: (v: string) => void;
   onSlugEdit: () => void;
   onDescriptionChange: (v: string) => void;
   onNoteChange: (v: string) => void;
+  onCookTimeChange: (v: number | null) => void;
+  onServingsChange: (v: number | null) => void;
 }
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
@@ -40,8 +44,9 @@ function FieldTextarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>)
 }
 
 export default function BasicInfoSection({
-  title, slug, description, note,
+  title, slug, description, note, cookTime, servings,
   onTitleChange, onSlugChange, onSlugEdit, onDescriptionChange, onNoteChange,
+  onCookTimeChange, onServingsChange,
 }: BasicInfoSectionProps) {
   return (
     <section className="flex flex-col gap-5">
@@ -85,6 +90,35 @@ export default function BasicInfoSection({
         <p className="mt-1 text-xs text-charcoal/30">
           Отображается на странице рецепта в рукописном стиле
         </p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <FieldLabel>Время приготовления (мин)</FieldLabel>
+          <FieldInput
+            type="number"
+            min={1}
+            value={cookTime ?? ""}
+            onChange={(e) =>
+              onCookTimeChange(e.target.value === "" ? null : Number(e.target.value))
+            }
+            placeholder="45"
+          />
+          <p className="mt-1 text-xs text-charcoal/30">Общее время в минутах</p>
+        </div>
+        <div>
+          <FieldLabel>Количество порций</FieldLabel>
+          <FieldInput
+            type="number"
+            min={1}
+            value={servings ?? ""}
+            onChange={(e) =>
+              onServingsChange(e.target.value === "" ? null : Number(e.target.value))
+            }
+            placeholder="4"
+          />
+          <p className="mt-1 text-xs text-charcoal/30">Для скольких человек</p>
+        </div>
       </div>
     </section>
   );
