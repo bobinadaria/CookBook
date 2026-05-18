@@ -34,9 +34,46 @@ const plusJakarta = Plus_Jakarta_Sans({
   display: "swap",
 });
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://bydaria.kitchen";
+
 export const metadata: Metadata = {
-  title: "CookBook — Personal Recipe Collection",
-  description: "A curated collection of personal recipes, beautifully presented.",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "bydaria.kitchen — Personal Recipe Collection",
+    template: "%s — bydaria.kitchen",
+  },
+  description:
+    "A curated collection of personal recipes by Daria — beautifully presented, cozy, and full of flavour.",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    url: SITE_URL,
+    siteName: "bydaria.kitchen",
+    title: "bydaria.kitchen — Personal Recipe Collection",
+    description:
+      "A curated collection of personal recipes by Daria — beautifully presented, cozy, and full of flavour.",
+    images: [
+      {
+        url: "/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "bydaria.kitchen",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "bydaria.kitchen — Personal Recipe Collection",
+    description:
+      "A curated collection of personal recipes by Daria — beautifully presented, cozy, and full of flavour.",
+    images: ["/og-image.jpg"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 /**

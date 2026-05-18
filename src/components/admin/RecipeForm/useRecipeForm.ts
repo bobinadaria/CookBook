@@ -8,12 +8,13 @@ import {
   fetchCategories,
   toSlug,
 } from "@/lib/supabase/recipes";
-import type { Category, StepInput, RecipeInput } from "@/types";
+import type { Category, StepInput, RecipeInput, NutritionData } from "@/types";
 
 const DRAFT_KEY = "cookbook-recipe-draft";
 
 export interface RecipeFormDefaults extends Partial<RecipeInput> {
   cover_image?: string;
+  nutrition?: NutritionData | null;
 }
 
 export function useRecipeForm(recipeId?: string, defaultValues?: RecipeFormDefaults) {
@@ -61,6 +62,18 @@ export function useRecipeForm(recipeId?: string, defaultValues?: RecipeFormDefau
 
   // ── Combined translate + generate state ────────────────────────────────────
   const [combinedStep, setCombinedStep] = useState<null | "translating" | "generating">(null);
+
+  // ── Nutrition (КБЖУ) state ─────────────────────────────────────────────────
+  const [currentNutrition] = useState<NutritionData | null>(
+    defaultValues?.nutrition ?? null,
+  );
+  const [freshNutrition, setFreshNutrition] = useState<NutritionData | null>(null);
+  const [calculatingNutrition, setCalculatingNutrition] = useState(false);
+  const [nutritionError, setNutritionError] = useState<string | null>(null);
+  // Сравнение текста ingredients с сохранённым в БД — если изменилось,
+  // расчёт по recipeId возьмёт устаревший текст (мы не пересохраняем перед расчётом).
+  const initialIngredients = useRef(defaultValues?.ingredients ?? "");
+  const ingredientsDirty = ingredients.trim() !== initialIngredients.current.trim();
 
   // ── Draft restore (new recipes only) ──────────────────────────────────────
   const draftRestored = useRef(false);
@@ -249,6 +262,39 @@ export function useRecipeForm(recipeId?: string, defaultValues?: RecipeFormDefau
     }
   };
 
+  // ── Calculate nutrition (КБЖУ) ─────────────────────────────────────────────
+  const handleCalculateNutrition = async () => {
+    if (!recipeId) {
+      setNutritionError("Сначала сохрани рецепт");
+      return;
+    }
+    setCalculatingNutrition(true);
+    setNutritionError(null);
+    try {
+      const res = await fetch("/api/admin/calculate-nutrition", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ recipeId }),
+      });
+      const text = await res.text();
+      let json: { nutrition?: NutritionData; error?: string } = {};
+      try {
+        json = JSON.parse(text);
+      } catch {
+        /* non-JSON */
+      }
+      if (!res.ok) throw new Error(json.error || `Ошибка ${res.status}`);
+      if (!json.nutrition) throw new Error("Сервер не вернул nutrition");
+      setFreshNutrition(json.nutrition);
+    } catch (err: unknown) {
+      setNutritionError(
+        err instanceof Error ? err.message : "Не удалось рассчитать КБЖУ",
+      );
+    } finally {
+      setCalculatingNutrition(false);
+    }
+  };
+
   // ── Combined: translate → generate cover ──────────────────────────────────
   const handleTranslateAndGenerate = async () => {
     if (!recipeId) return;
@@ -325,5 +371,12 @@ export function useRecipeForm(recipeId?: string, defaultValues?: RecipeFormDefau
     // Combined
     combinedStep,
     handleTranslateAndGenerate,
+    // Nutrition
+    currentNutrition,
+    freshNutrition,
+    calculatingNutrition,
+    nutritionError,
+    ingredientsDirty,
+    handleCalculateNutrition,
   };
 }

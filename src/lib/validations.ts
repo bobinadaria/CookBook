@@ -50,6 +50,11 @@ export const GenerateImageRequestSchema = z.object({
   recipeId: uuid.optional(),
 });
 
+/** Body expected by POST /api/admin/calculate-nutrition */
+export const CalculateNutritionRequestSchema = z.object({
+  recipeId: uuid,
+});
+
 /** Allowed upload buckets */
 export const ALLOWED_BUCKETS = ["recipe-covers", "step-photos"] as const;
 export type UploadBucket = (typeof ALLOWED_BUCKETS)[number];

@@ -6,6 +6,7 @@ import BasicInfoSection from "./BasicInfoSection";
 import StepsSection from "./StepsSection";
 import CategoriesSection from "./CategoriesSection";
 import MediaSection from "./MediaSection";
+import NutritionSection from "./NutritionSection";
 import ActionsSection from "./ActionsSection";
 
 interface RecipeFormProps {
@@ -50,6 +51,17 @@ export default function RecipeForm({ recipeId, defaultValues }: RecipeFormProps)
         />
         <p className="mt-1 text-xs text-charcoal/30">По одному ингредиенту на строку</p>
       </section>
+
+      <NutritionSection
+        current={form.currentNutrition}
+        fresh={form.freshNutrition}
+        recipeId={recipeId}
+        ingredientsEmpty={form.ingredients.trim().length === 0}
+        ingredientsDirty={form.ingredientsDirty}
+        calculating={form.calculatingNutrition}
+        error={form.nutritionError}
+        onCalculate={form.handleCalculateNutrition}
+      />
 
       <CategoriesSection
         allCategories={form.allCategories}

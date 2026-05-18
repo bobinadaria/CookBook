@@ -5,10 +5,11 @@ import { useParams } from "next/navigation";
 import RecipeForm from "@/components/admin/RecipeForm";
 import { fetchRecipeById } from "@/lib/supabase/recipes";
 import type { RecipeInput } from "@/lib/supabase/recipes";
+import type { NutritionData } from "@/types";
 
 export default function EditRecipePage() {
   const { id } = useParams<{ id: string }>();
-  const [defaults, setDefaults] = useState<(Partial<RecipeInput> & { cover_image?: string }) | null>(null);
+  const [defaults, setDefaults] = useState<(Partial<RecipeInput> & { cover_image?: string; nutrition?: NutritionData | null }) | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -26,6 +27,7 @@ export default function EditRecipePage() {
           cook_time: recipe.cook_time ?? null,
           servings: recipe.servings ?? null,
           cover_image: recipe.cover_image ?? undefined,
+          nutrition: (recipe.nutrition ?? null) as NutritionData | null,
           categoryIds: (recipe.recipe_categories ?? []).map(
             (rc: { category_id: string }) => rc.category_id
           ),

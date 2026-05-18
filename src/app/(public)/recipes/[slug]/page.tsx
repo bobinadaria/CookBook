@@ -13,6 +13,39 @@ export const dynamic = "force-dynamic";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "";
 
+/**
+ * Renders a text string that may contain markdown-style links [label](url)
+ * as clickable <Link> elements. Everything else is rendered as plain text.
+ */
+function renderTextWithLinks(text: string): React.ReactNode {
+  const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+  const parts: React.ReactNode[] = [];
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = linkRegex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(text.slice(lastIndex, match.index));
+    }
+    parts.push(
+      <Link
+        key={match.index}
+        href={match[2]}
+        className="text-peach hover:text-peach-dark underline underline-offset-2 transition-colors"
+      >
+        {match[1]}
+      </Link>
+    );
+    lastIndex = match.index + match[0].length;
+  }
+
+  if (lastIndex < text.length) {
+    parts.push(text.slice(lastIndex));
+  }
+
+  return parts.length > 0 ? <>{parts}</> : text;
+}
+
 interface RecipePageProps {
   params: { slug: string };
 }
@@ -123,6 +156,15 @@ export async function generateMetadata({ params }: RecipePageProps): Promise<Met
   };
 }
 
+/** Build ISO 8601 duration string from minutes (e.g. 90 → "PT1H30M") */
+function toIsoDuration(minutes: number): string {
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  if (h > 0 && m > 0) return `PT${h}H${m}M`;
+  if (h > 0) return `PT${h}H`;
+  return `PT${m}M`;
+}
+
 export default async function RecipePage({ params }: RecipePageProps) {
   const recipe = await getRecipe(decodeURIComponent(params.slug));
   if (!recipe) notFound();
@@ -165,7 +207,7 @@ export default async function RecipePage({ params }: RecipePageProps) {
             {title}
           </h1>
           {description && (
-            <p className="text-charcoal/70 text-lg leading-relaxed mb-6">{description}</p>
+            <p className="text-charcoal/70 text-lg leading-relaxed mb-6">{renderTextWithLinks(description)}</p>
           )}
 
           {/* ── Cook time + servings pills ── */}
@@ -295,7 +337,7 @@ export default async function RecipePage({ params }: RecipePageProps) {
                   </div>
 
                   {/* Description */}
-                  <p className="text-charcoal/65 text-sm leading-relaxed">{stepDesc}</p>
+                  <p className="text-charcoal/65 text-sm leading-relaxed">{renderTextWithLinks(stepDesc)}</p>
 
                   {/* Photo if available */}
                   {step.photo_url && (
@@ -320,6 +362,54 @@ export default async function RecipePage({ params }: RecipePageProps) {
       <RelatedRecipes
         recipeId={recipe.id}
         categoryIds={recipe.categories.map((c: Category) => c.id)}
+      />
+
+      {/* ── Recipe JSON-LD Schema (for Google rich results) ── */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Recipe",
+            name: title,
+            description: description ?? undefined,
+            image: recipe.cover_image ? [recipe.cover_image] : undefined,
+            author: {
+              "@type": "Person",
+              name: "Daria",
+              url: SITE_URL,
+            },
+            datePublished: recipe.created_at,
+            dateModified: recipe.updated_at,
+            url: `${SITE_URL}/recipes/${recipe.slug}`,
+            ...(recipe.cook_time
+              ? { cookTime: toIsoDuration(recipe.cook_time) }
+              : {}),
+            ...(recipe.servings
+              ? { recipeYield: String(recipe.servings) }
+              : {}),
+            recipeIngredient: ingredientSections.flatMap((s) => s.items),
+            recipeInstructions: recipe.steps.map((step: Step, i: number) => ({
+              "@type": "HowToStep",
+              position: i + 1,
+              name:
+                localizedField(
+                  step as unknown as Record<string, unknown>,
+                  "title",
+                  l
+                ) ??
+                step.title ??
+                `Step ${i + 1}`,
+              text:
+                localizedField(
+                  step as unknown as Record<string, unknown>,
+                  "description",
+                  l
+                ) ?? step.description,
+              ...(step.photo_url ? { image: step.photo_url } : {}),
+            })),
+          }),
+        }}
       />
     </main>
   );
