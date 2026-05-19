@@ -5,6 +5,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations, getLocale } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
+import { createServiceRoleClient } from "@/lib/supabase/admin";
 import { localizedField, type Locale } from "@/lib/localized-content";
 import type { Category, Step } from "@/types";
 import RelatedRecipes, { RelatedRecipesSkeleton } from "@/components/recipe/RelatedRecipes";
@@ -31,7 +32,10 @@ export const revalidate = 3600;
  * которых не было на билде.
  */
 export async function generateStaticParams() {
-  const supabase = createClient();
+  // Service-role client: на билде нет request scope (cookies/session),
+  // обычный createClient() из @/lib/supabase/server ломается на cookies().
+  // Service role не зависит от запроса — читает БД напрямую.
+  const supabase = createServiceRoleClient();
   const { data } = await supabase
     .from("recipes")
     .select("slug")
