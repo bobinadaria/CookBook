@@ -58,14 +58,14 @@ export default function RecipeCard({
 
         <div
           className={cn(
-            "absolute top-3 left-3 transition-opacity duration-200",
-            isFavorited ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+            "recipe-card-fav absolute top-3 left-3",
+            isFavorited && "is-favorited"
           )}
         >
           <FavoriteButton slug={recipe.slug} />
         </div>
 
-        <div className="absolute bottom-3 right-3 opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 ease-out">
+        <div className="recipe-card-arrow absolute bottom-3 right-3 pointer-events-none">
           <div className="w-8 h-8 bg-cream/95 rounded-full flex items-center justify-center shadow-sm">
             <svg
               className="w-3.5 h-3.5 text-charcoal"

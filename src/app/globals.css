@@ -219,6 +219,41 @@ button[role="switch"]:focus-visible {
   }
 }
 
+/* ── Recipe card favorite/arrow visibility ────────────────────────────────── */
+/*
+ * Mobile (no hover): favorite-button visible always, arrow hidden.
+ *   — раньше favorite был opacity:0 НО его 44×44 touch-zone (Apple HIG)
+ *     перехватывала первый тап на угол карточки — отсюда double-tap-bug.
+ * Desktop (hover): обе плашки fade-in на hover карточки.
+ */
+.recipe-card-fav {
+  opacity: 1;
+}
+.recipe-card-arrow {
+  display: none;
+}
+@media (hover: hover) {
+  .recipe-card-fav:not(.is-favorited) {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 200ms ease-out;
+  }
+  .recipe-card-hover:hover .recipe-card-fav {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .recipe-card-arrow {
+    display: flex;
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 300ms ease-out, transform 300ms ease-out;
+  }
+  .recipe-card-hover:hover .recipe-card-arrow {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* ── Prefers-reduced-motion ───────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   .hero-image,
