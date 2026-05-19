@@ -149,7 +149,26 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // 8. Upload to Supabase Storage
+  // 8. Compress before upload — resize до 1600w + WebP@82.
+  //    Без этого Vercel image-optimizer вынужден каждый раз качать оригинал из
+  //    Supabase Storage и пережимать сам (медленно).
+  try {
+    const sharpModule = await import("sharp");
+    const sharp = sharpModule.default;
+    const before = imageBuffer.length;
+    imageBuffer = await sharp(imageBuffer)
+      .rotate()
+      .resize({ width: 1600, withoutEnlargement: true })
+      .webp({ quality: 82 })
+      .toBuffer();
+    console.log(
+      `[generate-image] compressed: ${(before / 1024).toFixed(0)}KB → ${(imageBuffer.length / 1024).toFixed(0)}KB`,
+    );
+  } catch (err) {
+    console.warn("[generate-image] sharp compress failed, uploading original:", err);
+  }
+
+  // 9. Upload to Supabase Storage
   // Timestamp-only name — Supabase Storage rejects Cyrillic characters in paths
   const fileName = `ai-${Date.now()}.webp`;
   const storagePath = `covers/${fileName}`;

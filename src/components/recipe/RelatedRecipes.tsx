@@ -46,3 +46,26 @@ export default async function RelatedRecipes({
     </section>
   );
 }
+
+/**
+ * Skeleton-плейсхолдер, который видит юзер пока подгружается список похожих.
+ * Высота/отступы повторяют реальный блок, чтобы не было layout-shift.
+ */
+export function RelatedRecipesSkeleton() {
+  return (
+    <section className="px-6 pb-24 max-w-5xl mx-auto" aria-hidden>
+      <div className="border-t border-sand pt-14">
+        <div className="h-5 w-32 bg-sand/60 rounded mb-3 animate-pulse" />
+        <div className="h-9 w-64 bg-sand/60 rounded mb-8 animate-pulse" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="space-y-3">
+              <div className="aspect-[4/3] bg-sand/60 rounded-2xl animate-pulse" />
+              <div className="h-4 w-3/4 bg-sand/60 rounded animate-pulse" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}

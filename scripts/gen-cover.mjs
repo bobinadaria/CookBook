@@ -139,6 +139,24 @@ async function main() {
     process.exit(1);
   }
 
+  // 2.5. Compress: resize до 1600w + WebP@82 — экономит 90% размера без видимой
+  //      потери качества. Без этого Vercel image optimizer вынужден каждый раз
+  //      качать тяжёлый оригинал и пережимать его сам.
+  try {
+    const { default: sharp } = await import("sharp");
+    const before = imageBuffer.length;
+    imageBuffer = await sharp(imageBuffer)
+      .rotate()
+      .resize({ width: 1600, withoutEnlargement: true })
+      .webp({ quality: 82 })
+      .toBuffer();
+    console.log(
+      `🗜️   Сжато: ${(before / 1024).toFixed(0)} KB → ${(imageBuffer.length / 1024).toFixed(0)} KB`,
+    );
+  } catch (err) {
+    console.warn(`⚠️   Не удалось сжать (${err.message}) — заливаю оригинал`);
+  }
+
   // 3. Upload to Supabase Storage
   // Use timestamp-only name — Supabase Storage rejects Cyrillic characters in paths
   const fileName = `ai-${Date.now()}.webp`;

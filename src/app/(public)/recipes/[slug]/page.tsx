@@ -1,4 +1,4 @@
-import { cache } from "react";
+import { cache, Suspense } from "react";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -7,10 +7,37 @@ import { getTranslations, getLocale } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { localizedField, type Locale } from "@/lib/localized-content";
 import type { Category, Step } from "@/types";
-import RelatedRecipes from "@/components/recipe/RelatedRecipes";
+import RelatedRecipes, { RelatedRecipesSkeleton } from "@/components/recipe/RelatedRecipes";
 import { getSiteUrl } from "@/lib/site-url";
 
-export const dynamic = "force-dynamic";
+/**
+ * ISR: страница рендерится один раз, кэшируется на Vercel edge на час.
+ * Если редактируешь рецепт через API роуты (translate, calculate-nutrition,
+ * generate-image) — они вызывают revalidatePath и инвалидируют кэш сразу.
+ * Если правишь рецепт через форму (updateRecipe→Supabase напрямую) — обновится
+ * автоматически в течение часа (или жми «Hard Refresh» в браузере).
+ */
+export const revalidate = 3600;
+
+/**
+ * Build-time prerendering: на vercel build заранее рендерим все опубликованные
+ * рецепты в статичный HTML. Первый посетитель получает готовую страницу
+ * с edge'а — никакого SSR не дёргается.
+ *
+ * Новые рецепты (опубликованные после билда) рендерятся on-demand при первом
+ * визите, потом кэшируются как обычное ISR.
+ *
+ * `dynamicParams: true` (по умолчанию) разрешает on-demand рендеринг slug-ов,
+ * которых не было на билде.
+ */
+export async function generateStaticParams() {
+  const supabase = createClient();
+  const { data } = await supabase
+    .from("recipes")
+    .select("slug")
+    .eq("published", true);
+  return (data ?? []).map((r) => ({ slug: r.slug }));
+}
 
 const SITE_URL = getSiteUrl();
 
@@ -66,10 +93,6 @@ const getRecipe = cache(async function getRecipe(slug: string) {
     .maybeSingle();
 
   if (!data) return null;
-
-  const firstStep = data.steps?.[0];
-  console.log("[getRecipe] first step keys:", firstStep ? Object.keys(firstStep) : "no steps");
-  console.log("[getRecipe] first step _en fields:", { title_en: firstStep?.title_en, description_en: firstStep?.description_en });
 
   return {
     ...data,
@@ -359,11 +382,13 @@ export default async function RecipePage({ params }: RecipePageProps) {
         </section>
       )}
 
-      {/* ── Related recipes ── */}
-      <RelatedRecipes
-        recipeId={recipe.id}
-        categoryIds={recipe.categories.map((c: Category) => c.id)}
-      />
+      {/* ── Related recipes (streamed independently — не блокирует first paint) ── */}
+      <Suspense fallback={<RelatedRecipesSkeleton />}>
+        <RelatedRecipes
+          recipeId={recipe.id}
+          categoryIds={recipe.categories.map((c: Category) => c.id)}
+        />
+      </Suspense>
 
       {/* ── Recipe JSON-LD Schema (for Google rich results) ── */}
       <script
