@@ -1,18 +1,26 @@
 "use client";
 
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useEffect, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 
 type Step = "form" | "success";
 
-export default function ForgotPasswordPage() {
+function ForgotPasswordContent() {
   const t = useTranslations("auth.forgotPassword");
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [step, setStep] = useState<Step>("form");
+
+  // Prefill email из ?email= (приходит с register или login)
+  useEffect(() => {
+    const queryEmail = searchParams.get("email");
+    if (queryEmail) setEmail(queryEmail);
+  }, [searchParams]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -130,5 +138,13 @@ export default function ForgotPasswordPage() {
         )}
       </div>
     </main>
+  );
+}
+
+export default function ForgotPasswordPage() {
+  return (
+    <Suspense>
+      <ForgotPasswordContent />
+    </Suspense>
   );
 }

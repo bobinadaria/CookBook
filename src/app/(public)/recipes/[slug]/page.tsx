@@ -8,10 +8,11 @@ import { createClient } from "@/lib/supabase/server";
 import { localizedField, type Locale } from "@/lib/localized-content";
 import type { Category, Step } from "@/types";
 import RelatedRecipes from "@/components/recipe/RelatedRecipes";
+import { getSiteUrl } from "@/lib/site-url";
 
 export const dynamic = "force-dynamic";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "";
+const SITE_URL = getSiteUrl();
 
 /**
  * Renders a text string that may contain markdown-style links [label](url)

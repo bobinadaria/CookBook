@@ -73,7 +73,8 @@
       "submit": "Войти",
       "noAccount": "Нет аккаунта?",
       "registerLink": "Зарегистрироваться",
-      "forgotPassword": "Забыли пароль?"
+      "forgotPassword": "Забыли пароль?",
+      "dividerText": "или войти по email"
     },
     "forgotPassword": {
       "backLink": "Вернуться к входу",
@@ -125,7 +126,16 @@
       "successTagline": "почти готово",
       "successTitle": "Проверьте почту",
       "successText": "Мы отправили письмо на {email}. Перейдите по ссылке в письме, чтобы подтвердить аккаунт.",
-      "successLink": "Перейти к входу"
+      "successLink": "Перейти к входу",
+      "errorExistsAction": "Этот email уже зарегистрирован.",
+      "errorExistsLoginCTA": "Войти",
+      "errorExistsForgotCTA": "Забыли пароль?"
+    },
+    "shared": {
+      "googleButton": "Войти через Google",
+      "googleLoading": "Переходим...",
+      "googleError": "Не удалось войти через Google. Попробуй ещё раз",
+      "dividerText": "или войти по email"
     }
   },
   "favorites": {

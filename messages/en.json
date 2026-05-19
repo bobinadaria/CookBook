@@ -73,7 +73,8 @@
       "submit": "Sign in",
       "noAccount": "No account?",
       "registerLink": "Register",
-      "forgotPassword": "Forgot password?"
+      "forgotPassword": "Forgot password?",
+      "dividerText": "or sign in with email"
     },
     "forgotPassword": {
       "backLink": "Back to sign in",
@@ -125,7 +126,16 @@
       "successTagline": "almost there",
       "successTitle": "Check your email",
       "successText": "We sent an email to {email}. Follow the link to confirm your account.",
-      "successLink": "Go to sign in"
+      "successLink": "Go to sign in",
+      "errorExistsAction": "This email is already registered.",
+      "errorExistsLoginCTA": "Sign in",
+      "errorExistsForgotCTA": "Forgot password?"
+    },
+    "shared": {
+      "googleButton": "Continue with Google",
+      "googleLoading": "Redirecting...",
+      "googleError": "Couldn't sign in with Google. Please try again",
+      "dividerText": "or sign in with email"
     }
   },
   "favorites": {

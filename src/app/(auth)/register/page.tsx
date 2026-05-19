@@ -4,8 +4,14 @@ import { useState, FormEvent } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
+import GoogleAuthButton from "@/components/auth/GoogleAuthButton";
+import AuthDivider from "@/components/auth/AuthDivider";
 
 type Step = "form" | "success";
+type ErrorState =
+  | { kind: "message"; text: string }
+  | { kind: "exists"; email: string }
+  | null;
 
 export default function RegisterPage() {
   const t = useTranslations("auth.register");
@@ -13,7 +19,7 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<ErrorState>(null);
   const [step, setStep] = useState<Step>("form");
 
   const handleSubmit = async (e: FormEvent) => {
@@ -21,24 +27,29 @@ export default function RegisterPage() {
     setError(null);
 
     if (password !== confirm) {
-      setError(t("errorMismatch"));
+      setError({ kind: "message", text: t("errorMismatch") });
       return;
     }
     if (password.length < 6) {
-      setError(t("errorShort"));
+      setError({ kind: "message", text: t("errorShort") });
       return;
     }
 
     setLoading(true);
     const supabase = createClient();
-    const { error } = await supabase.auth.signUp({ email, password });
+    const { data, error: signUpError } = await supabase.auth.signUp({ email, password });
 
-    if (error) {
-      setError(
-        error.message.includes("already registered")
-          ? t("errorExists")
-          : t("errorGeneric")
-      );
+    // Supabase quirk: при попытке регистрации существующего email НЕ возвращает error
+    // (anti-enumeration protection). Признак — data.user.identities — пустой массив.
+    // Без этой проверки юзер видит «Проверьте почту», письмо не приходит, аккаунт не создаётся.
+    const isExistingEmail =
+      !signUpError && data.user && (data.user.identities?.length ?? 0) === 0;
+
+    if (signUpError) {
+      setError({ kind: "message", text: t("errorGeneric") });
+      setLoading(false);
+    } else if (isExistingEmail) {
+      setError({ kind: "exists", email });
       setLoading(false);
     } else {
       setStep("success");
@@ -83,7 +94,6 @@ export default function RegisterPage() {
         ) : (
           /* ── Form state ── */
           <div className="w-full max-w-sm">
-
             {/* Header */}
             <div className="hero-in-1 mb-10">
               <span className="font-handwritten text-peach text-xl block mb-3">
@@ -95,69 +105,98 @@ export default function RegisterPage() {
             </div>
 
             {/* Divider */}
-            <div className="hero-in-2 w-12 h-px bg-sand mb-10" />
+            <div className="hero-in-2 w-12 h-px bg-sand mb-8" />
 
-            {/* Form */}
-            <form onSubmit={handleSubmit} className="hero-in-3 space-y-5">
-              <div>
-                <label className="block text-xs text-charcoal/40 uppercase tracking-wider mb-2">
-                  {t("email")}
-                </label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  autoComplete="email"
-                  placeholder="your@email.com"
-                  className="w-full bg-sand rounded-xl px-4 py-3.5 text-sm text-charcoal placeholder:text-charcoal/25 outline-none focus:ring-2 focus:ring-peach/30 transition"
-                />
-              </div>
+            <div className="hero-in-3">
+              {/* Google OAuth */}
+              <GoogleAuthButton redirectTo="/" />
 
-              <div>
-                <label className="block text-xs text-charcoal/40 uppercase tracking-wider mb-2">
-                  {t("password")}
-                </label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  autoComplete="new-password"
-                  placeholder={t("passwordHint")}
-                  className="w-full bg-sand rounded-xl px-4 py-3.5 text-sm text-charcoal placeholder:text-charcoal/25 outline-none focus:ring-2 focus:ring-peach/30 transition"
-                />
-              </div>
+              <AuthDivider />
 
-              <div>
-                <label className="block text-xs text-charcoal/40 uppercase tracking-wider mb-2">
-                  {t("confirmPassword")}
-                </label>
-                <input
-                  type="password"
-                  value={confirm}
-                  onChange={(e) => setConfirm(e.target.value)}
-                  required
-                  autoComplete="new-password"
-                  placeholder="••••••••"
-                  className="w-full bg-sand rounded-xl px-4 py-3.5 text-sm text-charcoal placeholder:text-charcoal/25 outline-none focus:ring-2 focus:ring-peach/30 transition"
-                />
-              </div>
+              {/* Email form */}
+              <form onSubmit={handleSubmit} className="space-y-5">
+                <div>
+                  <label className="block text-xs text-charcoal/40 uppercase tracking-wider mb-2">
+                    {t("email")}
+                  </label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    autoComplete="email"
+                    placeholder="your@email.com"
+                    className="w-full bg-sand rounded-xl px-4 py-3.5 text-sm text-charcoal placeholder:text-charcoal/25 outline-none focus:ring-2 focus:ring-peach/30 transition"
+                  />
+                </div>
 
-              {error && (
-                <p className="text-sm text-red-400 bg-red-50 rounded-xl px-4 py-3">
-                  {error}
-                </p>
-              )}
+                <div>
+                  <label className="block text-xs text-charcoal/40 uppercase tracking-wider mb-2">
+                    {t("password")}
+                  </label>
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    autoComplete="new-password"
+                    placeholder={t("passwordHint")}
+                    className="w-full bg-sand rounded-xl px-4 py-3.5 text-sm text-charcoal placeholder:text-charcoal/25 outline-none focus:ring-2 focus:ring-peach/30 transition"
+                  />
+                </div>
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-charcoal text-cream rounded-full py-4 text-sm font-medium hover:bg-peach transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed mt-2"
-              >
-                {loading ? t("loading") : t("submit")}
-              </button>
-            </form>
+                <div>
+                  <label className="block text-xs text-charcoal/40 uppercase tracking-wider mb-2">
+                    {t("confirmPassword")}
+                  </label>
+                  <input
+                    type="password"
+                    value={confirm}
+                    onChange={(e) => setConfirm(e.target.value)}
+                    required
+                    autoComplete="new-password"
+                    placeholder="••••••••"
+                    className="w-full bg-sand rounded-xl px-4 py-3.5 text-sm text-charcoal placeholder:text-charcoal/25 outline-none focus:ring-2 focus:ring-peach/30 transition"
+                  />
+                </div>
+
+                {error?.kind === "message" && (
+                  <p className="text-sm text-red-400 bg-red-50 rounded-xl px-4 py-3">
+                    {error.text}
+                  </p>
+                )}
+
+                {error?.kind === "exists" && (
+                  <div className="bg-peach/10 border border-peach/20 rounded-xl px-4 py-4 space-y-3">
+                    <p className="text-sm text-charcoal">{t("errorExistsAction")}</p>
+                    <div className="flex flex-wrap gap-3">
+                      <Link
+                        href={`/login?email=${encodeURIComponent(error.email)}`}
+                        className="inline-flex items-center gap-1 text-sm font-medium text-peach-dark hover:text-peach transition-colors"
+                      >
+                        {t("errorExistsLoginCTA")}
+                        <span aria-hidden>→</span>
+                      </Link>
+                      <span className="text-charcoal/20">·</span>
+                      <Link
+                        href={`/forgot-password?email=${encodeURIComponent(error.email)}`}
+                        className="text-sm text-charcoal/60 hover:text-peach transition-colors"
+                      >
+                        {t("errorExistsForgotCTA")}
+                      </Link>
+                    </div>
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-charcoal text-cream rounded-full py-4 text-sm font-medium hover:bg-peach transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+                >
+                  {loading ? t("loading") : t("submit")}
+                </button>
+              </form>
+            </div>
 
             {/* Footer */}
             <p className="hero-in-4 mt-10 text-center text-sm text-charcoal/35">
