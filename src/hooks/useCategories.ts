@@ -24,12 +24,19 @@ export function useCategories(options?: { types?: CategoryType[] }): UseCategori
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Стабильный ключ из списка типов: «country,meal_type». Меняется только когда
+  // реально меняется набор фильтров — не на каждый рендер (options — новый объект
+  // каждый раз). Без этого пустой [] не перезапрашивал при смене фильтра.
+  const typesKey = options?.types?.length ? [...options.types].sort().join(",") : "";
+
   useEffect(() => {
+    setLoading(true);
     const supabase = createClient();
     let query = supabase.from("categories").select("*").order("type").order("name");
 
-    if (options?.types?.length) {
-      query = query.in("type", options.types);
+    const types = typesKey ? typesKey.split(",") : [];
+    if (types.length) {
+      query = query.in("type", types);
     }
 
     query.then(({ data, error }) => {
@@ -37,8 +44,7 @@ export function useCategories(options?: { types?: CategoryType[] }): UseCategori
       else setCategories((data ?? []) as Category[]);
       setLoading(false);
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [typesKey]);
 
   const grouped = useMemo(
     () =>
