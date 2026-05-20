@@ -6,19 +6,22 @@ import RecipeCard from "@/components/recipe/RecipeCard";
 import FilterDropdown from "@/components/recipe/FilterDropdown";
 import RevealCard from "@/components/animations/RevealCard";
 import { createClient } from "@/lib/supabase/client";
+import { DISPLAYED_CATEGORY_TYPES } from "@/lib/category-types";
 import type { Recipe, Category } from "@/types";
 
 type ActiveFilters = Record<string, Set<string>>;
 
+/** Категория + сколько опубликованных рецептов под ней (для счётчика и скрытия пустых). */
+type CategoryWithCount = Category & { count: number };
+
 interface FilterGroup {
   type: string;
   label: string;
-  items: Category[];
+  items: CategoryWithCount[];
 }
 
 const CATEGORY_LABEL_KEYS: Record<string, string> = {
   meal_type: "mealType",
-  meal_time: "mealTime",
   ingredient: "ingredient",
   season: "season",
   country: "country",
@@ -95,17 +98,31 @@ export default function RecipesPage() {
       }));
       setRecipes(transformed);
 
-      // Build filter groups from categories
+      // Сколько опубликованных рецептов под каждой категорией
+      const catCount: Record<string, number> = {};
+      for (const r of transformed) {
+        for (const c of r.categories ?? []) {
+          catCount[c.id] = (catCount[c.id] ?? 0) + 1;
+        }
+      }
+
+      // Группируем категории по типу
       const grouped = (catsData ?? []).reduce<Record<string, Category[]>>((acc, cat) => {
         (acc[cat.type] ??= []).push(cat);
         return acc;
       }, {});
+
+      // Только разрешённые типы; внутри — только непустые категории, по убыванию счётчика;
+      // пустые группы целиком отбрасываем.
       setFilterGroups(
-        Object.entries(grouped).map(([type, items]) => ({
+        DISPLAYED_CATEGORY_TYPES.map((type) => ({
           type,
           label: CATEGORY_LABEL_KEYS[type] ?? type,
-          items,
-        }))
+          items: (grouped[type] ?? [])
+            .map((c) => ({ ...c, count: catCount[c.id] ?? 0 }))
+            .filter((c) => c.count > 0)
+            .sort((a, b) => b.count - a.count),
+        })).filter((g) => g.items.length > 0)
       );
     }).finally(() => setLoading(false));
   }, []);
@@ -193,7 +210,7 @@ export default function RecipesPage() {
           {filterGroups.map((group) => (
             <FilterDropdown
               key={group.type}
-              label={CATEGORY_LABEL_KEYS[group.type] ? tf(CATEGORY_LABEL_KEYS[group.type]) : group.label}
+              label={tf(group.label)}
               groupType={group.type}
               items={group.items}
               activeIds={activeFilters[group.type] ?? new Set()}

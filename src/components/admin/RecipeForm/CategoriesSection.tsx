@@ -1,14 +1,14 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { DISPLAYED_CATEGORY_TYPES } from "@/lib/category-types";
 import type { Category } from "@/types";
 
 const CATEGORY_LABELS: Record<string, string> = {
   meal_type:  "Тип блюда",
-  meal_time:  "Приём пищи",
-  ingredient: "Ингредиент",
-  season:     "Сезон / повод",
   country:    "Кухня",
+  season:     "Сезон / повод",
+  ingredient: "Ингредиент",
 };
 
 interface CategoriesSectionProps {
@@ -23,20 +23,24 @@ export default function CategoriesSection({ allCategories, selectedIds, onToggle
     return acc;
   }, {});
 
+  // Показываем только актуальные типы фильтров, в фиксированном порядке.
+  // meal_time и старый category в пикер не выводим (см. lib/category-types).
+  const orderedTypes = DISPLAYED_CATEGORY_TYPES.filter((t) => grouped[t]?.length);
+
   return (
     <section>
       <label className="block text-xs text-charcoal/40 uppercase tracking-wider mb-4">
         Категории
       </label>
 
-      {Object.keys(grouped).length === 0 ? (
+      {orderedTypes.length === 0 ? (
         <p className="text-xs text-charcoal/30">
           Категории не загружены. Добавьте их в разделе{" "}
           <a href="/admin/categories" className="text-peach hover:underline">Категории</a>.
         </p>
       ) : (
         <div className="flex flex-col gap-5">
-          {Object.entries(grouped).map(([type, cats]) => (
+          {orderedTypes.map((type) => [type, grouped[type]] as const).map(([type, cats]) => (
             <div key={type}>
               <p className="text-xs text-charcoal/40 mb-2">
                 {CATEGORY_LABELS[type] ?? type}

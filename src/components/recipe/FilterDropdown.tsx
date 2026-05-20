@@ -8,10 +8,13 @@ import { cn } from "@/lib/utils";
 
 const PANEL_MIN_WIDTH = 220; // px — matches min-w in className
 
+/** Категория + число рецептов под ней (показываем рядом с названием). */
+type CategoryWithCount = Category & { count?: number };
+
 interface FilterDropdownProps {
   label: string;
   groupType: string;
-  items: readonly Category[];
+  items: readonly CategoryWithCount[];
   activeIds: Set<string>;
   isOpen: boolean;
   onToggle: () => void;
@@ -162,7 +165,12 @@ export default function FilterDropdown({
                   </svg>
                 )}
               </span>
-              {(locale === "en" && cat.name_en) ? cat.name_en : cat.name}
+              <span className="flex-1">
+                {(locale === "en" && cat.name_en) ? cat.name_en : cat.name}
+              </span>
+              {typeof cat.count === "number" && (
+                <span className="text-xs text-charcoal/30 tabular-nums">{cat.count}</span>
+              )}
             </button>
           );
         })}

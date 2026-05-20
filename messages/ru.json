@@ -52,7 +52,17 @@
     "servings": "Порций",
     "minutes": "{n} мин",
     "hours": "{h} ч {m} мин",
-    "hoursOnly": "{h} ч"
+    "hoursOnly": "{h} ч",
+    "nutrition": {
+      "title": "Пищевая ценность",
+      "perServing": "на порцию",
+      "kcal": "ккал",
+      "protein": "белки",
+      "fat": "жиры",
+      "carbs": "углеводы",
+      "gram": "г",
+      "approximate": "Значения ориентировочные, рассчитаны автоматически"
+    }
   },
   "filters": {
     "mealType": "Тип блюда",

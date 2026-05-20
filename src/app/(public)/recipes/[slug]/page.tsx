@@ -9,6 +9,8 @@ import { createServiceRoleClient } from "@/lib/supabase/admin";
 import { localizedField, type Locale } from "@/lib/localized-content";
 import type { Category, Step } from "@/types";
 import RelatedRecipes, { RelatedRecipesSkeleton } from "@/components/recipe/RelatedRecipes";
+import NutritionFacts from "@/components/recipe/NutritionFacts";
+import type { NutritionData } from "@/types";
 import { getSiteUrl } from "@/lib/site-url";
 
 /**
@@ -341,6 +343,9 @@ export default async function RecipePage({ params }: RecipePageProps) {
           )}
         </section>
       )}
+
+      {/* ── Nutrition (только цифры; диагностика — в админке) ── */}
+      <NutritionFacts nutrition={recipe.nutrition as NutritionData | null} />
 
       {/* ── Steps ── */}
       {recipe.steps.length > 0 && (

@@ -52,7 +52,17 @@
     "servings": "Servings",
     "minutes": "{n} min",
     "hours": "{h} h {m} min",
-    "hoursOnly": "{h} h"
+    "hoursOnly": "{h} h",
+    "nutrition": {
+      "title": "Nutrition",
+      "perServing": "per serving",
+      "kcal": "kcal",
+      "protein": "protein",
+      "fat": "fat",
+      "carbs": "carbs",
+      "gram": "g",
+      "approximate": "Approximate values, calculated automatically"
+    }
   },
   "filters": {
     "mealType": "Meal type",
