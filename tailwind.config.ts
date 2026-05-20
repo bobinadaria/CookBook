@@ -10,26 +10,39 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // CSS-variable tokens — all opacity modifiers (e.g. text-charcoal/70) keep working
-        cream:        "hsl(var(--cream)      / <alpha-value>)",
-        sand:         "hsl(var(--sand)       / <alpha-value>)",
-        charcoal:     "hsl(var(--charcoal)   / <alpha-value>)",
-        peach:        "hsl(var(--peach)      / <alpha-value>)",
-        "peach-dark": "hsl(var(--peach-dark) / <alpha-value>)",
-        sage:         "hsl(var(--sage)       / <alpha-value>)",
-        "sage-dark":  "hsl(var(--sage-dark)  / <alpha-value>)",
+        // ─── Editorial magazine дизайн-система (2026) ────────────────────────
+        //     Через CSS-переменные (globals.css :root и .dark) — светлая и
+        //     тёмная темы из одного места.
+        paper:        "hsl(var(--paper)    / <alpha-value>)",  // основной фон
+        crust:        "hsl(var(--crust)    / <alpha-value>)",  // карточки, асайды
+        burg:         "hsl(var(--burg)     / <alpha-value>)",  // primary, заголовки
+        "burg-dk":    "hsl(var(--burg-dk)  / <alpha-value>)",  // hover на burg
+        ochre:        "hsl(var(--ochre)    / <alpha-value>)",  // accent
+        "ochre-dk":   "hsl(var(--ochre-dk) / <alpha-value>)",  // eyebrow, hover
+        olive:        "hsl(var(--olive)    / <alpha-value>)",  // позитивные ●
+        ink:          "hsl(var(--ink)      / <alpha-value>)",  // основной текст
+        soft:         "var(--soft)",          // приглушённый текст, meta
+        muted:        "var(--muted)",         // плейсхолдеры
+        rule:         "var(--rule)",          // линии-правила
+        "soft-invert": "var(--soft-invert)",  // текст на burg-поверхности
+        "rule-invert": "var(--rule-invert)",  // линии на burg-поверхности
       },
       borderRadius: {
-        card: "24px",
-      },
-      boxShadow: {
-        card: "0 8px 32px rgba(28,25,23,0.08)",
+        // Magazine = прямые углы. DEFAULT (bare `rounded`) → 0.
+        // xl/2xl/full остаются из Tailwind по умолчанию (FavoriteButton — круг).
+        none: "0",
+        sm: "2px",
+        DEFAULT: "0",
       },
       fontFamily: {
-        serif: ["var(--font-cormorant)", "Georgia", "serif"],
-        "serif-display": ["var(--font-dm-serif)", "Georgia", "serif"],
-        handwritten: ["var(--font-satisfy)", "cursive"],
-        sans: ["var(--font-plus-jakarta)", "system-ui", "sans-serif"],
+        display: ["var(--font-display)", "Bodoni Moda", "Playfair Display", "serif"],
+        body:    ["var(--font-body)",    "Work Sans", "system-ui", "sans-serif"],
+        reader:  ["var(--font-reader)",  "Newsreader", "Georgia", "serif"],
+      },
+      letterSpacing: {
+        eyebrow: "0.15em",
+        tight: "-0.02em",
+        display: "-0.04em",
       },
     },
   },

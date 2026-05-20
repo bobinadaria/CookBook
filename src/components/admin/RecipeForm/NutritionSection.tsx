@@ -32,17 +32,17 @@ function StatBox({
 }) {
   return (
     <div className="flex flex-col">
-      <span className="text-[10px] uppercase tracking-wider text-charcoal/40">
+      <span className="text-[10px] uppercase tracking-wider text-soft">
         {label}
       </span>
       <span
         className={cn(
-          "font-serif text-charcoal",
+          "font-display text-ink",
           size === "lg" ? "text-3xl" : "text-xl",
         )}
       >
         {value}
-        <span className="text-xs text-charcoal/40 ml-1 font-sans">{unit}</span>
+        <span className="text-xs text-soft ml-1 font-body">{unit}</span>
       </span>
     </div>
   );
@@ -66,15 +66,15 @@ export default function NutritionSection({
 
   return (
     <section>
-      <label className="block text-xs text-charcoal/40 uppercase tracking-wider mb-3">
+      <label className="block text-xs text-soft uppercase tracking-wider mb-3">
         КБЖУ (AI-расчёт)
       </label>
 
       {/* ── Result display ──────────────────────────────────────────────── */}
       {display ? (
-        <div className="bg-sand/60 rounded-2xl p-5 mb-3">
+        <div className="bg-crust/60 rounded-none p-5 mb-3">
           <div className="flex items-baseline justify-between mb-3">
-            <span className="text-sm text-charcoal/60">
+            <span className="text-sm text-soft">
               На 1 порцию ({display.servings}{" "}
               {display.servings === 1 ? "порция" : "порций"})
             </span>
@@ -88,11 +88,11 @@ export default function NutritionSection({
             <StatBox label="углеводы" value={display.per_serving.carbs} unit="г" />
           </div>
 
-          <div className="text-xs text-charcoal/50 border-t border-charcoal/10 pt-3 flex justify-between">
+          <div className="text-xs text-soft border-t border-rule pt-3 flex justify-between">
             <span>
               На весь рецепт ({display.total.weight_g} г): {display.total.kcal} ккал
             </span>
-            <span className="text-charcoal/30">
+            <span className="text-muted">
               {new Date(display.calculated_at).toLocaleString("ru-RU", {
                 day: "2-digit",
                 month: "2-digit",
@@ -108,7 +108,7 @@ export default function NutritionSection({
               {display.warnings.map((w, i) => (
                 <p
                   key={i}
-                  className="text-xs text-peach-dark bg-peach/10 rounded-lg px-3 py-2"
+                  className="text-xs text-ochre-dk bg-ochre/10 rounded-none px-3 py-2"
                 >
                   ⚠ {w}
                 </p>
@@ -117,7 +117,7 @@ export default function NutritionSection({
           )}
 
           {isFresh && (
-            <p className="mt-3 text-xs text-sage-dark">
+            <p className="mt-3 text-xs text-olive">
               ✓ Сохранено в БД. Это свежий результат.
             </p>
           )}
@@ -125,7 +125,7 @@ export default function NutritionSection({
           <button
             type="button"
             onClick={() => setShowDetails((s) => !s)}
-            className="mt-3 text-xs text-charcoal/40 hover:text-charcoal/70 transition-colors"
+            className="mt-3 text-xs text-soft hover:text-burg transition-colors"
           >
             {showDetails ? "Скрыть разбор по ингредиентам" : "Показать разбор по ингредиентам"}
           </button>
@@ -145,15 +145,15 @@ export default function NutritionSection({
                   ? `${m.grams}г → не найдено`
                   : "пропущено";
                 return (
-                  <div key={i} className="flex gap-3 text-charcoal/70">
+                  <div key={i} className="flex gap-3 text-soft">
                     <span
                       className={cn(
                         "shrink-0 w-12",
                         m.match_type === "unknown" && m.grams > 0
                           ? "text-red-500"
                           : m.match_type === "fuzzy"
-                          ? "text-peach-dark"
-                          : "text-sage-dark",
+                          ? "text-ochre-dk"
+                          : "text-olive",
                       )}
                     >
                       {tag}
@@ -161,7 +161,7 @@ export default function NutritionSection({
                     <span className="flex-1 truncate" title={m.input}>
                       {m.input}
                     </span>
-                    <span className="text-charcoal/50 shrink-0">{right}</span>
+                    <span className="text-soft shrink-0">{right}</span>
                   </div>
                 );
               })}
@@ -169,7 +169,7 @@ export default function NutritionSection({
           )}
         </div>
       ) : (
-        <p className="text-sm text-charcoal/40 mb-3">
+        <p className="text-sm text-soft mb-3">
           Пока не рассчитано. Нажми кнопку ниже — gpt-4o-mini распарсит ингредиенты и сматчит с базой.
         </p>
       )}
@@ -181,8 +181,8 @@ export default function NutritionSection({
           onClick={onCalculate}
           disabled={disabled}
           className={cn(
-            "inline-flex items-center gap-2 px-6 py-3 rounded-full text-sm font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed",
-            "bg-peach/10 text-peach hover:bg-peach/20 border border-peach/20",
+            "inline-flex items-center gap-2 px-6 py-3 rounded-none text-sm font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed",
+            "bg-ochre/10 text-ochre-dk hover:bg-ochre/20 border border-ochre/30",
           )}
         >
           {calculating ? (
@@ -211,24 +211,24 @@ export default function NutritionSection({
         </button>
 
         {!recipeId && (
-          <span className="text-xs text-charcoal/40">
+          <span className="text-xs text-soft">
             Сначала сохрани рецепт — без id нечего считать
           </span>
         )}
         {recipeId && ingredientsEmpty && (
-          <span className="text-xs text-charcoal/40">
+          <span className="text-xs text-soft">
             Заполни поле «Состав / Ингредиенты»
           </span>
         )}
         {recipeId && !ingredientsEmpty && ingredientsDirty && (
-          <span className="text-xs text-peach-dark">
+          <span className="text-xs text-ochre-dk">
             ⚠ Несохранённые изменения в составе не будут учтены — сохрани сначала
           </span>
         )}
       </div>
 
       {error && (
-        <p className="mt-3 text-sm text-red-400 bg-red-50 rounded-xl px-4 py-3">
+        <p className="mt-3 text-sm text-red-400 bg-red-50 rounded-none px-4 py-3">
           {error}
         </p>
       )}
@@ -240,12 +240,12 @@ function ConfidenceBadge({ value }: { value: number }) {
   const pct = Math.round(value * 100);
   const colorClass =
     value >= 0.85
-      ? "bg-sage/20 text-sage-dark"
+      ? "bg-olive/15 text-olive"
       : value >= 0.5
-      ? "bg-peach/15 text-peach-dark"
+      ? "bg-ochre/15 text-ochre-dk"
       : "bg-red-50 text-red-500";
   return (
-    <span className={cn("text-xs px-2.5 py-1 rounded-full font-medium", colorClass)}>
+    <span className={cn("text-xs px-2.5 py-1 rounded-none font-medium", colorClass)}>
       Уверенность {pct}%
     </span>
   );

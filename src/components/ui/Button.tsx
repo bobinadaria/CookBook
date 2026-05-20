@@ -15,14 +15,12 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 
 /*
  * Стили совпадают с живым дизайном сайта: угольная «таблетка» (rounded-full),
- * primary = charcoal→peach на hover. Раньше компонент был персиковый/rounded-2xl
- * и не совпадал с тем, что в проде, поэтому им никто не пользовался.
+ * primary = burg→burg-dk на hover. Editorial-токены, прямые углы, caps.
  */
 const variantClasses: Record<ButtonVariant, string> = {
-  primary: "bg-charcoal text-cream hover:bg-peach",
-  accent: "bg-peach/10 text-peach border border-peach/20 hover:bg-peach/20",
-  ghost:
-    "text-charcoal/50 hover:text-charcoal border border-charcoal/10 hover:border-charcoal/25",
+  primary: "bg-burg text-paper hover:bg-burg-dk",
+  accent: "bg-ochre/10 text-ochre-dk border border-ochre/30 hover:bg-ochre/20",
+  ghost: "text-soft hover:text-burg border border-rule hover:border-burg",
   danger: "bg-red-500 text-white hover:bg-red-600",
 };
 
@@ -51,8 +49,8 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         disabled={disabled || loading}
         className={cn(
-          "inline-flex items-center justify-center gap-2 rounded-full font-medium transition-colors duration-300",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-peach/40 focus-visible:ring-offset-2",
+          "inline-flex items-center justify-center gap-2 rounded-none font-semibold uppercase tracking-[0.12em] transition-colors duration-300",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-burg/40 focus-visible:ring-offset-2",
           "disabled:opacity-50 disabled:cursor-not-allowed",
           variantClasses[variant],
           sizeClasses[size],

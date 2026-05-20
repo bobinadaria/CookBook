@@ -3,7 +3,27 @@
  * All functions create their own Supabase client — no shared state.
  */
 import { createClient } from "@/lib/supabase/server";
-import type { Recipe, RecipeCardData, AdminRecipeListItem } from "@/types";
+import type { Category, Recipe, RecipeCardData, AdminRecipeListItem } from "@/types";
+
+/** Columns + nested category join needed to render a magazine RecipeCard. */
+const CARD_SELECT =
+  "id, title, title_en, slug, cover_image, cook_time, recipe_categories ( categories ( id, name, name_en, type ) )";
+
+/** Flatten the nested recipe_categories→categories join into a flat categories[]. */
+function toCardData(row: Record<string, unknown>): RecipeCardData {
+  const categories = ((row.recipe_categories as { categories: Category }[] | null) ?? [])
+    .map((rc) => rc.categories)
+    .filter(Boolean) as Category[];
+  return {
+    id: row.id as string,
+    title: row.title as string,
+    title_en: (row.title_en as string | null) ?? null,
+    slug: row.slug as string,
+    cover_image: (row.cover_image as string | null) ?? null,
+    cook_time: (row.cook_time as number | null) ?? null,
+    categories,
+  };
+}
 
 // ── Public queries ───────────────────────────────────────────────────────────
 
@@ -12,14 +32,14 @@ export async function fetchFeaturedRecipes(): Promise<RecipeCardData[]> {
   const supabase = createClient();
   const { data, error } = await supabase
     .from("recipes")
-    .select("id, title, title_en, slug, cover_image")
+    .select(CARD_SELECT)
     .eq("published", true)
     .eq("featured", true)
     .order("created_at", { ascending: false })
     .limit(6);
 
   if (error) throw error;
-  return (data ?? []) as RecipeCardData[];
+  return (data ?? []).map((r) => toCardData(r as Record<string, unknown>));
 }
 
 /** Fetch all published recipes for the catalog page. */
@@ -104,12 +124,14 @@ export async function fetchRelatedRecipes(
   // Step 4 — fetch the actual recipe rows (only published ones).
   const { data: recipes } = await supabase
     .from("recipes")
-    .select("id, title, title_en, slug, cover_image")
+    .select(CARD_SELECT)
     .in("id", topIds)
     .eq("published", true);
 
   // Restore the overlap-based order (Supabase .in() doesn't guarantee order).
-  const byId = Object.fromEntries((recipes ?? []).map((r) => [r.id, r]));
+  const byId = Object.fromEntries(
+    (recipes ?? []).map((r) => [(r as Record<string, unknown>).id as string, toCardData(r as Record<string, unknown>)])
+  );
   return topIds.map((id) => byId[id]).filter(Boolean) as RecipeCardData[];
 }
 

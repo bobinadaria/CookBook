@@ -20,16 +20,16 @@ export default function LanguageSwitcher() {
   };
 
   return (
-    <div className="flex items-center gap-0.5 bg-sand/60 rounded-full p-0.5">
+    <div className="flex items-center gap-0.5 bg-crust/60 rounded-none p-0.5">
       {LOCALES.map(({ code, label }) => (
         <button
           key={code}
           onClick={() => switchLocale(code)}
           className={cn(
-            "px-2 py-1 rounded-full text-[11px] font-medium transition-all duration-200",
+            "px-2 py-1 rounded-none text-[11px] font-medium transition-all duration-200",
             locale === code
-              ? "bg-charcoal text-cream shadow-sm"
-              : "text-charcoal/40 hover:text-charcoal"
+              ? "bg-burg text-paper shadow-sm"
+              : "text-soft hover:text-burg"
           )}
         >
           {label}

@@ -141,45 +141,62 @@ src/
 
 ## Design System
 
-### Color Palette (Tailwind custom tokens)
+> **Editorial magazine redesign (2026).** Старая система (cream/sand/peach/sage,
+> Cormorant + Plus Jakarta, скруглённые карточки, тени) заменяется на magazine-стиль:
+> burgundy/ochre/paper, Bodoni Moda + Work Sans + Newsreader, **прямые углы, без теней**,
+> глубина строится линиями-правилами и сменой фона. Полный хендофф:
+> `design_handoff_editorial_redesign/README.md`. Миграция идёт по чек-листу §12 этого
+> хендоффа; legacy-токены удаляются последним шагом (#15).
+
+### Палитра (Tailwind tokens)
 ```js
-// tailwind.config.ts
 colors: {
-  cream:     '#FDFAF5',  // main background
-  sand:      '#F2E8DC',  // card backgrounds, hover states
-  charcoal:  '#1C1917',  // primary text
-  peach:     '#E8956D',  // primary accent (appetite, warmth)
-  'peach-dark': '#D4956A', // hover on peach
-  sage:      '#8BAF8C',  // secondary accent (health, nature)
-  'sage-dark':  '#6B9470',
+  paper:    '#F2EDE3',  // основной фон страницы
+  crust:    '#E8DFCB',  // карточки, асайды, выделенные блоки
+  burg:     '#4A1E1E',  // primary — заголовки, тёмные секции, primary CTA
+  'burg-dk':'#2F1212',  // hover на burg
+  ochre:    '#C99846',  // accent — italic-вставки в h1/h2, плашки, цифры, бордеры
+  'ochre-dk':'#A37A33', // eyebrow, hover на ochre
+  olive:    '#6B7B4F',  // позитивные индикаторы (●), feature-чекмарки
+  ink:      '#15110D',  // основной текст
+  soft:     'rgba(21,17,13,.62)',  // приглушённый текст, meta
+  muted:    'rgba(21,17,13,.45)',  // плейсхолдеры
+  rule:     'rgba(21,17,13,.18)',  // линии-правила
 }
 ```
+**Контрастные пары:** светлая секция `bg-paper` + `text-ink` (заголовки `text-burg`,
+акценты `text-ochre`); тёмная секция `bg-burg` + `text-paper` (акценты `text-ochre`).
 
-### Typography
-```css
-/* Headings H1-H2 */  font-family: 'Cormorant Garamond', serif;
-/* Headings H3-H4 */  font-family: 'DM Serif Display', serif;
-/* Handwritten accent (short labels only) */ font-family: 'Satisfy', cursive;
-/* Body / UI */        font-family: 'Plus Jakarta Sans', sans-serif;
-```
-Load via `next/font/google`.
+### Типографика (через `next/font/google`)
+| Роль | Семейство | Tailwind | Где |
+|---|---|---|---|
+| Display | Bodoni Moda (+ italic) | `font-display` | h1/h2/h3, цены, цифры, римские цифры |
+| Body | Work Sans | `font-body` | весь UI, кнопки, eyebrow-caps, meta |
+| Reader | Newsreader (+ italic) | `font-reader` | длинные тексты (story, notes, FAQ), drop-cap абзацы |
 
-### Layout Principles
-- Asymmetric, playful grid (cards of different sizes — reference: ottolenghi.co.uk/pages/recipes)
-- `border-radius: 20-32px` on cards and images (soft, organic)
-- Soft warm shadows: `box-shadow: 0 8px 32px rgba(28,25,23,0.08)`
-- Generous whitespace — let content breathe
-- GSAP animations: stagger card entrance on scroll, subtle card lift on hover, smooth page transitions
-- Recipe detail: medium-sized hero image (not full-screen), then title + description side-by-side, then steps with photos inline
-- "Story / Note" block: visually distinct — Satisfy font, sand background, like a handwritten card
+Шкала: hero h1/h2 88–120px (`tracking-display`, `leading` 0.88–0.92); section h3 56–80px;
+card title 22–26px; lede 16–17px (`leading` 1.7–1.85); eyebrow 10–12px caps (`tracking-eyebrow`, weight 600–700).
 
-### Animation Guidelines (GSAP)
-- Use ScrollTrigger for all scroll-based reveals
-- Stagger: `stagger: 0.08` for recipe card grids
-- Entrance: `y: 30, opacity: 0` → `y: 0, opacity: 1`, duration `0.6`, ease `power2.out`
-- Hover card lift: `y: -4`, scale `1.01`, subtle shadow increase
-- Page transitions: smooth fade between routes
-- Performance: use `will-change: transform` and `gsap.ticker.lagSmoothing(0)` for buttery scroll
+### Углы, тени, иконки
+- **Прямые углы** — `border-radius: 0` (Tailwind `rounded` = 0). Никаких `rounded-2xl`.
+- **Без теней** — глубина через линии-правила (`1px solid rule`, `2px solid burg`) и смену фона.
+- **Без SVG-иконок** — magazine использует римские цифры (I–VI), типографические дроби,
+  диакритику (№ · —), Unicode-символы (● ○ → ↗ ♡).
+
+### Сетка и отступы
+- Контентный max-width `1320px`, центрирование `mx-auto`.
+- Боковой padding: 24px (mobile) / 40px (tablet) / 56px (`px-14`, desktop).
+- Padding-y секций 64–96px; gap колонок 36–56px.
+- Hero — 2 колонки `1fr 1.1fr`, full-bleed.
+
+### UI-примитивы (`src/components/ui/`)
+`Eyebrow`, `DropCap`, `Rule`, `PullQuote`, `Button` (варианты solid/ghost/ochre/paper),
+`NumberDial`, `SectionLabel` — чисто презентационные, без `'use client'`.
+
+### Анимации (GSAP)
+- Page transitions: fade-up `y: 8 → 0, opacity 0 → 1`, 0.35s, `cubic-bezier(.2,.8,.3,1)`.
+- Card hover: `y: -2px`, плашка `P. 008` темнеет до `ochre-dk`. Без scale, без тени.
+- Scroll-reveal грид карточек: ScrollTrigger, `y: 30 → 0`, `stagger: 0.08`, `0.6s`, `power2.out`.
 
 ## Key Features (MVP)
 

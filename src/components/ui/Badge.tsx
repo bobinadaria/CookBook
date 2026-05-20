@@ -7,10 +7,10 @@ export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
 }
 
 const variantClasses: Record<BadgeVariant, string> = {
-  default: "bg-charcoal/8 text-charcoal/70",
-  peach:   "bg-peach/10 text-peach",
-  sage:    "bg-sage/15 text-sage-dark",
-  sand:    "bg-sand text-charcoal/60",
+  default: "bg-burg/8 text-soft",
+  peach:   "bg-ochre/15 text-ochre-dk",
+  sage:    "bg-olive/15 text-olive",
+  sand:    "bg-crust text-soft",
 };
 
 export default function Badge({
@@ -22,7 +22,7 @@ export default function Badge({
   return (
     <span
       className={cn(
-        "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
+        "inline-flex items-center px-2.5 py-0.5 rounded-none text-xs font-medium",
         variantClasses[variant],
         className
       )}

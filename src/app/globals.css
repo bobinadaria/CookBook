@@ -5,14 +5,23 @@
 /* ── Design tokens ────────────────────────────────────────────────────────── */
 @layer base {
   :root {
-    /* Light mode — H S% L% (no hsl wrapper, Tailwind injects it) */
-    --cream:      40 67% 97%;    /* #FDFAF5 — main background          */
-    --sand:       32 55% 90%;    /* #F2E8DC — card backgrounds          */
-    --charcoal:   20 10% 11%;    /* #1C1917 — primary text              */
-    --peach:      20 73% 67%;    /* #E8956D — primary accent            */
-    --peach-dark: 25 59% 62%;    /* #D4956A — hover on peach            */
-    --sage:      122 13% 61%;    /* #8BAF8C — secondary accent          */
-    --sage-dark: 125 16% 50%;    /* #6B9470 — hover on sage             */
+    /* ── Editorial magazine tokens (redesign 2026) — H S% L% ──────────────
+     * Переведены на переменные (а не прямой hex в tailwind.config), чтобы
+     * поддержать тёмную тему. Значения для .dark — ниже. Палитра правится
+     * здесь, в одном месте — все компоненты обновляются автоматически.       */
+    --paper:     40 37% 92%;   /* #F2EDE3 — page background        */
+    --crust:     41 39% 85%;   /* #E8DFCB — cards / asides         */
+    --burg:       0 42% 20%;   /* #4A1E1E — primary / headings     */
+    --burg-dk:    0 45% 13%;   /* #2F1212 — hover on burg          */
+    --ochre:     38 55% 53%;   /* #C99846 — accent                 */
+    --ochre-dk:  38 52% 42%;   /* #A37A33 — eyebrow / hover        */
+    --olive:     82 22% 40%;   /* #6B7B4F — positive indicators    */
+    --ink:       30 24%  7%;   /* #15110D — body text              */
+    --soft:        rgba(21,17,13,.62);
+    --muted:       rgba(21,17,13,.45);
+    --rule:        rgba(21,17,13,.18);
+    --soft-invert: rgba(242,237,227,.78);  /* text on burg/contrast surface */
+    --rule-invert: rgba(242,237,227,.20);  /* dividers on burg surface      */
 
     /* Safe area insets (populated by browser when viewport-fit=cover) */
     --sat: env(safe-area-inset-top,    0px);
@@ -22,14 +31,23 @@
   }
 
   .dark {
-    /* Dark mode — warm near-black palette */
-    --cream:      20 10%  8%;    /* #151211 — very dark warm background */
-    --sand:       20  8% 14%;    /* #231f1d — dark card background      */
-    --charcoal:   35 40% 93%;    /* #f0ebe4 — light warm text           */
-    --peach:      20 73% 67%;    /* unchanged — accent stays warm       */
-    --peach-dark: 25 59% 62%;    /* unchanged                           */
-    --sage:      122 13% 61%;    /* unchanged                           */
-    --sage-dark: 125 16% 50%;    /* unchanged                           */
+    /* ── Editorial magazine tokens — dark (semantic inversion) ────────────
+     * burg инвертируется в тёплый-светлый: он служит и фоном «тёмных» секций,
+     * и цветом заголовков, поэтому в тёмной теме становится светлым, всегда
+     * контрастируя со страницей. Если что-то смотрится не так — крутим тут.   */
+    --paper:     22 21%  7%;   /* #17120F — dark page bg            */
+    --crust:     23 24% 11%;   /* #221A15 — raised card            */
+    --burg:      39 44% 87%;   /* #EDE3D1 — inverts to warm-light  */
+    --burg-dk:   39 39% 81%;   /* #E1D4BB                          */
+    --ochre:     38 55% 53%;   /* #C99846 — unchanged              */
+    --ochre-dk:  39 51% 57%;   /* #C9A258 — brighter for legibility*/
+    --olive:     80 23% 49%;   /* #86995F — brighter on dark       */
+    --ink:       37 39% 88%;   /* #ECE3D4 — light body text        */
+    --soft:        rgba(236,227,212,.62);
+    --muted:       rgba(236,227,212,.45);
+    --rule:        rgba(236,227,212,.16);
+    --soft-invert: rgba(21,17,13,.78);   /* on inverted (light) burg surface */
+    --rule-invert: rgba(21,17,13,.20);
   }
 }
 
@@ -60,25 +78,22 @@
   input:-webkit-autofill,
   input:-webkit-autofill:hover,
   input:-webkit-autofill:focus {
-    -webkit-box-shadow: 0 0 0px 1000px hsl(32 55% 90%) inset !important;
-    -webkit-text-fill-color: hsl(20 10% 11%) !important;
-    caret-color: hsl(20 10% 11%);
+    -webkit-box-shadow: 0 0 0px 1000px hsl(41 39% 85%) inset !important;
+    -webkit-text-fill-color: hsl(30 24% 7%) !important;
+    caret-color: hsl(30 24% 7%);
     transition: background-color 5000s ease-in-out 0s;
   }
 
   html {
-    @apply bg-cream text-charcoal;
-    font-family: var(--font-plus-jakarta), system-ui, sans-serif;
+    @apply bg-paper text-ink;
+    font-family: var(--font-body), system-ui, sans-serif;
   }
 
   h1,
-  h2 {
-    font-family: var(--font-cormorant), Georgia, serif;
-  }
-
+  h2,
   h3,
   h4 {
-    font-family: var(--font-dm-serif), Georgia, serif;
+    font-family: var(--font-display), Georgia, serif;
   }
 }
 
@@ -190,7 +205,7 @@ button[role="switch"]:focus-visible {
 }
 
 .shimmer-text {
-  background: linear-gradient(90deg, hsl(var(--peach)) 0%, hsl(var(--peach) / 0.5) 40%, hsl(var(--peach)) 60%);
+  background: linear-gradient(90deg, hsl(var(--ochre)) 0%, hsl(var(--ochre) / 0.5) 40%, hsl(var(--ochre)) 60%);
   background-size: 200% auto;
   background-clip: text;
   -webkit-background-clip: text;
@@ -212,7 +227,7 @@ button[role="switch"]:focus-visible {
   }
   .recipe-card-hover:hover .recipe-card-image {
     transform: translateY(-4px);
-    box-shadow: 0 16px 32px hsl(var(--charcoal) / 0.12);
+    box-shadow: 0 16px 32px hsl(var(--ink) / 0.12);
   }
   .recipe-card-hover:hover .recipe-card-title {
     transform: translateY(-4px);
@@ -269,7 +284,7 @@ button[role="switch"]:focus-visible {
   .shimmer-text {
     animation: none;
     background: none;
-    -webkit-text-fill-color: hsl(var(--peach));
+    -webkit-text-fill-color: hsl(var(--ochre));
   }
 
   .recipe-card-hover .recipe-card-image,
@@ -286,5 +301,27 @@ button[role="switch"]:focus-visible {
   /* Disable dropdown animation */
   .dropdown-panel {
     animation: none;
+  }
+}
+
+/* ── Editorial magazine redesign (2026) ─────────────────────────────────────
+ * Базовые правила новой дизайн-системы. Цвета/фон страницы переключатся на
+ * paper, когда мигрируем layout/страницы (шаги 6-10 чек-листа). Пока добавляем
+ * только утилиты и сброс маркера <details>, чтобы не ломать legacy-экраны.
+ */
+@layer base {
+  /* Magazine-аккордеоны (<details>) без дефолтного треугольника */
+  details summary::-webkit-details-marker { display: none; }
+  details summary { list-style: none; cursor: pointer; }
+}
+
+@layer utilities {
+  /* Caps-label над заголовками секций (Work Sans, 11px, широкий трекинг) */
+  .text-eyebrow {
+    font-family: var(--font-body), system-ui, sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
   }
 }

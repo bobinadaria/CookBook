@@ -39,14 +39,14 @@ export default function FavoriteButton({ slug, className }: FavoriteButtonProps)
       className={cn(
         // Visual size
         "w-8 h-8 rounded-full flex items-center justify-center",
-        "bg-cream/90 backdrop-blur-sm shadow-sm",
+        "bg-paper/90 backdrop-blur-sm shadow-sm",
         "transition-all duration-200",
         // Expand touch area on touch devices without affecting layout
         "relative after:absolute after:inset-0 after:content-['']",
         "after:-m-[6px] after:min-w-[44px] after:min-h-[44px]",
         isFavorited
-          ? "text-peach scale-110"
-          : "text-charcoal/40 hover:text-peach hover:scale-110",
+          ? "text-ochre-dk scale-110"
+          : "text-soft hover:text-ochre-dk hover:scale-110",
         className
       )}
     >

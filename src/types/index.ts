@@ -163,7 +163,12 @@ export interface RecipeCategory {
 export type RecipeCardData = Pick<
   Recipe,
   "id" | "title" | "slug" | "cover_image" | "title_en"
->;
+> & {
+  /** Optional — present when the query selects it (magazine card meta row). */
+  cook_time?: number | null;
+  /** Optional primary categories — used for the card's category eyebrow. */
+  categories?: Pick<Category, "id" | "name" | "name_en" | "type">[];
+};
 
 /** Recipe row shown in the admin recipe list. */
 export type AdminRecipeListItem = Pick<

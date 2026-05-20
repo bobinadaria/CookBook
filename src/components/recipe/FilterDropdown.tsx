@@ -136,7 +136,7 @@ export default function FilterDropdown({
         // Never wider than the viewport minus a small margin
         maxWidth: "calc(100vw - 16px)",
       }}
-      className="min-w-[220px] bg-cream border border-sand rounded-2xl shadow-[0_8px_32px_rgba(28,25,23,0.12)] overflow-hidden dropdown-panel"
+      className="min-w-[220px] bg-paper border border-burg rounded-none shadow-[0_6px_24px_rgba(21,17,13,0.14)] overflow-hidden dropdown-panel"
     >
       <div className="p-2">
         {items.map((cat) => {
@@ -147,20 +147,20 @@ export default function FilterDropdown({
               onClick={() => onSelect(groupType, cat.id)}
               className={cn(
                 // py-3 gives a 44px+ touch target for each row
-                "w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm transition-colors text-left",
+                "w-full flex items-center gap-3 px-3 py-3 rounded-none text-sm transition-colors text-left",
                 checked
-                  ? "bg-charcoal/5 text-charcoal font-medium"
-                  : "text-charcoal/60 hover:bg-sand hover:text-charcoal"
+                  ? "bg-burg/5 text-burg font-semibold"
+                  : "text-soft hover:bg-crust hover:text-burg"
               )}
             >
               <span
                 className={cn(
-                  "flex-shrink-0 w-4 h-4 rounded border flex items-center justify-center transition-colors",
-                  checked ? "bg-charcoal border-charcoal" : "border-charcoal/20"
+                  "flex-shrink-0 w-4 h-4 rounded-none border flex items-center justify-center transition-colors",
+                  checked ? "bg-burg border-burg" : "border-rule"
                 )}
               >
                 {checked && (
-                  <svg className="w-2.5 h-2.5 text-cream" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                  <svg className="w-2.5 h-2.5 text-paper" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                     <path d="M5 13l4 4L19 7" />
                   </svg>
                 )}
@@ -169,7 +169,7 @@ export default function FilterDropdown({
                 {(locale === "en" && cat.name_en) ? cat.name_en : cat.name}
               </span>
               {typeof cat.count === "number" && (
-                <span className="text-xs text-charcoal/30 tabular-nums">{cat.count}</span>
+                <span className="text-xs text-muted tabular-nums">{cat.count}</span>
               )}
             </button>
           );
@@ -177,10 +177,10 @@ export default function FilterDropdown({
       </div>
 
       {count > 0 && (
-        <div className="border-t border-sand px-4 py-3">
+        <div className="border-t border-rule px-4 py-3">
           <button
             onClick={() => Array.from(activeIds).forEach((id) => onSelect(groupType, id))}
-            className="text-xs text-charcoal/35 hover:text-peach transition-colors py-1"
+            className="text-xs uppercase tracking-[0.12em] text-soft hover:text-ochre-dk transition-colors py-1"
           >
             {t("clearSelection")}
           </button>
@@ -196,18 +196,18 @@ export default function FilterDropdown({
         onClick={onToggle}
         // min-h-[44px] ensures the trigger itself meets the touch target minimum
         className={cn(
-          "flex items-center gap-2 px-4 py-2.5 min-h-[44px] rounded-full text-sm font-medium",
+          "flex items-center gap-2 px-4 py-2.5 min-h-[44px] rounded-none font-body text-[12px] font-semibold uppercase tracking-[0.12em]",
           "transition-all duration-200 whitespace-nowrap border",
           isOpen
-            ? "bg-charcoal text-cream border-charcoal"
+            ? "bg-burg text-paper border-burg"
             : count > 0
-            ? "bg-peach/10 text-peach border-peach/40 hover:border-peach"
-            : "bg-transparent text-charcoal/60 border-charcoal/15 hover:border-charcoal/35 hover:text-charcoal"
+            ? "bg-ochre/15 text-ochre-dk border-ochre/50 hover:border-ochre-dk"
+            : "bg-transparent text-soft border-rule hover:border-burg hover:text-burg"
         )}
       >
         <span>{label}</span>
         {count > 0 && !isOpen && (
-          <span className="flex items-center justify-center w-4 h-4 rounded-full bg-peach text-white text-[10px] font-semibold leading-none">
+          <span className="flex items-center justify-center w-4 h-4 rounded-none bg-burg text-paper text-[10px] font-semibold leading-none">
             {count}
           </span>
         )}

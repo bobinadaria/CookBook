@@ -100,30 +100,30 @@ export default function AdminCategoriesPage() {
     <div className="flex flex-col gap-10 py-8">
       {/* Header */}
       <div>
-        <span className="font-handwritten text-peach text-xl block mb-2">организация</span>
-        <h1 className="font-serif text-4xl text-charcoal">Категории</h1>
+        <span className="font-body text-[11px] font-semibold uppercase tracking-[0.16em] text-ochre-dk block mb-2">организация</span>
+        <h1 className="font-display text-4xl tracking-[-0.02em] text-burg">Категории</h1>
       </div>
 
       {/* Add form */}
-      <form onSubmit={handleAdd} className="bg-sand/50 rounded-2xl p-6 flex flex-col gap-4">
-        <p className="text-xs text-charcoal/40 uppercase tracking-wider">Добавить категорию</p>
+      <form onSubmit={handleAdd} className="bg-crust/50 rounded-none p-6 flex flex-col gap-4">
+        <p className="text-xs text-soft uppercase tracking-wider">Добавить категорию</p>
         <div className="flex flex-wrap gap-3">
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Название (рус)"
-            className="flex-1 min-w-[160px] bg-cream rounded-xl px-4 py-3 text-sm text-charcoal placeholder:text-charcoal/25 outline-none focus:ring-2 focus:ring-peach/30 transition"
+            className="flex-1 min-w-[160px] bg-paper rounded-none px-4 py-3 text-sm text-ink placeholder:text-muted outline-none focus:ring-2 focus:ring-burg/30 transition"
           />
           <input
             value={nameEn}
             onChange={(e) => setNameEn(e.target.value)}
             placeholder="Название (англ.)"
-            className="flex-1 min-w-[160px] bg-cream rounded-xl px-4 py-3 text-sm text-charcoal placeholder:text-charcoal/25 outline-none focus:ring-2 focus:ring-peach/30 transition"
+            className="flex-1 min-w-[160px] bg-paper rounded-none px-4 py-3 text-sm text-ink placeholder:text-muted outline-none focus:ring-2 focus:ring-burg/30 transition"
           />
           <select
             value={type}
             onChange={(e) => setType(e.target.value as CategoryType)}
-            className="bg-cream rounded-xl px-4 py-3 text-sm text-charcoal outline-none focus:ring-2 focus:ring-peach/30 transition cursor-pointer"
+            className="bg-paper rounded-none px-4 py-3 text-sm text-ink outline-none focus:ring-2 focus:ring-burg/30 transition cursor-pointer"
           >
             {CATEGORY_TYPES.map((t) => (
               <option key={t.value} value={t.value}>{t.label}</option>
@@ -132,13 +132,13 @@ export default function AdminCategoriesPage() {
           <button
             type="submit"
             disabled={saving || !name.trim()}
-            className="bg-charcoal text-cream px-6 py-3 rounded-full text-sm font-medium hover:bg-peach transition-colors disabled:opacity-50"
+            className="bg-burg text-paper px-6 py-3 rounded-none text-sm font-medium hover:bg-burg-dk transition-colors disabled:opacity-50"
           >
             {saving ? "..." : "Добавить"}
           </button>
         </div>
         {name.trim() && (
-          <p className="text-xs text-charcoal/30">slug: {toSlug(name)}</p>
+          <p className="text-xs text-muted">slug: {toSlug(name)}</p>
         )}
         {error && (
           <p className="text-sm text-red-400">{error}</p>
@@ -147,9 +147,9 @@ export default function AdminCategoriesPage() {
 
       {/* Categories list grouped by type */}
       {loading ? (
-        <p className="text-charcoal/30 text-sm">Загрузка...</p>
+        <p className="text-muted text-sm">Загрузка...</p>
       ) : categories.length === 0 ? (
-        <p className="text-charcoal/30 text-sm">Нет категорий. Добавьте первую выше.</p>
+        <p className="text-muted text-sm">Нет категорий. Добавьте первую выше.</p>
       ) : (
         <div className="flex flex-col gap-8">
           {CATEGORY_TYPES.map(({ value, label }) => {
@@ -157,16 +157,16 @@ export default function AdminCategoriesPage() {
             if (!cats?.length) return null;
             return (
               <div key={value}>
-                <p className="text-xs text-charcoal/40 uppercase tracking-wider mb-3">{label}</p>
+                <p className="text-xs text-soft uppercase tracking-wider mb-3">{label}</p>
                 <div className="flex flex-wrap gap-2">
                   {cats.map((cat) => (
                     <div key={cat.id} className="group relative">
                       {editId === cat.id ? (
-                        <div className="flex items-center gap-2 bg-sand rounded-full px-3 py-1.5">
+                        <div className="flex items-center gap-2 bg-crust rounded-none px-3 py-1.5">
                           <input
                             value={editName}
                             onChange={(e) => setEditName(e.target.value)}
-                            className="bg-transparent text-xs text-charcoal outline-none w-20"
+                            className="bg-transparent text-xs text-ink outline-none w-20"
                             placeholder="рус"
                             autoFocus
                             onKeyDown={(e) => {
@@ -177,7 +177,7 @@ export default function AdminCategoriesPage() {
                           <input
                             value={editNameEn}
                             onChange={(e) => setEditNameEn(e.target.value)}
-                            className="bg-transparent text-xs text-charcoal/60 outline-none w-20"
+                            className="bg-transparent text-xs text-soft outline-none w-20"
                             placeholder="англ."
                             onKeyDown={(e) => {
                               if (e.key === "Enter") handleEditSave();
@@ -187,7 +187,7 @@ export default function AdminCategoriesPage() {
                           <select
                             value={editType}
                             onChange={(e) => setEditType(e.target.value as CategoryType)}
-                            className="bg-transparent text-xs text-charcoal outline-none cursor-pointer"
+                            className="bg-transparent text-xs text-ink outline-none cursor-pointer"
                           >
                             {CATEGORY_TYPES.map((t) => (
                               <option key={t.value} value={t.value}>{t.label}</option>
@@ -195,7 +195,7 @@ export default function AdminCategoriesPage() {
                           </select>
                           <button
                             onClick={handleEditSave}
-                            className="text-sage hover:text-sage-dark text-xs font-medium"
+                            className="text-olive hover:text-olive text-xs font-medium"
                           >
                             OK
                           </button>
@@ -203,15 +203,15 @@ export default function AdminCategoriesPage() {
                       ) : (
                         <span
                           className={cn(
-                            "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium",
-                            "bg-sand/70 text-charcoal/70 border border-charcoal/10",
-                            "hover:border-charcoal/25 transition-all cursor-default"
+                            "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-none text-xs font-medium",
+                            "bg-crust/70 text-soft border border-rule",
+                            "hover:border-burg transition-all cursor-default"
                           )}
                         >
                           {cat.name}
                           <button
                             onClick={() => startEdit(cat)}
-                            className="opacity-0 group-hover:opacity-100 text-charcoal/30 hover:text-peach transition-all ml-0.5"
+                            className="opacity-0 group-hover:opacity-100 text-muted hover:text-ochre-dk transition-all ml-0.5"
                             title="Редактировать"
                           >
                             <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -220,7 +220,7 @@ export default function AdminCategoriesPage() {
                           </button>
                           <button
                             onClick={() => handleDelete(cat.id)}
-                            className="opacity-0 group-hover:opacity-100 text-charcoal/30 hover:text-red-400 transition-all"
+                            className="opacity-0 group-hover:opacity-100 text-muted hover:text-red-400 transition-all"
                             title="Удалить"
                           >
                             <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

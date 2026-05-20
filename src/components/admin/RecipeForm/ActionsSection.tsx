@@ -42,18 +42,18 @@ function Toggle({
         className={cn(
           "w-11 h-[26px] rounded-full transition-colors duration-200 relative cursor-pointer shrink-0",
           checked
-            ? activeColor === "sage" ? "bg-sage" : "bg-peach"
+            ? activeColor === "sage" ? "bg-olive" : "bg-burg"
             : "bg-[#d5d0ca]"
         )}
       >
         <span
           className={cn(
-            "absolute top-[3px] left-[3px] w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200",
+            "absolute top-[3px] left-[3px] w-5 h-5 bg-paper rounded-full shadow-sm transition-transform duration-200",
             checked && "translate-x-[18px]"
           )}
         />
       </div>
-      <span className="text-sm text-charcoal/60">{label}</span>
+      <span className="text-sm text-soft">{label}</span>
     </label>
   );
 }
@@ -69,7 +69,7 @@ export default function ActionsSection({
   return (
     <section className="flex flex-col gap-4 pb-10">
       {error && (
-        <p className="text-sm text-red-400 bg-red-50 rounded-xl px-4 py-3">{error}</p>
+        <p className="text-sm text-red-400 bg-red-50 rounded-none px-4 py-3">{error}</p>
       )}
 
       <Toggle
@@ -90,7 +90,7 @@ export default function ActionsSection({
         <button
           type="submit"
           disabled={isBusy}
-          className="bg-charcoal text-cream px-8 py-3.5 rounded-full text-sm font-medium hover:bg-peach transition-colors disabled:opacity-50"
+          className="bg-burg text-paper px-8 py-3.5 rounded-none text-sm font-medium hover:bg-burg-dk transition-colors disabled:opacity-50"
         >
           {autoCalcNutrition ? "Считаю КБЖУ…" : saving ? "Сохраняем..." : recipeId ? "Сохранить изменения" : "Создать рецепт"}
         </button>
@@ -102,10 +102,10 @@ export default function ActionsSection({
             onClick={onTranslateAndGenerate}
             disabled={isBusy}
             className={cn(
-              "inline-flex items-center gap-2 px-6 py-3.5 rounded-full text-sm font-medium transition-all disabled:opacity-50",
+              "inline-flex items-center gap-2 px-6 py-3.5 rounded-none text-sm font-medium transition-all disabled:opacity-50",
               translateSuccess && !combinedStep
-                ? "bg-sage text-cream"
-                : "bg-peach/10 text-peach hover:bg-peach/20 border border-peach/20"
+                ? "bg-olive text-paper"
+                : "bg-ochre/10 text-ochre-dk hover:bg-ochre/20 border border-ochre/30"
             )}
           >
             {combinedStep === "translating" ? (
@@ -138,7 +138,7 @@ export default function ActionsSection({
             type="button"
             onClick={onTranslate}
             disabled={translating || isBusy}
-            className="px-4 py-3.5 rounded-full text-sm text-charcoal/40 hover:text-charcoal/70 transition-colors disabled:opacity-50"
+            className="px-4 py-3.5 rounded-none text-sm text-soft hover:text-burg transition-colors disabled:opacity-50"
           >
             {translating ? "Переводим…" : "Только перевести"}
           </button>
@@ -147,7 +147,7 @@ export default function ActionsSection({
         <button
           type="button"
           onClick={onCancel}
-          className="px-6 py-3.5 rounded-full text-sm text-charcoal/50 hover:text-charcoal border border-charcoal/10 hover:border-charcoal/25 transition-colors"
+          className="px-6 py-3.5 rounded-none text-sm text-soft hover:text-burg border border-rule hover:border-burg transition-colors"
         >
           Отмена
         </button>

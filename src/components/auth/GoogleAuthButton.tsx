@@ -49,13 +49,13 @@ export default function GoogleAuthButton({ redirectTo = "/" }: GoogleAuthButtonP
          * требуют белую кнопку с тёмным текстом в любой теме. Токены charcoal
          * переворачиваются в dark-mode → текст становился невидимым на белом фоне.
          */
-        className="w-full flex items-center justify-center gap-3 bg-white border border-black/[0.12] rounded-full py-3.5 px-4 text-sm font-medium text-[#1f1f1f] hover:bg-black/[0.04] hover:border-black/20 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full flex items-center justify-center gap-3 bg-white border border-black/[0.12] rounded-none py-3.5 px-4 text-sm font-medium text-[#1f1f1f] hover:bg-black/[0.04] hover:border-black/20 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <GoogleLogo />
         <span>{loading ? t("googleLoading") : t("googleButton")}</span>
       </button>
       {error && (
-        <p className="mt-3 text-sm text-red-400 bg-red-50 rounded-xl px-4 py-3">
+        <p className="mt-3 text-sm text-red-400 bg-red-50 rounded-none px-4 py-3">
           {error}
         </p>
       )}

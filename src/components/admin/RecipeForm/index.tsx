@@ -39,7 +39,7 @@ export default function RecipeForm({ recipeId, defaultValues }: RecipeFormProps)
 
       {/* Ingredients */}
       <section>
-        <label className="block text-xs text-charcoal/40 uppercase tracking-wider mb-2">
+        <label className="block text-xs text-soft uppercase tracking-wider mb-2">
           Состав / Ингредиенты
         </label>
         <textarea
@@ -47,9 +47,9 @@ export default function RecipeForm({ recipeId, defaultValues }: RecipeFormProps)
           value={form.ingredients}
           onChange={(e) => form.setIngredients(e.target.value)}
           placeholder={"Персик\nКамамбер\nТимьян\nКруассаны\nМёд\nГрецкий орех"}
-          className="w-full bg-sand rounded-xl px-4 py-3 text-sm text-charcoal resize-none placeholder:text-charcoal/25 outline-none focus:ring-2 focus:ring-peach/30 transition"
+          className="w-full bg-crust rounded-none px-4 py-3 text-sm text-ink resize-none placeholder:text-muted outline-none focus:ring-2 focus:ring-burg/30 transition"
         />
-        <p className="mt-1 text-xs text-charcoal/30">По одному ингредиенту на строку</p>
+        <p className="mt-1 text-xs text-muted">По одному ингредиенту на строку</p>
       </section>
 
       <NutritionSection

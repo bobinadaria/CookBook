@@ -5,29 +5,27 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
-import { useScrollDirection } from "@/hooks/useScrollDirection";
 import { createClient } from "@/lib/supabase/client";
 import LanguageSwitcher from "./LanguageSwitcher";
 import ThemeToggle from "./ThemeToggle";
 import type { User } from "@supabase/supabase-js";
 
+interface NavItem {
+  href: string;
+  label: string;
+  active: boolean;
+}
+
 export default function Header() {
   const pathname = usePathname();
   const router = useRouter();
   const t = useTranslations("nav");
-  const { direction, scrollY } = useScrollDirection();
+  const th = useTranslations("header");
+
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-
-  const visible = scrollY < 80 || direction === "up";
-
-  // «Избранное»/«Заметки» живут внутри личного кабинета, а не в верхней навигации.
-  // Вход в кабинет — через email-чип справа (см. ниже).
-  const navLinks = [
-    { href: "/recipes", label: t("recipes") },
-  ];
 
   useEffect(() => {
     const supabase = createClient();
@@ -46,7 +44,9 @@ export default function Header() {
       if (data.user) checkAdmin(data.user.id);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
       if (session?.user) checkAdmin(session.user.id);
       else setIsAdmin(false);
@@ -54,8 +54,10 @@ export default function Header() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Close mobile menu on route change
-  useEffect(() => { setMobileOpen(false); }, [pathname]);
+  // Закрывать мобильное меню при смене маршрута
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
 
   const handleSignOut = async () => {
     setSigningOut(true);
@@ -66,202 +68,162 @@ export default function Header() {
     router.refresh();
   };
 
+  const navItems: NavItem[] = [
+    { href: "/", label: t("home"), active: pathname === "/" },
+    { href: "/recipes", label: t("recipes"), active: pathname.startsWith("/recipes") },
+    { href: "/pricing", label: t("pricing"), active: pathname.startsWith("/pricing") },
+  ];
+  if (user) {
+    navItems.push({
+      href: "/dashboard",
+      label: t("myBook"),
+      active: pathname.startsWith("/dashboard"),
+    });
+  }
+  if (isAdmin) {
+    navItems.push({ href: "/admin", label: "Админ", active: pathname.startsWith("/admin") });
+  }
+
   return (
-    <>
-      <header
-        className={cn(
-          "fixed top-0 left-0 right-0 z-50",
-          "bg-cream/90 backdrop-blur-sm border-b border-sand",
-          "transition-transform duration-300 ease-in-out",
-          // pt-safe accounts for iPhone notch / Dynamic Island safe area.
-          // Without viewport-fit=cover in layout.tsx this is always 0.
-          "pt-safe",
-          visible ? "translate-y-0" : "-translate-y-full"
-        )}
-      >
-        <div className="px-4 sm:px-8 h-16 flex items-center justify-between">
+    <header className="bg-paper">
+      {/* ─── Desktop masthead (md+) ─────────────────────────────────────── */}
+      <div className="hidden md:block">
+        {/* Top strip */}
+        <div className="flex items-center justify-between border-b border-rule px-6 py-2 font-body text-[10px] font-semibold uppercase tracking-[0.16em] text-soft lg:px-14">
+          <span>{th("tagline")}</span>
+          <span className="flex items-center gap-5">
+            <LanguageSwitcher />
+            <ThemeToggle />
+            {user ? (
+              <button
+                onClick={handleSignOut}
+                disabled={signingOut}
+                className="uppercase tracking-[0.16em] text-soft transition-colors hover:text-burg disabled:opacity-50"
+              >
+                {signingOut ? "…" : t("signOut")}
+              </button>
+            ) : (
+              <Link href="/login" className="text-burg transition-colors hover:text-ochre-dk">
+                {t("signIn")} &rarr;
+              </Link>
+            )}
+          </span>
+        </div>
+
+        {/* Masthead row */}
+        <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-5 px-6 pb-5 pt-9 lg:px-14">
+          <span className="justify-self-start font-body text-[11px] font-semibold uppercase tracking-[0.16em] text-soft">
+            {th("taglineLeft")}
+          </span>
           <Link
             href="/"
-            className="font-handwritten text-2xl text-charcoal hover:text-peach transition-colors"
+            className="justify-self-center whitespace-nowrap font-display text-[64px] font-normal italic leading-[0.9] tracking-[-0.02em] text-burg lg:text-[88px]"
           >
-            CookBook
+            by Daria
           </Link>
+          <span className="justify-self-end font-body text-[11px] font-semibold uppercase tracking-[0.16em] text-soft">
+            {th("taglineRight")}
+          </span>
+        </div>
 
-          {/* Desktop nav */}
-          <nav className="hidden md:flex items-center gap-8">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={cn(
-                  "text-sm font-medium transition-colors hover:text-peach",
-                  pathname === link.href ? "text-peach" : "text-charcoal/70"
-                )}
-              >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
+        {/* Nav row — sticky */}
+        <nav className="sticky top-0 z-40 flex justify-center gap-12 border-y border-rule bg-paper/95 px-6 py-3.5 backdrop-blur-sm lg:gap-14 lg:px-14">
+          {navItems.map((it) => (
+            <Link
+              key={it.href}
+              href={it.href}
+              className={cn(
+                "border-b-2 py-1 font-body text-[12px] uppercase tracking-[0.16em] transition-colors",
+                it.active
+                  ? "border-burg font-bold text-burg"
+                  : "border-transparent font-medium text-soft hover:text-burg",
+              )}
+            >
+              {it.label}
+            </Link>
+          ))}
+        </nav>
+      </div>
 
-          {/* Desktop right controls */}
-          <div className="hidden md:flex items-center gap-3">
-            <ThemeToggle />
+      {/* ─── Mobile bar (<md) — sticky ──────────────────────────────────── */}
+      <div className="sticky top-0 z-50 border-b border-rule bg-paper/95 pt-safe backdrop-blur-sm md:hidden">
+        <div className="flex h-14 items-center justify-between px-6">
+          <Link href="/" className="font-display text-[26px] italic leading-none text-burg">
+            by Daria
+          </Link>
+          <div className="flex items-center gap-1">
             <LanguageSwitcher />
-
-            {user ? (
-              <>
-                {isAdmin && (
-                  <Link
-                    href="/admin"
-                    className={cn(
-                      "text-sm font-medium transition-colors hover:text-peach",
-                      pathname.startsWith("/admin") ? "text-peach" : "text-charcoal/50"
-                    )}
-                  >
-                    Админ
-                  </Link>
-                )}
-                <Link
-                  href="/dashboard"
-                  className={cn(
-                    "inline-flex items-center gap-1.5 text-sm font-medium transition-colors hover:text-peach",
-                    pathname.startsWith("/dashboard") ? "text-peach" : "text-charcoal/60"
-                  )}
-                  title={user.email ?? undefined}
-                >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} aria-hidden>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 19.5A2.5 2.5 0 016.5 17H20M4 19.5A2.5 2.5 0 006.5 22H20V2H6.5A2.5 2.5 0 004 4.5v15z" />
-                  </svg>
-                  {t("myBook")}
-                </Link>
-                <button
-                  onClick={handleSignOut}
-                  disabled={signingOut}
-                  className="text-sm font-medium text-charcoal/60 hover:text-peach transition-colors disabled:opacity-50"
-                >
-                  {signingOut ? "..." : t("signOut")}
-                </button>
-              </>
-            ) : (
-              <>
-                <Link href="/login" className="text-sm font-medium text-charcoal/70 hover:text-charcoal transition-colors">
-                  {t("signIn")}
-                </Link>
-                <Link href="/register" className="text-sm font-medium bg-peach text-white px-4 py-2 rounded-full hover:bg-peach-dark transition-colors">
-                  {t("register")}
-                </Link>
-              </>
-            )}
-          </div>
-
-          {/* Mobile right controls */}
-          <div className="flex md:hidden items-center gap-1">
             <ThemeToggle />
-            <LanguageSwitcher />
-
-            {/*
-              Hamburger button.
-              p-3 gives a 22px icon + 24px padding = 46px tap area → meets 44px minimum.
-              The aria-expanded attribute helps screen readers and iOS VoiceOver.
-            */}
             <button
               onClick={() => setMobileOpen((v) => !v)}
               aria-label={mobileOpen ? "Закрыть меню" : "Открыть меню"}
               aria-expanded={mobileOpen}
               aria-controls="mobile-menu"
-              className="p-3 -mr-1 text-charcoal/70 hover:text-peach transition-colors"
+              className="-mr-1 flex h-11 w-11 flex-col items-center justify-center gap-[5px] text-burg"
             >
-              {mobileOpen ? (
-                <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
-                  <line x1="4" y1="4" x2="18" y2="18" />
-                  <line x1="18" y1="4" x2="4" y2="18" />
-                </svg>
-              ) : (
-                <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
-                  <line x1="3" y1="6" x2="19" y2="6" />
-                  <line x1="3" y1="11" x2="19" y2="11" />
-                  <line x1="3" y1="16" x2="19" y2="16" />
-                </svg>
-              )}
+              <span
+                className={cn(
+                  "block h-[2px] w-5 bg-current transition-transform",
+                  mobileOpen && "translate-y-[7px] rotate-45",
+                )}
+              />
+              <span className={cn("block h-[2px] w-5 bg-current transition-opacity", mobileOpen && "opacity-0")} />
+              <span
+                className={cn(
+                  "block h-[2px] w-5 bg-current transition-transform",
+                  mobileOpen && "-translate-y-[7px] -rotate-45",
+                )}
+              />
             </button>
           </div>
         </div>
 
-        {/* Mobile menu dropdown */}
         {mobileOpen && (
-          <div
-            id="mobile-menu"
-            className="md:hidden bg-cream/95 backdrop-blur-sm border-t border-sand px-4 py-3 flex flex-col"
-          >
-            {navLinks.map((link) => (
-              /*
-               * Each nav link is min-h-[48px] — slightly above Apple's 44px
-               * minimum — so it's comfortable to tap even with fat fingers.
-               */
+          <div id="mobile-menu" className="flex flex-col border-t border-rule px-6 py-2">
+            {navItems.map((it) => (
               <Link
-                key={link.href}
-                href={link.href}
+                key={it.href}
+                href={it.href}
                 className={cn(
-                  "flex items-center min-h-[48px] text-base font-medium transition-colors hover:text-peach",
-                  pathname === link.href ? "text-peach" : "text-charcoal/70"
+                  "flex min-h-[48px] items-center font-body text-[13px] uppercase tracking-[0.16em] transition-colors",
+                  it.active ? "font-bold text-burg" : "font-medium text-soft hover:text-burg",
                 )}
               >
-                {link.label}
+                {it.label}
               </Link>
             ))}
 
-            <div className="h-px bg-sand my-2" />
+            <div className="my-2 h-px bg-rule" />
 
             {user ? (
-              <>
-                <Link
-                  href="/dashboard"
-                  className={cn(
-                    "flex items-center min-h-[48px] text-base font-medium transition-colors hover:text-peach",
-                    pathname.startsWith("/dashboard") ? "text-peach" : "text-charcoal/70"
-                  )}
-                >
-                  {t("myBook")}
-                </Link>
-                {isAdmin && (
-                  <Link
-                    href="/admin"
-                    className="flex items-center min-h-[48px] text-base font-medium text-charcoal/50 hover:text-peach transition-colors"
-                  >
-                    Админ
-                  </Link>
-                )}
-                <p className="text-sm text-charcoal/40 truncate py-2">{user.email}</p>
-                <button
-                  onClick={handleSignOut}
-                  disabled={signingOut}
-                  className="flex items-center min-h-[48px] text-left text-base font-medium text-charcoal/60 hover:text-peach transition-colors disabled:opacity-50"
-                >
-                  {signingOut ? "..." : t("signOut")}
-                </button>
-              </>
+              <button
+                onClick={handleSignOut}
+                disabled={signingOut}
+                className="flex min-h-[48px] items-center text-left font-body text-[13px] uppercase tracking-[0.16em] text-soft transition-colors hover:text-burg disabled:opacity-50"
+              >
+                {signingOut ? "…" : t("signOut")}
+              </button>
             ) : (
-              <div className="flex flex-col gap-2 pt-1 pb-2">
+              <div className="flex flex-col gap-2 pb-2 pt-1">
                 <Link
                   href="/login"
-                  className="flex items-center min-h-[48px] text-base font-medium text-charcoal/70 hover:text-charcoal transition-colors"
+                  className="flex min-h-[48px] items-center font-body text-[13px] uppercase tracking-[0.16em] text-soft transition-colors hover:text-burg"
                 >
                   {t("signIn")}
                 </Link>
                 <Link
                   href="/register"
-                  className="flex items-center justify-center min-h-[48px] text-base font-medium bg-peach text-white px-4 rounded-full hover:bg-peach-dark transition-colors"
+                  className="flex min-h-[48px] items-center justify-center bg-burg px-4 font-body text-[13px] font-semibold uppercase tracking-[0.16em] text-paper transition-colors hover:bg-burg-dk"
                 >
                   {t("register")}
                 </Link>
               </div>
             )}
 
-            {/* Bottom safe area — ensures menu content isn't hidden behind iOS home indicator */}
             <div className="pb-safe" />
           </div>
         )}
-      </header>
-    </>
+      </div>
+    </header>
   );
 }

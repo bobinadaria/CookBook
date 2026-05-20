@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { useTranslations } from "next-intl";
 import RecipeCard from "@/components/recipe/RecipeCard";
+import { EditorialButton, Eyebrow } from "@/components/ui";
 import { useFavorites } from "@/context/FavoritesContext";
 import { createClient } from "@/lib/supabase/client";
 
@@ -52,13 +52,13 @@ function FavoritesContent() {
         setRecipes(data ?? []);
         setLoading(false);
       });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id, favorites]);
 
   if (!checked || loading) {
     return (
-      <div className="min-h-dvh flex items-center justify-center">
-        <span className="font-handwritten text-2xl text-charcoal/30">{tc("loading")}</span>
+      <div className="flex min-h-dvh items-center justify-center">
+        <span className="font-display text-2xl italic text-muted">{tc("loading")}</span>
       </div>
     );
   }
@@ -66,47 +66,38 @@ function FavoritesContent() {
   if (!user) return null;
 
   return (
-    <main className="min-h-dvh">
+    <main className="mx-auto min-h-dvh max-w-5xl px-6">
       {/* Header */}
-      <div className="px-8 pt-10 pb-8 flex items-end justify-between">
+      <div className="flex items-end justify-between gap-6 pb-8 pt-10">
         <div>
-          <span className="font-handwritten text-peach text-xl block mb-2">
-            {t("tagline")}
-          </span>
-          <h1 className="font-serif text-[clamp(2.5rem,5vw,4.5rem)] leading-none text-charcoal">
+          <Eyebrow color="text-ochre-dk">{t("tagline")}</Eyebrow>
+          <h1 className="mt-3 font-display text-[clamp(2.5rem,5vw,3.5rem)] font-normal leading-[0.95] tracking-[-0.02em] text-burg">
             {t("title")}
           </h1>
         </div>
         {recipes.length > 0 && (
-          <span className="text-charcoal/30 text-sm hidden sm:block">
+          <span className="hidden font-body text-[11px] font-semibold uppercase tracking-[0.16em] text-soft sm:block">
             {t("recipeCount", { count: recipes.length })}
           </span>
         )}
       </div>
 
       {/* Content */}
-      <section className="px-4 py-6">
+      <section className="py-6">
         {recipes.length === 0 ? (
-          <div className="text-center py-32">
-            <p className="font-handwritten text-3xl text-charcoal/25 mb-4">
-              {t("empty")}
-            </p>
-            <p className="text-sm text-charcoal/40 mb-8">
-              {t("emptyHint")}
-            </p>
-            <Link
-              href="/recipes"
-              className="inline-flex items-center gap-2 text-sm text-peach hover:underline"
-            >
-              {t("goToRecipes")}
-            </Link>
+          <div className="border-t border-rule py-28 text-center">
+            <p className="mb-4 font-display text-[28px] italic text-burg/40">{t("empty")}</p>
+            <p className="mb-8 font-body text-sm text-soft">{t("emptyHint")}</p>
+            <div className="flex justify-center">
+              <EditorialButton variant="ghost" href="/recipes">
+                {t("goToRecipes")}
+              </EditorialButton>
+            </div>
           </div>
         ) : (
-          <div className="columns-2 lg:columns-3 xl:columns-4 gap-x-3">
+          <div className="grid grid-cols-2 gap-x-6 gap-y-10 lg:grid-cols-3 xl:grid-cols-4">
             {recipes.map((recipe) => (
-              <div key={recipe.id} className="break-inside-avoid mb-3">
-                <RecipeCard recipe={recipe} />
-              </div>
+              <RecipeCard key={recipe.id} recipe={recipe} showMeta={false} />
             ))}
           </div>
         )}

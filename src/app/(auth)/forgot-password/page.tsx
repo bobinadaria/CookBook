@@ -43,16 +43,16 @@ function ForgotPasswordContent() {
   };
 
   return (
-    <main className="min-h-dvh bg-cream flex flex-col">
+    <main className="min-h-dvh bg-paper flex flex-col">
       {/* Top bar */}
       <div className="px-8 py-6 flex items-center justify-between">
         <Link
           href="/"
-          className="font-handwritten text-2xl text-charcoal hover:text-peach transition-colors"
+          className="font-display italic text-2xl text-ink hover:text-ochre-dk transition-colors"
         >
           CookBook
         </Link>
-        <Link href="/login" className="text-sm text-charcoal/40 hover:text-peach transition-colors">
+        <Link href="/login" className="text-sm text-soft hover:text-ochre-dk transition-colors">
           {t("backLink")}
         </Link>
       </div>
@@ -61,18 +61,18 @@ function ForgotPasswordContent() {
         {step === "success" ? (
           /* ── Success state ── */
           <div className="w-full max-w-sm text-center hero-in-1">
-            <span className="font-handwritten text-peach text-xl block mb-4">
+            <span className="font-body text-[11px] font-semibold uppercase tracking-[0.16em] text-ochre-dk block mb-4">
               {t("successTagline")}
             </span>
-            <h1 className="font-serif text-[2.8rem] leading-tight text-charcoal mb-6">
+            <h1 className="font-display text-[2.8rem] leading-tight text-ink mb-6">
               {t("successTitle")}
             </h1>
-            <p className="text-charcoal/50 text-sm leading-relaxed mb-10">
+            <p className="text-soft text-sm leading-relaxed mb-10">
               {t("successText", { email })}
             </p>
             <Link
               href="/login"
-              className="inline-flex items-center gap-2 text-sm text-peach hover:underline"
+              className="inline-flex items-center gap-2 text-sm text-ochre-dk hover:underline"
             >
               {t("successLink")}
             </Link>
@@ -82,25 +82,25 @@ function ForgotPasswordContent() {
           <div className="w-full max-w-sm">
             {/* Header */}
             <div className="hero-in-1 mb-10">
-              <span className="font-handwritten text-peach text-xl block mb-3">
+              <span className="font-body text-[11px] font-semibold uppercase tracking-[0.16em] text-ochre-dk block mb-3">
                 {t("tagline")}
               </span>
-              <h1 className="font-serif text-[2.8rem] leading-tight text-charcoal">
+              <h1 className="font-display text-[2.8rem] leading-tight text-ink">
                 {t("title")}
               </h1>
             </div>
 
             {/* Divider */}
-            <div className="hero-in-2 w-12 h-px bg-sand mb-6" />
+            <div className="hero-in-2 w-12 h-px bg-crust mb-6" />
 
-            <p className="hero-in-2 text-sm text-charcoal/50 mb-8">
+            <p className="hero-in-2 text-sm text-soft mb-8">
               {t("description")}
             </p>
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="hero-in-3 space-y-5">
               <div>
-                <label className="block text-xs text-charcoal/40 uppercase tracking-wider mb-2">
+                <label className="block text-xs text-soft uppercase tracking-wider mb-2">
                   {t("email")}
                 </label>
                 <input
@@ -110,12 +110,12 @@ function ForgotPasswordContent() {
                   required
                   autoComplete="email"
                   placeholder="your@email.com"
-                  className="w-full bg-sand rounded-xl px-4 py-3.5 text-sm text-charcoal placeholder:text-charcoal/25 outline-none focus:ring-2 focus:ring-peach/30 transition"
+                  className="w-full bg-crust rounded-none px-4 py-3.5 text-sm text-ink placeholder:text-muted outline-none focus:ring-2 focus:ring-burg/30 transition"
                 />
               </div>
 
               {error && (
-                <p className="text-sm text-red-400 bg-red-50 rounded-xl px-4 py-3">
+                <p className="text-sm text-red-400 bg-red-50 rounded-none px-4 py-3">
                   {error}
                 </p>
               )}
@@ -126,8 +126,8 @@ function ForgotPasswordContent() {
             </form>
 
             {/* Footer */}
-            <p className="hero-in-4 mt-10 text-center text-sm text-charcoal/35">
-              <Link href="/login" className="text-peach hover:underline">
+            <p className="hero-in-4 mt-10 text-center text-sm text-muted">
+              <Link href="/login" className="text-ochre-dk hover:underline">
                 {t("backLink")}
               </Link>
             </p>

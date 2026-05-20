@@ -49,7 +49,7 @@ export default function EditRecipePage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-32">
-        <span className="font-handwritten text-2xl text-charcoal/30">Загрузка...</span>
+        <span className="font-display italic text-2xl text-muted">Загрузка...</span>
       </div>
     );
   }
@@ -62,8 +62,8 @@ export default function EditRecipePage() {
 
   return (
     <div>
-      <span className="font-handwritten text-peach text-xl block mb-2">редактирование</span>
-      <h1 className="font-serif text-4xl text-charcoal mb-10">{defaults.title}</h1>
+      <span className="font-body text-[11px] font-semibold uppercase tracking-[0.16em] text-ochre-dk block mb-2">редактирование</span>
+      <h1 className="font-display text-4xl tracking-[-0.02em] text-burg mb-10">{defaults.title}</h1>
       <RecipeForm recipeId={id} defaultValues={defaults} />
     </div>
   );

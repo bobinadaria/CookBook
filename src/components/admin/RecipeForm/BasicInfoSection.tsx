@@ -18,7 +18,7 @@ interface BasicInfoSectionProps {
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
   return (
-    <label className="block text-xs text-charcoal/40 uppercase tracking-wider mb-2">
+    <label className="block text-xs text-soft uppercase tracking-wider mb-2">
       {children}
     </label>
   );
@@ -27,7 +27,7 @@ function FieldLabel({ children }: { children: React.ReactNode }) {
 function FieldInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
-      className="w-full bg-sand rounded-xl px-4 py-3 text-sm text-charcoal placeholder:text-charcoal/25 outline-none focus:ring-2 focus:ring-peach/30 transition"
+      className="w-full bg-crust rounded-none px-4 py-3 text-sm text-ink placeholder:text-muted outline-none focus:ring-2 focus:ring-burg/30 transition"
       {...props}
     />
   );
@@ -37,7 +37,7 @@ function FieldTextarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>)
   return (
     <textarea
       rows={3}
-      className="w-full bg-sand rounded-xl px-4 py-3 text-sm text-charcoal resize-none placeholder:text-charcoal/25 outline-none focus:ring-2 focus:ring-peach/30 transition"
+      className="w-full bg-crust rounded-none px-4 py-3 text-sm text-ink resize-none placeholder:text-muted outline-none focus:ring-2 focus:ring-burg/30 transition"
       {...props}
     />
   );
@@ -67,7 +67,7 @@ export default function BasicInfoSection({
           onChange={(e) => { onSlugChange(e.target.value); onSlugEdit(); }}
           placeholder="tart-s-inzhirom"
         />
-        <p className="mt-1 text-xs text-charcoal/30">/recipes/{slug || "…"}</p>
+        <p className="mt-1 text-xs text-muted">/recipes/{slug || "…"}</p>
       </div>
 
       <div>
@@ -87,7 +87,7 @@ export default function BasicInfoSection({
           onChange={(e) => onNoteChange(e.target.value)}
           placeholder="Личная история о блюде — откуда оно появилось, с чем связано..."
         />
-        <p className="mt-1 text-xs text-charcoal/30">
+        <p className="mt-1 text-xs text-muted">
           Отображается на странице рецепта в рукописном стиле
         </p>
       </div>
@@ -104,7 +104,7 @@ export default function BasicInfoSection({
             }
             placeholder="45"
           />
-          <p className="mt-1 text-xs text-charcoal/30">Общее время в минутах</p>
+          <p className="mt-1 text-xs text-muted">Общее время в минутах</p>
         </div>
         <div>
           <FieldLabel>Количество порций</FieldLabel>
@@ -117,7 +117,7 @@ export default function BasicInfoSection({
             }
             placeholder="4"
           />
-          <p className="mt-1 text-xs text-charcoal/30">Для скольких человек</p>
+          <p className="mt-1 text-xs text-muted">Для скольких человек</p>
         </div>
       </div>
     </section>

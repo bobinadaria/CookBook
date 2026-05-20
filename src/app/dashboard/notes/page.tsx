@@ -7,6 +7,7 @@ import { useTranslations, useLocale } from "next-intl";
 import { useFavorites } from "@/context/FavoritesContext";
 import { createClient } from "@/lib/supabase/client";
 import { localizedField } from "@/lib/localized-content";
+import { EditorialButton, Eyebrow } from "@/components/ui";
 import type { LocaleCode } from "@/types";
 
 interface NoteRow {
@@ -37,7 +38,6 @@ export default function NotesPage() {
       .select("content, updated_at, recipe:recipes(id, title, title_en, slug, cover_image)")
       .order("updated_at", { ascending: false })
       .then(({ data }) => {
-        // recipe приходит как объект (или null, если рецепт удалён)
         const rows = (data ?? []).map((r) => ({
           content: r.content as string,
           updated_at: r.updated_at as string,
@@ -50,38 +50,40 @@ export default function NotesPage() {
 
   if (!user || loading) {
     return (
-      <div className="min-h-[40vh] flex items-center justify-center">
-        <span className="font-handwritten text-2xl text-charcoal/30">{tc("loading")}</span>
+      <div className="flex min-h-[40vh] items-center justify-center">
+        <span className="font-display text-2xl italic text-muted">{tc("loading")}</span>
       </div>
     );
   }
 
   return (
-    <main className="px-6 pb-24 max-w-5xl mx-auto">
-      <div className="pt-8 pb-8">
-        <span className="font-handwritten text-peach text-xl block mb-2">{t("tagline")}</span>
-        <h1 className="font-serif text-[clamp(2.2rem,5vw,3.5rem)] leading-none text-charcoal">
+    <main className="mx-auto max-w-5xl px-6 pb-24">
+      <div className="pb-8 pt-8">
+        <Eyebrow color="text-ochre-dk">{t("tagline")}</Eyebrow>
+        <h1 className="mt-3 font-display text-[clamp(2.2rem,5vw,3.5rem)] font-normal leading-[0.95] tracking-[-0.02em] text-burg">
           {t("title")}
         </h1>
       </div>
 
       {notes.length === 0 ? (
-        <div className="text-center py-24">
-          <p className="font-handwritten text-3xl text-charcoal/25 mb-4">{t("empty")}</p>
-          <p className="text-sm text-charcoal/40 mb-8">{t("emptyHint")}</p>
-          <Link href="/recipes" className="inline-flex items-center gap-2 text-sm text-peach hover:underline">
-            {t("goToRecipes")}
-          </Link>
+        <div className="border-t border-rule py-24 text-center">
+          <p className="mb-4 font-display text-[28px] italic text-burg/40">{t("empty")}</p>
+          <p className="mb-8 font-body text-sm text-soft">{t("emptyHint")}</p>
+          <div className="flex justify-center">
+            <EditorialButton variant="ghost" href="/recipes">
+              {t("goToRecipes")}
+            </EditorialButton>
+          </div>
         </div>
       ) : (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col">
           {notes.map((n) => (
             <Link
               key={n.recipe!.id}
               href={`/recipes/${n.recipe!.slug}`}
-              className="group flex gap-4 bg-sand/50 rounded-2xl p-4 hover:bg-sand transition-colors"
+              className="group flex gap-5 border-t border-rule py-5 transition-colors first:border-t-0 hover:bg-crust/50"
             >
-              <div className="relative w-20 h-20 shrink-0 rounded-xl overflow-hidden bg-sand">
+              <div className="relative h-20 w-20 shrink-0 overflow-hidden bg-crust">
                 {n.recipe!.cover_image && (
                   <Image
                     src={n.recipe!.cover_image}
@@ -93,10 +95,10 @@ export default function NotesPage() {
                 )}
               </div>
               <div className="min-w-0 flex-1">
-                <h3 className="text-sm font-medium text-charcoal group-hover:text-peach transition-colors mb-1">
+                <h3 className="mb-1 font-display text-[18px] text-burg transition-colors group-hover:text-ochre-dk">
                   {localizedField(n.recipe!, "title", locale) ?? n.recipe!.title}
                 </h3>
-                <p className="text-sm text-charcoal/60 line-clamp-3 whitespace-pre-wrap">
+                <p className="line-clamp-3 whitespace-pre-wrap font-reader text-sm leading-relaxed text-soft">
                   {n.content}
                 </p>
               </div>

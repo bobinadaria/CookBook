@@ -16,8 +16,8 @@ export default function DashboardNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="px-6 pt-6 max-w-5xl mx-auto">
-      <div className="flex items-center gap-2 flex-wrap">
+    <nav className="mx-auto max-w-5xl px-6 pt-6">
+      <div className="flex flex-wrap items-center gap-2">
         {ITEMS.map((item) => {
           const active = pathname === item.href;
           return (
@@ -25,10 +25,10 @@ export default function DashboardNav() {
               key={item.href}
               href={item.href}
               className={cn(
-                "px-4 py-2 rounded-full text-sm font-medium transition-colors border",
+                "rounded-none border px-4 py-2 font-body text-[12px] font-semibold uppercase tracking-[0.12em] transition-colors",
                 active
-                  ? "bg-charcoal text-cream border-charcoal"
-                  : "bg-transparent text-charcoal/60 border-charcoal/15 hover:border-charcoal/35 hover:text-charcoal",
+                  ? "border-burg bg-burg text-paper"
+                  : "border-rule bg-transparent text-soft hover:border-burg hover:text-burg",
               )}
             >
               {t(item.key)}

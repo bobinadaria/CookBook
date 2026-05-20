@@ -10,7 +10,22 @@
     "signIn": "Sign in",
     "register": "Register",
     "dashboard": "Dashboard",
-    "myBook": "My book"
+    "myBook": "My book",
+    "home": "Cover",
+    "pricing": "Subscribe"
+  },
+  "header": {
+    "tagline": "Personal recipe book · Prague",
+    "taglineLeft": "Personal book",
+    "taglineRight": "AI nutritionist"
+  },
+  "footer": {
+    "tagline": "Daria Bobina's personal recipe book. Twelve years out of Prague. With an AI nutritionist that counts calories precisely.",
+    "getIssue": "Get the issue",
+    "book": "Book",
+    "account": "Account",
+    "contact": "Contact",
+    "rights": "All recipes original"
   },
   "home": {
     "welcome": "welcome",

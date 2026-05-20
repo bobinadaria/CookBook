@@ -1,5 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, DM_Serif_Display, Satisfy, Plus_Jakarta_Sans } from "next/font/google";
+// Кириллические аналоги шрифтов хендоффа (Bodoni/Work Sans/Newsreader не имеют
+// cyrillic-сабсета). Playfair Display = дидон как Bodoni (есть в фолбэке хендоффа),
+// Inter = гротеск как Work Sans, Lora = текстовый сериф как Newsreader. Все с кириллицей.
+import { Playfair_Display, Inter, Lora } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import "./globals.css";
@@ -32,6 +36,28 @@ const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
   weight: ["400", "500", "600"],
   variable: "--font-plus-jakarta",
+  display: "swap",
+});
+
+// ─── НОВАЯ типографика (editorial magazine redesign) ────────────────────────
+const display = Playfair_Display({
+  subsets: ["latin", "cyrillic"],
+  weight: ["400", "500", "600", "700"],
+  style: ["normal", "italic"],
+  variable: "--font-display",
+  display: "swap",
+});
+const body = Inter({
+  subsets: ["latin", "cyrillic"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-body",
+  display: "swap",
+});
+const reader = Lora({
+  subsets: ["latin", "cyrillic"],
+  weight: ["400", "500"],
+  style: ["normal", "italic"],
+  variable: "--font-reader",
   display: "swap",
 });
 
@@ -100,7 +126,7 @@ export default async function RootLayout({
   return (
     <html
       lang={locale}
-      className={`${cormorant.variable} ${dmSerif.variable} ${satisfy.variable} ${plusJakarta.variable}`}
+      className={`${cormorant.variable} ${dmSerif.variable} ${satisfy.variable} ${plusJakarta.variable} ${display.variable} ${body.variable} ${reader.variable}`}
       suppressHydrationWarning
     >
       <body className="antialiased">

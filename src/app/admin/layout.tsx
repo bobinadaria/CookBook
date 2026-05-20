@@ -46,21 +46,21 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   if (checking) {
     return (
-      <div className="min-h-screen bg-cream flex items-center justify-center">
-        <span className="font-handwritten text-2xl text-charcoal/30">Проверка доступа...</span>
+      <div className="min-h-screen bg-paper flex items-center justify-center">
+        <span className="font-display italic text-2xl text-muted">Проверка доступа...</span>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-cream flex flex-col">
+    <div className="min-h-screen bg-paper flex flex-col">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-cream/90 backdrop-blur-sm border-b border-sand">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-paper/90 backdrop-blur-sm border-b border-rule">
         <div className="px-8 h-16 flex items-center justify-between">
           {/* Logo */}
           <Link
             href="/"
-            className="font-handwritten text-2xl text-charcoal hover:text-peach transition-colors"
+            className="font-display italic text-2xl text-ink hover:text-ochre-dk transition-colors"
           >
             CookBook
           </Link>
@@ -74,8 +74,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   key={href}
                   href={href}
                   className={cn(
-                    "text-sm font-medium transition-colors hover:text-peach",
-                    active ? "text-peach" : "text-charcoal/60"
+                    "text-sm font-medium transition-colors hover:text-ochre-dk",
+                    active ? "text-ochre-dk" : "text-soft"
                   )}
                 >
                   {label}
@@ -90,14 +90,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <LanguageSwitcher />
             <Link
               href="/"
-              className="text-sm font-medium text-charcoal/50 hover:text-charcoal transition-colors"
+              className="text-sm font-medium text-soft hover:text-burg transition-colors"
             >
               ← На сайт
             </Link>
             <button
               onClick={handleSignOut}
               disabled={signingOut}
-              className="text-sm font-medium bg-peach text-white px-4 py-2 rounded-full hover:bg-peach-dark transition-colors disabled:opacity-50"
+              className="text-sm font-medium bg-burg text-paper px-4 py-2 rounded-none hover:bg-burg-dk transition-colors disabled:opacity-50"
             >
               {signingOut ? "..." : "Выйти"}
             </button>

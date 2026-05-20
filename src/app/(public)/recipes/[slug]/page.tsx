@@ -11,42 +11,53 @@ import type { Category, Step } from "@/types";
 import RelatedRecipes, { RelatedRecipesSkeleton } from "@/components/recipe/RelatedRecipes";
 import NutritionFacts from "@/components/recipe/NutritionFacts";
 import RecipeNote from "@/components/recipe/RecipeNote";
+import FavoriteButton from "@/components/recipe/FavoriteButton";
+import { DropCap, Eyebrow } from "@/components/ui";
 import type { NutritionData } from "@/types";
 import { getSiteUrl } from "@/lib/site-url";
 
 /**
  * ISR: страница рендерится один раз, кэшируется на Vercel edge на час.
- * Если редактируешь рецепт через API роуты (translate, calculate-nutrition,
- * generate-image) — они вызывают revalidatePath и инвалидируют кэш сразу.
- * Если правишь рецепт через форму (updateRecipe→Supabase напрямую) — обновится
- * автоматически в течение часа (или жми «Hard Refresh» в браузере).
+ * API-роуты (translate, calculate-nutrition, generate-image) дёргают
+ * revalidatePath и инвалидируют кэш сразу.
  */
 export const revalidate = 3600;
 
-/**
- * Build-time prerendering: на vercel build заранее рендерим все опубликованные
- * рецепты в статичный HTML. Первый посетитель получает готовую страницу
- * с edge'а — никакого SSR не дёргается.
- *
- * Новые рецепты (опубликованные после билда) рендерятся on-demand при первом
- * визите, потом кэшируются как обычное ISR.
- *
- * `dynamicParams: true` (по умолчанию) разрешает on-demand рендеринг slug-ов,
- * которых не было на билде.
- */
 export async function generateStaticParams() {
-  // Service-role client: на билде нет request scope (cookies/session),
-  // обычный createClient() из @/lib/supabase/server ломается на cookies().
-  // Service role не зависит от запроса — читает БД напрямую.
+  // Service-role client: на билде нет request scope (cookies/session).
   const supabase = createServiceRoleClient();
-  const { data } = await supabase
-    .from("recipes")
-    .select("slug")
-    .eq("published", true);
+  const { data } = await supabase.from("recipes").select("slug").eq("published", true);
   return (data ?? []).map((r) => ({ slug: r.slug }));
 }
 
 const SITE_URL = getSiteUrl();
+
+/** Convert a 1-based position to a roman numeral (magazine step mark). */
+function toRoman(n: number): string {
+  const map: [number, string][] = [
+    [1000, "M"], [900, "CM"], [500, "D"], [400, "CD"], [100, "C"],
+    [90, "XC"], [50, "L"], [40, "XL"], [10, "X"], [9, "IX"],
+    [5, "V"], [4, "IV"], [1, "I"],
+  ];
+  let out = "";
+  let num = n;
+  for (const [v, s] of map) {
+    while (num >= v) {
+      out += s;
+      num -= v;
+    }
+  }
+  return out || "—";
+}
+
+/** Russian plural picker (1 порция / 2 порции / 5 порций). */
+function ruPlural(n: number, one: string, few: string, many: string): string {
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  if (mod10 === 1 && mod100 !== 11) return one;
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return few;
+  return many;
+}
 
 /**
  * Renders a text string that may contain markdown-style links [label](url)
@@ -59,25 +70,19 @@ function renderTextWithLinks(text: string): React.ReactNode {
   let match: RegExpExecArray | null;
 
   while ((match = linkRegex.exec(text)) !== null) {
-    if (match.index > lastIndex) {
-      parts.push(text.slice(lastIndex, match.index));
-    }
+    if (match.index > lastIndex) parts.push(text.slice(lastIndex, match.index));
     parts.push(
       <Link
         key={match.index}
         href={match[2]}
-        className="text-peach hover:text-peach-dark underline underline-offset-2 transition-colors"
+        className="text-ochre-dk underline underline-offset-2 transition-colors hover:text-burg"
       >
         {match[1]}
-      </Link>
+      </Link>,
     );
     lastIndex = match.index + match[0].length;
   }
-
-  if (lastIndex < text.length) {
-    parts.push(text.slice(lastIndex));
-  }
-
+  if (lastIndex < text.length) parts.push(text.slice(lastIndex));
   return parts.length > 0 ? <>{parts}</> : text;
 }
 
@@ -118,21 +123,15 @@ function parseIngredients(raw: string) {
 
   for (const line of lines) {
     const trimmed = line.trim();
-    // Detect section headers: lines that start AND end with —
     const isHeader = /^—.+—$/.test(trimmed);
     if (isHeader) {
-      if (current.items.length > 0 || current.header !== null) {
-        sections.push(current);
-      }
+      if (current.items.length > 0 || current.header !== null) sections.push(current);
       current = { header: trimmed.replace(/^—\s*/, "").replace(/\s*—$/, ""), items: [] };
     } else {
       current.items.push(trimmed);
     }
   }
-  if (current.items.length > 0 || current.header !== null) {
-    sections.push(current);
-  }
-
+  if (current.items.length > 0 || current.header !== null) sections.push(current);
   return sections;
 }
 
@@ -140,19 +139,13 @@ export async function generateMetadata({ params }: RecipePageProps): Promise<Met
   const slug = decodeURIComponent(params.slug);
   const recipe = await getRecipe(slug);
 
-  // If the recipe doesn't exist, Next.js will call notFound() in the page
-  // component — return a minimal fallback here so the build doesn't break.
-  if (!recipe) {
-    return { title: "Recipe not found — CookBook" };
-  }
+  if (!recipe) return { title: "Recipe not found — CookBook" };
 
   const locale = (await getLocale()) as Locale;
   const title = localizedField(recipe, "title", locale) ?? recipe.title;
   const rawDesc =
-    localizedField(recipe, "description", locale) ??
-    localizedField(recipe, "note", locale);
+    localizedField(recipe, "description", locale) ?? localizedField(recipe, "note", locale);
 
-  // Trim description to ~155 chars for search result snippets.
   const description = rawDesc
     ? rawDesc.length > 155
       ? rawDesc.slice(0, 152) + "…"
@@ -167,9 +160,7 @@ export async function generateMetadata({ params }: RecipePageProps): Promise<Met
   return {
     title: `${title} — CookBook`,
     description,
-    alternates: {
-      canonical: pageUrl,
-    },
+    alternates: { canonical: pageUrl },
     openGraph: {
       type: "article",
       url: pageUrl,
@@ -200,10 +191,7 @@ export default async function RecipePage({ params }: RecipePageProps) {
   const recipe = await getRecipe(decodeURIComponent(params.slug));
   if (!recipe) notFound();
 
-  const [t, locale] = await Promise.all([
-    getTranslations("recipe"),
-    getLocale(),
-  ]);
+  const [t, locale] = await Promise.all([getTranslations("recipe"), getLocale()]);
   const l = locale as Locale;
 
   const title = localizedField(recipe, "title", l) ?? recipe.title;
@@ -212,190 +200,206 @@ export default async function RecipePage({ params }: RecipePageProps) {
 
   const ingredientsRaw = localizedField(recipe, "ingredients", l) ?? recipe.ingredients ?? null;
   const ingredientSections = ingredientsRaw ? parseIngredients(ingredientsRaw) : [];
-  const hasMultipleSections = ingredientSections.some((s) => s.header !== null);
+  const hasIngredients = ingredientSections.some((s) => s.items.length > 0);
+  const hasSteps = recipe.steps.length > 0;
+
+  const nutrition = recipe.nutrition as NutritionData | null;
+  const primaryCategory = recipe.categories[0];
+  const categoryLabel = primaryCategory
+    ? localizedField(primaryCategory, "name", l) ?? primaryCategory.name
+    : null;
+
+  // Real metrics only — no fabricated "difficulty"/"chapter" fields.
+  const metrics: { label: string; value: string; unit: string }[] = [];
+  if (recipe.cook_time) metrics.push({ label: t("cookTime"), value: String(recipe.cook_time), unit: "мин" });
+  if (recipe.servings) metrics.push({ label: t("servings"), value: String(recipe.servings), unit: "" });
+  if (nutrition?.per_serving?.kcal)
+    metrics.push({ label: "Калории", value: String(nutrition.per_serving.kcal), unit: "ккал" });
+  if (hasSteps) metrics.push({ label: "Шагов", value: String(recipe.steps.length), unit: "" });
+
+  const servingsHeading = recipe.servings
+    ? `на ${recipe.servings} ${ruPlural(recipe.servings, "порцию", "порции", "порций")}`
+    : t("ingredients");
+  const stepsHeading = `${recipe.steps.length} ${ruPlural(recipe.steps.length, "шаг", "шага", "шагов")}`;
 
   return (
-    <main className="min-h-dvh">
-      <div className="px-6 pt-10 max-w-5xl mx-auto">
-        <Link href="/recipes" className="text-sm text-charcoal/50 hover:text-charcoal transition-colors">
-          {t("backToAll")}
-        </Link>
-      </div>
+    <div className="bg-paper text-ink">
+      {/* ── Breadcrumb strip ────────────────────────────────────────────── */}
+      <section className="mx-auto max-w-[1320px] px-6 pt-10 md:px-10 lg:px-14">
+        <div className="flex items-center justify-between gap-4 border-b border-rule pb-5 font-body text-[11px] font-semibold uppercase tracking-[0.16em] text-soft">
+          <Link href="/recipes" className="transition-colors hover:text-burg">
+            {t("backToAll")}
+          </Link>
+          {categoryLabel && <span className="hidden sm:block">{categoryLabel}</span>}
+          <span className="flex items-center gap-2 text-burg">
+            <FavoriteButton
+              slug={recipe.slug}
+              className="h-7 w-7 rounded-none bg-transparent text-burg shadow-none hover:scale-100"
+            />
+          </span>
+        </div>
+      </section>
 
-      {/* ── Hero: title + cover ── */}
-      <section className="px-6 pt-8 pb-12 max-w-5xl mx-auto grid md:grid-cols-2 gap-10 items-start">
-        <div>
-          {recipe.categories.length > 0 && (
-            <div className="flex gap-2 flex-wrap mb-4">
-              {recipe.categories.map((cat: Category) => (
-                <span key={cat.id} className="text-xs font-medium bg-sand text-charcoal px-3 py-1 rounded-full">
-                  {localizedField(cat, "name", l) ?? cat.name}
-                </span>
+      {/* ── Title + metrics ─────────────────────────────────────────────── */}
+      <section className="mx-auto max-w-[1320px] px-6 pb-10 pt-5 md:px-10 lg:px-14">
+        <div className="grid items-end gap-10 lg:grid-cols-[1.6fr_1fr] lg:gap-14">
+          <div>
+            <Eyebrow color="text-ochre-dk">{categoryLabel ?? "Рецепт"}</Eyebrow>
+            <h1 className="mt-3 font-display text-[clamp(2.5rem,7vw,96px)] font-normal leading-[0.92] tracking-[-0.03em] text-burg">
+              {title}
+            </h1>
+            {description && (
+              <p className="mt-6 max-w-[560px] font-body text-[16px] leading-[1.75] text-soft">
+                {renderTextWithLinks(description)}
+              </p>
+            )}
+          </div>
+
+          {metrics.length > 0 && (
+            <div className="grid grid-cols-2 gap-4 border-t-2 border-burg pt-5">
+              {metrics.map((m) => (
+                <div key={m.label}>
+                  <Eyebrow color="text-soft" className="mb-1">
+                    {m.label}
+                  </Eyebrow>
+                  <span className="font-display text-[36px] font-normal leading-none text-burg">{m.value}</span>
+                  {m.unit && (
+                    <span className="ml-1.5 font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-soft">
+                      {m.unit}
+                    </span>
+                  )}
+                </div>
               ))}
             </div>
           )}
-          <h1 className="font-serif text-[clamp(2rem,5vw,3.5rem)] leading-tight text-charcoal mb-6">
-            {title}
-          </h1>
-          {description && (
-            <p className="text-charcoal/70 text-lg leading-relaxed mb-6">{renderTextWithLinks(description)}</p>
-          )}
-
-          {/* ── Cook time + servings pills ── */}
-          {(recipe.cook_time || recipe.servings) && (
-            <div className="flex gap-3 flex-wrap">
-              {recipe.cook_time && (
-                <div className="flex items-center gap-2 bg-sand px-4 py-2.5 rounded-2xl">
-                  <svg className="w-4 h-4 text-peach shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} aria-hidden>
-                    <circle cx="12" cy="12" r="9" />
-                    <path strokeLinecap="round" d="M12 7v5l3 3" />
-                  </svg>
-                  <div>
-                    <p className="text-[10px] uppercase tracking-widest text-charcoal/40 leading-none mb-0.5">{t("cookTime")}</p>
-                    <p className="text-sm font-medium text-charcoal leading-none">
-                      {recipe.cook_time < 60
-                        ? t("minutes", { n: recipe.cook_time })
-                        : recipe.cook_time % 60 === 0
-                          ? t("hoursOnly", { h: Math.floor(recipe.cook_time / 60) })
-                          : t("hours", { h: Math.floor(recipe.cook_time / 60), m: recipe.cook_time % 60 })}
-                    </p>
-                  </div>
-                </div>
-              )}
-              {recipe.servings && (
-                <div className="flex items-center gap-2 bg-sand px-4 py-2.5 rounded-2xl">
-                  <svg className="w-4 h-4 text-sage shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} aria-hidden>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                    <circle cx="9" cy="7" r="4" />
-                    <path strokeLinecap="round" d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
-                  </svg>
-                  <div>
-                    <p className="text-[10px] uppercase tracking-widest text-charcoal/40 leading-none mb-0.5">{t("servings")}</p>
-                    <p className="text-sm font-medium text-charcoal leading-none">{recipe.servings}</p>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
         </div>
+      </section>
 
-        {recipe.cover_image && (
-          <div className="relative aspect-[4/3] rounded-card overflow-hidden shadow-card">
+      {/* ── Hero photo ──────────────────────────────────────────────────── */}
+      {recipe.cover_image && (
+        <section className="mx-auto max-w-[1320px] px-6 md:px-10 lg:px-14">
+          <div className="relative h-[360px] overflow-hidden sm:h-[480px] lg:h-[580px]">
             <Image
               src={recipe.cover_image}
               alt={title}
               fill
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, 50vw"
               priority
+              className="object-cover"
+              sizes="(max-width: 1320px) 100vw, 1320px"
             />
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/65 to-transparent px-8 pb-6 pt-24">
+              <Eyebrow color="text-paper/85">Fig. I — На столе</Eyebrow>
+            </div>
           </div>
-        )}
+        </section>
+      )}
+
+      {/* ── Ingredients + Steps ─────────────────────────────────────────── */}
+      {(hasIngredients || hasSteps) && (
+        <section className="mx-auto max-w-[1320px] px-6 pb-20 pt-16 md:px-10 lg:px-14 lg:pt-20">
+          <div className="grid items-start gap-12 lg:grid-cols-[1fr_1.6fr] lg:gap-14">
+            {/* Ingredients aside */}
+            {hasIngredients && (
+              <aside className="bg-crust px-7 py-8 lg:sticky lg:top-6 lg:self-start">
+                <Eyebrow color="text-burg">{t("ingredients")}</Eyebrow>
+                <h2 className="mb-6 mt-2 font-display text-[32px] font-normal italic leading-none tracking-[-0.01em] text-burg sm:text-[36px]">
+                  {servingsHeading}
+                </h2>
+                {ingredientSections.map((section, si) => (
+                  <div key={si} className={si > 0 ? "mt-6" : ""}>
+                    {section.header && (
+                      <div className="mb-2 font-body text-[10px] font-bold uppercase tracking-[0.18em] text-ochre-dk">
+                        {section.header}
+                      </div>
+                    )}
+                    <ul>
+                      {section.items.map((item, ii) => (
+                        <li
+                          key={ii}
+                          className="border-t border-rule py-3 font-body text-[14px] leading-[1.4] text-ink first:border-t-0"
+                        >
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </aside>
+            )}
+
+            {/* Steps */}
+            {hasSteps && (
+              <div className={hasIngredients ? "" : "lg:col-span-2"}>
+                <Eyebrow color="text-ochre-dk">{t("preparation")}</Eyebrow>
+                <h2 className="mb-8 mt-2.5 font-display text-[36px] font-normal italic leading-none tracking-[-0.01em] text-burg sm:text-[42px]">
+                  {stepsHeading}
+                </h2>
+                {recipe.steps.map((step: Step, index: number) => {
+                  const stepTitle = localizedField(step, "title", l);
+                  const stepDesc = localizedField(step, "description", l) ?? step.description;
+                  return (
+                    <div
+                      key={step.id}
+                      className="grid grid-cols-[56px_1fr] items-start gap-5 border-t border-rule py-6 sm:grid-cols-[88px_1fr] sm:gap-6"
+                    >
+                      <div className="pt-1 font-display text-[44px] font-normal italic leading-[0.9] text-ochre sm:text-[60px]">
+                        {toRoman(index + 1)}
+                      </div>
+                      <div>
+                        {stepTitle && (
+                          <h3 className="font-display text-[22px] font-normal tracking-[-0.01em] text-burg sm:text-[26px]">
+                            {stepTitle}
+                          </h3>
+                        )}
+                        <p className="mt-2 max-w-[580px] font-reader text-[15px] leading-[1.7] text-ink">
+                          {renderTextWithLinks(stepDesc)}
+                        </p>
+                        {step.photo_url && (
+                          <div className="relative mt-4 aspect-[4/3] max-w-[580px] overflow-hidden">
+                            <Image
+                              src={step.photo_url}
+                              alt={stepTitle ?? t("step", { number: index + 1 })}
+                              fill
+                              className="object-cover"
+                              sizes="(max-width: 768px) 100vw, 40vw"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* ── КБЖУ (только цифры; диагностика — в админке) ─────────────────── */}
+      <NutritionFacts nutrition={nutrition} />
+
+      {/* ── Notes: author note + your private note ──────────────────────── */}
+      <section className="mx-auto max-w-[1320px] px-6 pb-20 md:px-10 lg:px-14">
+        <div className="grid items-start gap-10 lg:grid-cols-[1.4fr_1fr] lg:gap-14">
+          {note && (
+            <div className="border-l-4 border-ochre bg-crust px-8 py-9">
+              <Eyebrow color="text-burg">{t("dishStory")}</Eyebrow>
+              <p className="mt-3.5 font-display text-[22px] font-normal italic leading-[1.45] text-burg sm:text-[24px]">
+                <DropCap>{note.charAt(0)}</DropCap>
+                {renderTextWithLinks(note.slice(1))}
+              </p>
+              <div className="mt-3.5 font-body text-[11px] font-semibold uppercase tracking-[0.16em] text-soft">
+                — Даша
+              </div>
+            </div>
+          )}
+          <div className={note ? "" : "lg:col-span-2 lg:max-w-[640px]"}>
+            <RecipeNote recipeId={recipe.id} />
+          </div>
+        </div>
       </section>
 
-      {/* ── Story / Note ── */}
-      {note && (
-        <section className="px-6 pb-12 max-w-5xl mx-auto">
-          <div className="bg-sand rounded-card p-8 md:p-10">
-            <span className="font-handwritten text-sage text-lg block mb-3">{t("dishStory")}</span>
-            <p className="font-handwritten text-2xl text-charcoal/80 leading-relaxed">
-              &ldquo;{note}&rdquo;
-            </p>
-          </div>
-        </section>
-      )}
-
-      {/* ── Ingredients ── */}
-      {ingredientSections.length > 0 && (
-        <section className="px-6 pb-14 max-w-5xl mx-auto">
-          <h2 className="font-serif text-4xl text-charcoal mb-8">{t("ingredients")}</h2>
-
-          {hasMultipleSections ? (
-            /* Sectioned layout: cards per group */
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {ingredientSections.map((section, si) => (
-                <div key={si} className="bg-sand/60 rounded-2xl p-5">
-                  {section.header && (
-                    <p className="text-[11px] uppercase tracking-widest text-charcoal/40 font-medium mb-3">
-                      {section.header}
-                    </p>
-                  )}
-                  <ul className="space-y-2">
-                    {section.items.map((item, ii) => (
-                      <li key={ii} className="flex items-start gap-2.5 text-sm text-charcoal/75">
-                        <span className="w-1 h-1 rounded-full bg-peach mt-2 shrink-0" />
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          ) : (
-            /* Simple flat list — no sections */
-            <ul className="grid sm:grid-cols-2 gap-x-8 gap-y-2.5">
-              {ingredientSections[0]?.items.map((item, i) => (
-                <li key={i} className="flex items-center gap-3 text-charcoal/70">
-                  <span className="w-1.5 h-1.5 rounded-full bg-peach/60 shrink-0" />
-                  {item}
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-      )}
-
-      {/* ── Личная заметка пользователя (приватная, client island) ── */}
-      <RecipeNote recipeId={recipe.id} />
-
-      {/* ── Nutrition (только цифры; диагностика — в админке) ── */}
-      <NutritionFacts nutrition={recipe.nutrition as NutritionData | null} />
-
-      {/* ── Steps ── */}
-      {recipe.steps.length > 0 && (
-        <section className="px-6 pb-24 max-w-5xl mx-auto">
-          <h2 className="font-serif text-4xl text-charcoal mb-8">{t("preparation")}</h2>
-
-          <div className="grid md:grid-cols-2 gap-5">
-            {recipe.steps.map((step: Step, index: number) => {
-              const stepTitle = localizedField(step, "title", l);
-              const stepDesc = localizedField(step, "description", l) ?? step.description;
-
-              return (
-                <div key={step.id} className="bg-sand/50 rounded-2xl p-6 flex flex-col gap-4">
-                  {/* Step number + title */}
-                  <div className="flex items-center gap-3">
-                    <span className="font-handwritten text-3xl text-peach/50 leading-none shrink-0">
-                      {index + 1}
-                    </span>
-                    {stepTitle && (
-                      <h3 className="font-serif text-lg text-charcoal leading-snug">{stepTitle}</h3>
-                    )}
-                  </div>
-
-                  {/* Description */}
-                  <p className="text-charcoal/65 text-sm leading-relaxed">{renderTextWithLinks(stepDesc)}</p>
-
-                  {/* Photo if available */}
-                  {step.photo_url && (
-                    <div className="relative aspect-[4/3] rounded-xl overflow-hidden mt-auto">
-                      <Image
-                        src={step.photo_url}
-                        alt={stepTitle ?? t("step", { number: index + 1 })}
-                        fill
-                        className="object-cover"
-                        sizes="(max-width: 768px) 100vw, 40vw"
-                      />
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </section>
-      )}
-
-      {/* ── Related recipes (streamed independently — не блокирует first paint) ── */}
+      {/* ── Related (streamed — не блокирует first paint) ───────────────── */}
       <Suspense fallback={<RelatedRecipesSkeleton />}>
         <RelatedRecipes
           recipeId={recipe.id}
@@ -413,20 +417,12 @@ export default async function RecipePage({ params }: RecipePageProps) {
             name: title,
             description: description ?? undefined,
             image: recipe.cover_image ? [recipe.cover_image] : undefined,
-            author: {
-              "@type": "Person",
-              name: "Daria",
-              url: SITE_URL,
-            },
+            author: { "@type": "Person", name: "Daria", url: SITE_URL },
             datePublished: recipe.created_at,
             dateModified: recipe.updated_at,
             url: `${SITE_URL}/recipes/${recipe.slug}`,
-            ...(recipe.cook_time
-              ? { cookTime: toIsoDuration(recipe.cook_time) }
-              : {}),
-            ...(recipe.servings
-              ? { recipeYield: String(recipe.servings) }
-              : {}),
+            ...(recipe.cook_time ? { cookTime: toIsoDuration(recipe.cook_time) } : {}),
+            ...(recipe.servings ? { recipeYield: String(recipe.servings) } : {}),
             recipeIngredient: ingredientSections.flatMap((s) => s.items),
             recipeInstructions: recipe.steps.map((step: Step, i: number) => ({
               "@type": "HowToStep",
@@ -438,6 +434,6 @@ export default async function RecipePage({ params }: RecipePageProps) {
           }),
         }}
       />
-    </main>
+    </div>
   );
 }

@@ -5,17 +5,41 @@ import Image from "next/image";
 import { useLocale } from "next-intl";
 import { cn } from "@/lib/utils";
 import { localizedField } from "@/lib/localized-content";
-import type { LocaleCode, RecipeCardData } from "@/types";
+import type { Category, LocaleCode, RecipeCardData } from "@/types";
 import FavoriteButton from "./FavoriteButton";
 import { useFavorites } from "@/context/FavoritesContext";
 
+/** Convert a 1-based position to a roman numeral (magazine chapter mark). */
+function toRoman(n: number): string {
+  const map: [number, string][] = [
+    [1000, "M"], [900, "CM"], [500, "D"], [400, "CD"], [100, "C"],
+    [90, "XC"], [50, "L"], [40, "XL"], [10, "X"], [9, "IX"],
+    [5, "V"], [4, "IV"], [1, "I"],
+  ];
+  let out = "";
+  let num = n;
+  for (const [v, s] of map) {
+    while (num >= v) {
+      out += s;
+      num -= v;
+    }
+  }
+  return out || "—";
+}
+
 interface RecipeCardProps {
   recipe: RecipeCardData;
+  /** Backward-compat: aspect ratio class for the image. Default 4/3. */
   aspectClass?: string;
+  /** Backward-compat: fill parent height instead of using the aspect class. */
   fillHeight?: boolean;
-  /** Override locale (e.g. when rendering in a server component that already knows the locale). */
+  /** Override locale (when rendered from a server component that knows the locale). */
   locale?: LocaleCode;
   className?: string;
+  /** 1-based position → roman chapter numeral + "P. NNN" plate. Omit to hide both. */
+  index?: number;
+  /** Show the footer meta row (cook time · Читать →). Default true. */
+  showMeta?: boolean;
 }
 
 export default function RecipeCard({
@@ -24,22 +48,42 @@ export default function RecipeCard({
   fillHeight = false,
   locale: localeProp,
   className,
+  index,
+  showMeta = true,
 }: RecipeCardProps) {
   const hookLocale = useLocale() as LocaleCode;
   const locale = localeProp ?? hookLocale;
   const { favorites } = useFavorites();
   const isFavorited = favorites.has(recipe.slug);
-  const title = localizedField(recipe as Record<string, unknown>, "title", locale) ?? recipe.title;
+
+  const title = localizedField(recipe, "title", locale) ?? recipe.title;
+
+  // Prefer a meal-type category for the eyebrow; fall back to the first one.
+  const cats = (recipe.categories ?? []) as Category[];
+  const primaryCat: Category | undefined =
+    cats.find((c) => c.type === "meal_type") ?? cats[0];
+  const categoryLabel = primaryCat
+    ? localizedField(primaryCat, "name", locale) ?? primaryCat.name
+    : null;
+
+  const hasNumber = typeof index === "number";
+  const roman = hasNumber ? toRoman(index as number) : null;
+  const pageNo = hasNumber ? String((index as number) * 6 + 2).padStart(3, "0") : null;
 
   return (
     <Link
       href={`/recipes/${recipe.slug}`}
-      className={cn("group block recipe-card-hover", fillHeight && "flex flex-col h-full", className)}
+      className={cn(
+        "recipe-card-hover group block transition-transform duration-300 hover:-translate-y-0.5",
+        fillHeight && "flex h-full flex-col",
+        className,
+      )}
     >
+      {/* ── Image ── */}
       <div
         className={cn(
-          "recipe-card-image relative overflow-hidden rounded-2xl w-full",
-          fillHeight ? "flex-1 min-h-0" : aspectClass
+          "relative w-full overflow-hidden bg-crust",
+          fillHeight ? "min-h-0 flex-1" : aspectClass,
         )}
       >
         {recipe.cover_image ? (
@@ -47,45 +91,52 @@ export default function RecipeCard({
             src={recipe.cover_image}
             alt={title}
             fill
-            className="object-cover group-hover:scale-[1.04] transition-transform duration-500 ease-out"
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+            className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           />
         ) : (
-          <div className="w-full h-full bg-sand flex items-center justify-center">
-            <span className="font-handwritten text-3xl text-charcoal/20">CookBook</span>
+          <div className="flex h-full w-full items-center justify-center bg-crust">
+            <span className="font-display text-3xl italic text-burg/30">by Daria</span>
           </div>
         )}
 
-        <div
-          className={cn(
-            "recipe-card-fav absolute top-3 left-3",
-            isFavorited && "is-favorited"
-          )}
-        >
+        {pageNo && (
+          <div className="absolute left-3 top-3 bg-ochre px-2.5 py-1.5 font-body text-[10px] font-bold uppercase tracking-[0.16em] text-burg transition-colors group-hover:bg-ochre-dk">
+            P. {pageNo}
+          </div>
+        )}
+
+        <div className={cn("recipe-card-fav absolute right-3 top-3", isFavorited && "is-favorited")}>
           <FavoriteButton slug={recipe.slug} />
         </div>
+      </div>
 
-        <div className="recipe-card-arrow absolute bottom-3 right-3 pointer-events-none">
-          <div className="w-8 h-8 bg-cream/95 rounded-full flex items-center justify-center shadow-sm">
-            <svg
-              className="w-3.5 h-3.5 text-charcoal"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2.5}
-              aria-hidden
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M12 5l7 7-7 7" />
-            </svg>
-          </div>
+      {/* ── Title block ── */}
+      <div className={cn("mt-4 flex items-baseline gap-4", fillHeight && "flex-shrink-0")}>
+        {roman && (
+          <span className="font-display text-[44px] font-normal italic leading-[0.9] text-ochre sm:text-[52px]">
+            {roman}
+          </span>
+        )}
+        <div className="flex-1">
+          {categoryLabel && (
+            <div className="mb-1.5 font-body text-[11px] font-semibold uppercase tracking-[0.2em] text-ochre-dk">
+              {categoryLabel}
+            </div>
+          )}
+          <h3 className="font-display text-[20px] font-normal leading-[1.15] text-ink transition-colors group-hover:text-burg sm:text-[24px]">
+            {title}
+          </h3>
         </div>
       </div>
 
-      <div className={cn("recipe-card-title pt-3 pb-1", fillHeight && "flex-shrink-0")}>
-        <h3 className="text-sm text-charcoal leading-snug group-hover:text-peach transition-colors duration-200">
-          {title}
-        </h3>
-      </div>
+      {/* ── Footer meta ── */}
+      {showMeta && (
+        <div className="mt-3.5 flex items-center justify-between border-t border-rule pt-3 font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-soft">
+          <span>{recipe.cook_time ? `${recipe.cook_time} мин` : " "}</span>
+          <span className="transition-colors group-hover:text-burg">Читать &rarr;</span>
+        </div>
+      )}
     </Link>
   );
 }

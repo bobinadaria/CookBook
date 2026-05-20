@@ -54,18 +54,18 @@ export default function QuickCreateModal({ onClose }: QuickCreateModalProps) {
       onClick={(e) => { if (e.target === e.currentTarget && !saving) onClose(); }}
     >
       {/* Blur overlay */}
-      <div className="absolute inset-0 bg-charcoal/30 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-burg/30 backdrop-blur-sm" />
 
       {/* Panel */}
-      <div className="relative w-full max-w-md bg-cream rounded-3xl shadow-2xl p-8 flex flex-col gap-6">
+      <div className="relative w-full max-w-md bg-paper rounded-3xl shadow-2xl p-8 flex flex-col gap-6">
 
         {/* Header */}
         <div>
-          <span className="font-handwritten text-peach text-lg block mb-1">новый рецепт</span>
-          <h2 className="font-serif text-3xl text-charcoal leading-tight">
+          <span className="font-display italic text-ochre-dk text-lg block mb-1">новый рецепт</span>
+          <h2 className="font-display text-3xl text-ink leading-tight">
             Как называется блюдо?
           </h2>
-          <p className="text-sm text-charcoal/40 mt-1.5">
+          <p className="text-sm text-soft mt-1.5">
             Введи название — остальное заполнишь на следующем шаге
           </p>
         </div>
@@ -78,21 +78,21 @@ export default function QuickCreateModal({ onClose }: QuickCreateModalProps) {
             onChange={(e) => { setTitle(e.target.value); setError(null); }}
             placeholder="Например: Тарт с инжиром и рикоттой"
             disabled={saving}
-            className="w-full bg-sand rounded-2xl px-5 py-4 text-base text-charcoal
-                       placeholder:text-charcoal/25 outline-none focus:ring-2 focus:ring-peach/30
+            className="w-full bg-crust rounded-none px-5 py-4 text-base text-ink
+                       placeholder:text-muted outline-none focus:ring-2 focus:ring-burg/30
                        transition disabled:opacity-50"
           />
 
           {error && (
-            <p className="text-sm text-red-400 bg-red-50 rounded-xl px-4 py-2.5">{error}</p>
+            <p className="text-sm text-red-400 bg-red-50 rounded-none px-4 py-2.5">{error}</p>
           )}
 
           <div className="flex gap-3 pt-1">
             <button
               type="submit"
               disabled={saving || !title.trim()}
-              className="flex-1 bg-charcoal text-cream py-3.5 rounded-full text-sm font-medium
-                         hover:bg-peach transition-colors disabled:opacity-40 disabled:cursor-not-allowed
+              className="flex-1 bg-burg text-paper py-3.5 rounded-none text-sm font-medium
+                         hover:bg-burg-dk transition-colors disabled:opacity-40 disabled:cursor-not-allowed
                          flex items-center justify-center gap-2"
             >
               {saving ? (
@@ -109,8 +109,8 @@ export default function QuickCreateModal({ onClose }: QuickCreateModalProps) {
               type="button"
               onClick={onClose}
               disabled={saving}
-              className="px-5 py-3.5 rounded-full text-sm text-charcoal/50 hover:text-charcoal
-                         border border-charcoal/10 hover:border-charcoal/25 transition-colors
+              className="px-5 py-3.5 rounded-none text-sm text-soft hover:text-burg
+                         border border-rule hover:border-burg transition-colors
                          disabled:opacity-40"
             >
               Отмена

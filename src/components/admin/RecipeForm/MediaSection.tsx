@@ -26,7 +26,7 @@ export default function MediaSection({
 }: MediaSectionProps) {
   return (
     <section>
-      <label className="block text-xs text-charcoal/40 uppercase tracking-wider mb-2">
+      <label className="block text-xs text-soft uppercase tracking-wider mb-2">
         Фото обложки
       </label>
 
@@ -34,15 +34,15 @@ export default function MediaSection({
       <div
         onClick={() => inputRef.current?.click()}
         className={[
-          "relative w-full aspect-[16/7] rounded-2xl overflow-hidden cursor-pointer",
-          "border-2 border-dashed border-charcoal/10 hover:border-peach/40 transition-colors",
-          coverPreview ? "border-0" : "bg-sand flex items-center justify-center",
+          "relative w-full aspect-[16/7] rounded-none overflow-hidden cursor-pointer",
+          "border-2 border-dashed border-rule hover:border-ochre-dk transition-colors",
+          coverPreview ? "border-0" : "bg-crust flex items-center justify-center",
         ].join(" ")}
       >
         {coverPreview ? (
           <Image src={coverPreview} alt="cover" fill sizes="100vw" style={{ objectFit: "cover" }} />
         ) : (
-          <div className="flex flex-col items-center gap-2 text-charcoal/30 pointer-events-none">
+          <div className="flex flex-col items-center gap-2 text-muted pointer-events-none">
             <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round"
                 d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
@@ -50,7 +50,7 @@ export default function MediaSection({
             </svg>
             <span className="text-sm">Загрузить своё фото</span>
             {recipeId && (
-              <span className="text-xs text-charcoal/20">или сгенерировать кнопкой ниже</span>
+              <span className="text-xs text-muted">или сгенерировать кнопкой ниже</span>
             )}
           </div>
         )}
@@ -69,7 +69,7 @@ export default function MediaSection({
             type="button"
             onClick={onGenerate}
             disabled={generatingCover || !!combinedStep}
-            className="flex items-center gap-1.5 text-xs text-charcoal/40 hover:text-peach transition-colors disabled:opacity-40"
+            className="flex items-center gap-1.5 text-xs text-soft hover:text-ochre-dk transition-colors disabled:opacity-40"
           >
             {generatingCover ? (
               <>

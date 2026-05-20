@@ -29,20 +29,20 @@ export default function CategoriesSection({ allCategories, selectedIds, onToggle
 
   return (
     <section>
-      <label className="block text-xs text-charcoal/40 uppercase tracking-wider mb-4">
+      <label className="block text-xs text-soft uppercase tracking-wider mb-4">
         Категории
       </label>
 
       {orderedTypes.length === 0 ? (
-        <p className="text-xs text-charcoal/30">
+        <p className="text-xs text-muted">
           Категории не загружены. Добавьте их в разделе{" "}
-          <a href="/admin/categories" className="text-peach hover:underline">Категории</a>.
+          <a href="/admin/categories" className="text-ochre-dk hover:underline">Категории</a>.
         </p>
       ) : (
         <div className="flex flex-col gap-5">
           {orderedTypes.map((type) => [type, grouped[type]] as const).map(([type, cats]) => (
             <div key={type}>
-              <p className="text-xs text-charcoal/40 mb-2">
+              <p className="text-xs text-soft mb-2">
                 {CATEGORY_LABELS[type] ?? type}
               </p>
               <div className="flex flex-wrap gap-2">
@@ -54,10 +54,10 @@ export default function CategoriesSection({ allCategories, selectedIds, onToggle
                       type="button"
                       onClick={() => onToggle(cat.id)}
                       className={cn(
-                        "px-3 py-1.5 rounded-full text-xs font-medium border transition-all",
+                        "px-3 py-1.5 rounded-none text-xs font-medium border transition-all",
                         active
-                          ? "bg-charcoal text-cream border-charcoal"
-                          : "bg-transparent text-charcoal/50 border-charcoal/15 hover:border-charcoal/30 hover:text-charcoal"
+                          ? "bg-burg text-paper border-burg"
+                          : "bg-transparent text-soft border-rule hover:border-burg hover:text-burg"
                       )}
                     >
                       {cat.name}

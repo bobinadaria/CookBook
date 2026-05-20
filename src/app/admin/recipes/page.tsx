@@ -49,12 +49,12 @@ export default function AdminRecipesPage() {
     <div>
       <div className="flex items-end justify-between mb-8">
         <div>
-          <span className="font-handwritten text-peach text-xl block mb-2">управление</span>
-          <h1 className="font-serif text-4xl text-charcoal">Рецепты</h1>
+          <span className="font-body text-[11px] font-semibold uppercase tracking-[0.16em] text-ochre-dk block mb-2">управление</span>
+          <h1 className="font-display text-4xl tracking-[-0.02em] text-burg">Рецепты</h1>
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
-          className="flex items-center gap-2 bg-charcoal text-cream px-5 py-2.5 rounded-full text-sm font-medium hover:bg-peach transition-colors"
+          className="flex items-center gap-2 bg-burg text-paper px-5 py-2.5 rounded-none text-sm font-medium hover:bg-burg-dk transition-colors"
         >
           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
@@ -64,13 +64,13 @@ export default function AdminRecipesPage() {
       </div>
 
       {loading ? (
-        <p className="text-charcoal/40 text-sm">Загрузка...</p>
+        <p className="text-soft text-sm">Загрузка...</p>
       ) : recipes.length === 0 ? (
         <div className="text-center py-24">
-          <p className="font-handwritten text-2xl text-charcoal/25 mb-3">Пока пусто</p>
+          <p className="font-display italic text-2xl text-muted mb-3">Пока пусто</p>
           <button
             onClick={() => setShowCreateModal(true)}
-            className="text-sm text-peach hover:underline"
+            className="text-sm text-ochre-dk hover:underline"
           >
             Добавить первый рецепт →
           </button>
@@ -80,10 +80,10 @@ export default function AdminRecipesPage() {
           {recipes.map((recipe) => (
             <div
               key={recipe.id}
-              className="flex items-center gap-4 bg-sand/50 hover:bg-sand rounded-2xl px-4 py-3 transition-colors group"
+              className="flex items-center gap-4 bg-crust/50 hover:bg-crust rounded-none px-4 py-3 transition-colors group"
             >
               {/* Thumbnail */}
-              <div className="w-12 h-12 rounded-xl overflow-hidden bg-sand shrink-0">
+              <div className="w-12 h-12 rounded-none overflow-hidden bg-crust shrink-0">
                 {recipe.cover_image ? (
                   <Image
                     src={recipe.cover_image}
@@ -94,24 +94,24 @@ export default function AdminRecipesPage() {
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
-                    <span className="text-charcoal/20 text-xs font-handwritten">CB</span>
+                    <span className="text-muted text-xs font-display italic">CB</span>
                   </div>
                 )}
               </div>
 
               {/* Info */}
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-charcoal truncate">{recipe.title}</p>
-                <p className="text-xs text-charcoal/35 truncate">/recipes/{recipe.slug}</p>
+                <p className="text-sm font-medium text-ink truncate">{recipe.title}</p>
+                <p className="text-xs text-muted truncate">/recipes/{recipe.slug}</p>
               </div>
 
               {/* Published badge */}
               <span
                 className={cn(
-                  "text-[11px] font-medium px-2.5 py-1 rounded-full shrink-0",
+                  "text-[11px] font-medium px-2.5 py-1 rounded-none shrink-0",
                   recipe.published
-                    ? "bg-sage/20 text-sage-dark"
-                    : "bg-sand text-charcoal/40 border border-charcoal/10"
+                    ? "bg-olive/15 text-olive"
+                    : "bg-crust text-soft border border-rule"
                 )}
               >
                 {recipe.published ? "Опубликован" : "Черновик"}
@@ -122,7 +122,7 @@ export default function AdminRecipesPage() {
                 <Link
                   href={`/recipes/${recipe.slug}`}
                   target="_blank"
-                  className="p-2 rounded-lg text-charcoal/40 hover:text-charcoal hover:bg-cream transition-colors"
+                  className="p-2 rounded-none text-soft hover:text-burg hover:bg-paper transition-colors"
                   title="Просмотр"
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -131,7 +131,7 @@ export default function AdminRecipesPage() {
                 </Link>
                 <Link
                   href={`/admin/recipes/${recipe.id}/edit`}
-                  className="p-2 rounded-lg text-charcoal/40 hover:text-charcoal hover:bg-cream transition-colors"
+                  className="p-2 rounded-none text-soft hover:text-burg hover:bg-paper transition-colors"
                   title="Редактировать"
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -141,7 +141,7 @@ export default function AdminRecipesPage() {
                 <button
                   onClick={() => setDeleteTarget(recipe)}
                   disabled={deleting === recipe.id}
-                  className="p-2 rounded-lg text-charcoal/40 hover:text-red-400 hover:bg-red-50 transition-colors disabled:opacity-40"
+                  className="p-2 rounded-none text-soft hover:text-red-400 hover:bg-red-50 transition-colors disabled:opacity-40"
                   title="Удалить"
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
