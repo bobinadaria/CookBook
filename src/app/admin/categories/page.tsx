@@ -117,7 +117,7 @@ export default function AdminCategoriesPage() {
           <input
             value={nameEn}
             onChange={(e) => setNameEn(e.target.value)}
-            placeholder="Name (EN)"
+            placeholder="Название (англ.)"
             className="flex-1 min-w-[160px] bg-cream rounded-xl px-4 py-3 text-sm text-charcoal placeholder:text-charcoal/25 outline-none focus:ring-2 focus:ring-peach/30 transition"
           />
           <select
@@ -167,7 +167,7 @@ export default function AdminCategoriesPage() {
                             value={editName}
                             onChange={(e) => setEditName(e.target.value)}
                             className="bg-transparent text-xs text-charcoal outline-none w-20"
-                            placeholder="RU"
+                            placeholder="рус"
                             autoFocus
                             onKeyDown={(e) => {
                               if (e.key === "Enter") handleEditSave();
@@ -178,7 +178,7 @@ export default function AdminCategoriesPage() {
                             value={editNameEn}
                             onChange={(e) => setEditNameEn(e.target.value)}
                             className="bg-transparent text-xs text-charcoal/60 outline-none w-20"
-                            placeholder="EN"
+                            placeholder="англ."
                             onKeyDown={(e) => {
                               if (e.key === "Enter") handleEditSave();
                               if (e.key === "Escape") setEditId(null);

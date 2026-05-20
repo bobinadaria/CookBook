@@ -16,6 +16,7 @@ type ErrorState =
 
 export default function RegisterPage() {
   const t = useTranslations("auth.register");
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -38,7 +39,12 @@ export default function RegisterPage() {
 
     setLoading(true);
     const supabase = createClient();
-    const { data, error: signUpError } = await supabase.auth.signUp({ email, password });
+    const { data, error: signUpError } = await supabase.auth.signUp({
+      email,
+      password,
+      // Имя уходит в метаданные → триггер handle_new_user кладёт его в profiles.display_name.
+      options: { data: name.trim() ? { display_name: name.trim() } : undefined },
+    });
 
     // Supabase quirk: при попытке регистрации существующего email НЕ возвращает error
     // (anti-enumeration protection). Признак — data.user.identities — пустой массив.
@@ -116,6 +122,20 @@ export default function RegisterPage() {
 
               {/* Email form */}
               <form onSubmit={handleSubmit} className="space-y-5">
+                <div>
+                  <label className="block text-xs text-charcoal/40 uppercase tracking-wider mb-2">
+                    {t("name")}
+                  </label>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    autoComplete="given-name"
+                    placeholder={t("namePlaceholder")}
+                    className="w-full bg-sand rounded-xl px-4 py-3.5 text-sm text-charcoal placeholder:text-charcoal/25 outline-none focus:ring-2 focus:ring-peach/30 transition"
+                  />
+                </div>
+
                 <div>
                   <label className="block text-xs text-charcoal/40 uppercase tracking-wider mb-2">
                     {t("email")}

@@ -118,18 +118,21 @@ export default function Header() {
                       pathname.startsWith("/admin") ? "text-peach" : "text-charcoal/50"
                     )}
                   >
-                    Admin
+                    Админ
                   </Link>
                 )}
                 <Link
                   href="/dashboard"
                   className={cn(
-                    "text-sm font-medium max-w-[160px] truncate transition-colors hover:text-peach",
+                    "inline-flex items-center gap-1.5 text-sm font-medium transition-colors hover:text-peach",
                     pathname.startsWith("/dashboard") ? "text-peach" : "text-charcoal/60"
                   )}
-                  title={t("dashboard")}
+                  title={user.email ?? undefined}
                 >
-                  {user.email}
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} aria-hidden>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 19.5A2.5 2.5 0 016.5 17H20M4 19.5A2.5 2.5 0 006.5 22H20V2H6.5A2.5 2.5 0 004 4.5v15z" />
+                  </svg>
+                  {t("myBook")}
                 </Link>
                 <button
                   onClick={handleSignOut}
@@ -218,14 +221,14 @@ export default function Header() {
                     pathname.startsWith("/dashboard") ? "text-peach" : "text-charcoal/70"
                   )}
                 >
-                  {t("dashboard")}
+                  {t("myBook")}
                 </Link>
                 {isAdmin && (
                   <Link
                     href="/admin"
                     className="flex items-center min-h-[48px] text-base font-medium text-charcoal/50 hover:text-peach transition-colors"
                   >
-                    Admin
+                    Админ
                   </Link>
                 )}
                 <p className="text-sm text-charcoal/40 truncate py-2">{user.email}</p>

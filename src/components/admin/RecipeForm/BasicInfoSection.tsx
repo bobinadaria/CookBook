@@ -61,7 +61,7 @@ export default function BasicInfoSection({
       </div>
 
       <div>
-        <FieldLabel>Slug (URL) *</FieldLabel>
+        <FieldLabel>Адрес страницы (slug) *</FieldLabel>
         <FieldInput
           value={slug}
           onChange={(e) => { onSlugChange(e.target.value); onSlugEdit(); }}

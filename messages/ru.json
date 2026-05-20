@@ -9,7 +9,8 @@
     "signOut": "Выйти",
     "signIn": "Войти",
     "register": "Регистрация",
-    "dashboard": "Кабинет"
+    "dashboard": "Кабинет",
+    "myBook": "Моя книга"
   },
   "home": {
     "welcome": "добро пожаловать",
@@ -140,7 +141,9 @@
       "successLink": "Перейти к входу",
       "errorExistsAction": "Этот email уже зарегистрирован.",
       "errorExistsLoginCTA": "Войти",
-      "errorExistsForgotCTA": "Забыли пароль?"
+      "errorExistsForgotCTA": "Забыли пароль?",
+      "name": "Как к вам обращаться?",
+      "namePlaceholder": "Имя (необязательно)"
     },
     "shared": {
       "googleButton": "Войти через Google",
@@ -185,7 +188,14 @@
     "premiumDesc": "Безлимитные расчёты КБЖУ и AI-рецепты, без ограничений",
     "premiumPrice": "€7.90/мес",
     "premiumCta": "Стать Premium",
-    "premiumSoon": "скоро"
+    "premiumSoon": "скоро",
+    "greetingMorning": "Доброе утро, {name}",
+    "greetingDay": "Добрый день, {name}",
+    "greetingEvening": "Добрый вечер, {name}",
+    "greetingNight": "Доброй ночи, {name}",
+    "nameLabel": "Как к вам обращаться",
+    "nameSave": "Сохранить",
+    "nameSaved": "Сохранено"
   },
   "notes": {
     "tagline": "мои пометки",

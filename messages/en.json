@@ -9,7 +9,8 @@
     "signOut": "Sign out",
     "signIn": "Sign in",
     "register": "Register",
-    "dashboard": "Dashboard"
+    "dashboard": "Dashboard",
+    "myBook": "My book"
   },
   "home": {
     "welcome": "welcome",
@@ -140,7 +141,9 @@
       "successLink": "Go to sign in",
       "errorExistsAction": "This email is already registered.",
       "errorExistsLoginCTA": "Sign in",
-      "errorExistsForgotCTA": "Forgot password?"
+      "errorExistsForgotCTA": "Forgot password?",
+      "name": "What should we call you?",
+      "namePlaceholder": "Name (optional)"
     },
     "shared": {
       "googleButton": "Continue with Google",
@@ -185,7 +188,14 @@
     "premiumDesc": "Unlimited nutrition calcs and AI recipes, no limits",
     "premiumPrice": "€7.90/mo",
     "premiumCta": "Go Premium",
-    "premiumSoon": "soon"
+    "premiumSoon": "soon",
+    "greetingMorning": "Good morning, {name}",
+    "greetingDay": "Good afternoon, {name}",
+    "greetingEvening": "Good evening, {name}",
+    "greetingNight": "Good night, {name}",
+    "nameLabel": "Your name",
+    "nameSave": "Save",
+    "nameSaved": "Saved"
   },
   "notes": {
     "tagline": "my notes",
