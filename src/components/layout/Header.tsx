@@ -23,9 +23,10 @@ export default function Header() {
 
   const visible = scrollY < 80 || direction === "up";
 
+  // «Избранное»/«Заметки» живут внутри личного кабинета, а не в верхней навигации.
+  // Вход в кабинет — через email-чип справа (см. ниже).
   const navLinks = [
-    { href: "/recipes",            label: t("recipes")   },
-    { href: "/dashboard/favorites", label: t("favorites") },
+    { href: "/recipes", label: t("recipes") },
   ];
 
   useEffect(() => {
@@ -120,9 +121,16 @@ export default function Header() {
                     Admin
                   </Link>
                 )}
-                <span className="text-sm text-charcoal/40 max-w-[140px] truncate">
+                <Link
+                  href="/dashboard"
+                  className={cn(
+                    "text-sm font-medium max-w-[160px] truncate transition-colors hover:text-peach",
+                    pathname.startsWith("/dashboard") ? "text-peach" : "text-charcoal/60"
+                  )}
+                  title={t("dashboard")}
+                >
                   {user.email}
-                </span>
+                </Link>
                 <button
                   onClick={handleSignOut}
                   disabled={signingOut}
@@ -203,6 +211,15 @@ export default function Header() {
 
             {user ? (
               <>
+                <Link
+                  href="/dashboard"
+                  className={cn(
+                    "flex items-center min-h-[48px] text-base font-medium transition-colors hover:text-peach",
+                    pathname.startsWith("/dashboard") ? "text-peach" : "text-charcoal/70"
+                  )}
+                >
+                  {t("dashboard")}
+                </Link>
                 {isAdmin && (
                   <Link
                     href="/admin"

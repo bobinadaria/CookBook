@@ -8,7 +8,8 @@
     "favorites": "Favorites",
     "signOut": "Sign out",
     "signIn": "Sign in",
-    "register": "Register"
+    "register": "Register",
+    "dashboard": "Dashboard"
   },
   "home": {
     "welcome": "welcome",
@@ -173,7 +174,18 @@
     "notesTitle": "Notes",
     "notesDesc": "Personal recipe notes",
     "profileTitle": "Profile",
-    "signOut": "Sign out"
+    "signOut": "Sign out",
+    "planTitle": "Your plan",
+    "planFree": "Free",
+    "planFreeDesc": "Welcome pack of AI features",
+    "creditKbju": "Nutrition calcs",
+    "creditRecipes": "AI recipes",
+    "creditsCaption": "in the welcome pack",
+    "premiumTitle": "Premium",
+    "premiumDesc": "Unlimited nutrition calcs and AI recipes, no limits",
+    "premiumPrice": "€7.90/mo",
+    "premiumCta": "Go Premium",
+    "premiumSoon": "soon"
   },
   "notes": {
     "tagline": "my notes",

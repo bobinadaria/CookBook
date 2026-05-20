@@ -8,7 +8,8 @@
     "favorites": "Избранное",
     "signOut": "Выйти",
     "signIn": "Войти",
-    "register": "Регистрация"
+    "register": "Регистрация",
+    "dashboard": "Кабинет"
   },
   "home": {
     "welcome": "добро пожаловать",
@@ -173,7 +174,18 @@
     "notesTitle": "Заметки",
     "notesDesc": "Личные пометки к рецептам",
     "profileTitle": "Профиль",
-    "signOut": "Выйти"
+    "signOut": "Выйти",
+    "planTitle": "Ваш план",
+    "planFree": "Free",
+    "planFreeDesc": "Приветственный набор AI-функций",
+    "creditKbju": "Расчёты КБЖУ",
+    "creditRecipes": "AI-рецепты",
+    "creditsCaption": "в приветственном наборе",
+    "premiumTitle": "Premium",
+    "premiumDesc": "Безлимитные расчёты КБЖУ и AI-рецепты, без ограничений",
+    "premiumPrice": "€7.90/мес",
+    "premiumCta": "Стать Premium",
+    "premiumSoon": "скоро"
   },
   "notes": {
     "tagline": "мои пометки",

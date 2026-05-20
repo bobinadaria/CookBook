@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useFavorites } from "@/context/FavoritesContext";
 import { createClient } from "@/lib/supabase/client";
+import PlanBanner from "./PlanBanner";
 
 export default function DashboardHomePage() {
   const t = useTranslations("dashboard");
@@ -46,6 +47,9 @@ export default function DashboardHomePage() {
           {t("greeting", { name })}
         </h1>
       </div>
+
+      {/* План + кредиты (каркас под монетизацию) */}
+      <PlanBanner />
 
       {/* Карточки разделов */}
       <div className="grid sm:grid-cols-2 gap-4">
