@@ -21,6 +21,7 @@ import {
   NUTRITION_SCHEMA,
   NUTRITION_MODEL,
 } from "../src/lib/nutrition/prompt.mjs";
+import { ingredientsHash } from "../src/lib/nutrition/ingredients-hash.mjs";
 
 config({ path: resolve(".env.local") });
 
@@ -143,6 +144,7 @@ async function calculate(text, servings) {
     ingredients: matches,
     calculated_at: new Date().toISOString(),
     model: MODEL,
+    ingredients_hash: ingredientsHash(text),
   };
 }
 

@@ -70,6 +70,8 @@ export function useRecipeForm(recipeId?: string, defaultValues?: RecipeFormDefau
   const [freshNutrition, setFreshNutrition] = useState<NutritionData | null>(null);
   const [calculatingNutrition, setCalculatingNutrition] = useState(false);
   const [nutritionError, setNutritionError] = useState<string | null>(null);
+  // True во время авто-расчёта КБЖУ при сохранении (для текста кнопки «Сохранить»).
+  const [autoCalcNutrition, setAutoCalcNutrition] = useState(false);
   // Сравнение текста ingredients с сохранённым в БД — если изменилось,
   // расчёт по recipeId возьмёт устаревший текст (мы не пересохраняем перед расчётом).
   const initialIngredients = useRef(defaultValues?.ingredients ?? "");
@@ -196,17 +198,39 @@ export function useRecipeForm(recipeId?: string, defaultValues?: RecipeFormDefau
     };
 
     try {
+      let savedId: string | undefined = recipeId;
       if (recipeId) {
         await updateRecipe(recipeId, input);
       } else {
-        await createRecipe(input);
+        savedId = await createRecipe(input);
         localStorage.removeItem(DRAFT_KEY);
       }
+
+      // Авто-расчёт КБЖУ: только когда есть смысл — новый рецепт, изменился состав,
+      // или КБЖУ ещё ни разу не считали. Если менялся только заголовок/тег — не дёргаем.
+      // Кеш на сервере (по хешу состава) подстрахует от лишнего вызова OpenAI.
+      const needsNutrition =
+        !!input.ingredients && !!savedId && (!recipeId || ingredientsDirty || !currentNutrition);
+      if (needsNutrition) {
+        setAutoCalcNutrition(true);
+        try {
+          await fetch("/api/admin/calculate-nutrition", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ recipeId: savedId }), // без force → уважает кеш
+          });
+        } catch {
+          // Расчёт не критичен для сохранения: рецепт уже сохранён, КБЖУ можно
+          // пересчитать кнопкой позже. Не блокируем редирект.
+        }
+      }
+
       router.push("/admin/recipes");
       router.refresh();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Не удалось сохранить рецепт");
       setSaving(false);
+      setAutoCalcNutrition(false);
     }
   };
 
@@ -274,7 +298,8 @@ export function useRecipeForm(recipeId?: string, defaultValues?: RecipeFormDefau
       const res = await fetch("/api/admin/calculate-nutrition", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ recipeId }),
+        // Кнопка «Пересчитать» форсит расчёт игнорируя кеш (вдруг база ингредиентов обновилась)
+        body: JSON.stringify({ recipeId, force: true }),
       });
       const text = await res.text();
       let json: { nutrition?: NutritionData; error?: string } = {};
@@ -361,6 +386,7 @@ export function useRecipeForm(recipeId?: string, defaultValues?: RecipeFormDefau
     addStep, updateStep, removeStep, moveStep,
     // Submit
     saving, error,
+    autoCalcNutrition,
     handleSubmit,
     // AI
     generatingCover, generateError,

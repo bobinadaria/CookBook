@@ -90,6 +90,12 @@ export interface NutritionData {
   calculated_at: string;
   /** Модель OpenAI, которая парсила. Полезно если решим поменять. */
   model: string;
+  /**
+   * Хеш текста ingredients на момент расчёта. Кеш: если состав не менялся
+   * (хеш совпал) — пропускаем повторный вызов OpenAI. Кнопка «Пересчитать»
+   * форсит расчёт игнорируя хеш. Undefined у старых записей → пересчитаются.
+   */
+  ingredients_hash?: string;
 }
 
 export interface Recipe {

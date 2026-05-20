@@ -93,6 +93,7 @@ export default function RecipeForm({ recipeId, defaultValues }: RecipeFormProps)
         published={form.published}
         featured={form.featured}
         saving={form.saving}
+        autoCalcNutrition={form.autoCalcNutrition}
         translating={form.translating}
         translateSuccess={form.translateSuccess}
         combinedStep={form.combinedStep}

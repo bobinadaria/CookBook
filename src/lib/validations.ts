@@ -53,6 +53,8 @@ export const GenerateImageRequestSchema = z.object({
 /** Body expected by POST /api/admin/calculate-nutrition */
 export const CalculateNutritionRequestSchema = z.object({
   recipeId: uuid,
+  /** Игнорировать кеш по хешу состава и пересчитать принудительно (кнопка «Пересчитать»). */
+  force: z.boolean().optional().default(false),
 });
 
 /** Allowed upload buckets */

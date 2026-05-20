@@ -8,6 +8,7 @@ interface ActionsSectionProps {
   published: boolean;
   featured: boolean;
   saving: boolean;
+  autoCalcNutrition: boolean;
   translating: boolean;
   translateSuccess: boolean;
   combinedStep: null | "translating" | "generating";
@@ -58,7 +59,7 @@ function Toggle({
 }
 
 export default function ActionsSection({
-  recipeId, published, featured, saving, translating,
+  recipeId, published, featured, saving, autoCalcNutrition, translating,
   translateSuccess, combinedStep, error,
   onTogglePublished, onToggleFeatured,
   onTranslate, onTranslateAndGenerate, onCancel,
@@ -91,7 +92,7 @@ export default function ActionsSection({
           disabled={isBusy}
           className="bg-charcoal text-cream px-8 py-3.5 rounded-full text-sm font-medium hover:bg-peach transition-colors disabled:opacity-50"
         >
-          {saving ? "Сохраняем..." : recipeId ? "Сохранить изменения" : "Создать рецепт"}
+          {autoCalcNutrition ? "Считаю КБЖУ…" : saving ? "Сохраняем..." : recipeId ? "Сохранить изменения" : "Создать рецепт"}
         </button>
 
         {/* Translate + generate cover — edit mode only */}

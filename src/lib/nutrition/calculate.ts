@@ -10,6 +10,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { NutritionData, NutritionMatch } from "@/types";
 import { parseIngredients } from "./parse";
 import { loadAllIngredients, matchIngredient } from "./match";
+import { ingredientsHash } from "./ingredients-hash.mjs";
 
 interface CalculateInput {
   ingredientsText: string;
@@ -117,6 +118,7 @@ export async function calculateNutrition({
     ingredients: matches,
     calculated_at: new Date().toISOString(),
     model,
+    ingredients_hash: ingredientsHash(ingredientsText),
   };
 }
 

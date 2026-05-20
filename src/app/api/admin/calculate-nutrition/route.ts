@@ -17,6 +17,8 @@ import { createServiceRoleClient } from "@/lib/supabase/admin";
 import { requireAdmin, isAuthSuccess } from "@/lib/api-auth";
 import { CalculateNutritionRequestSchema } from "@/lib/validations";
 import { calculateNutrition } from "@/lib/nutrition/calculate";
+import { ingredientsHash } from "@/lib/nutrition/ingredients-hash.mjs";
+import type { NutritionData } from "@/types";
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 
@@ -37,13 +39,13 @@ export async function POST(req: NextRequest) {
       { status: 400 },
     );
   }
-  const { recipeId } = parsed.data;
+  const { recipeId, force } = parsed.data;
 
   // 3. Fetch recipe. Используем service-role чтобы обойти RLS на ingredients_base.
   const supabase = createServiceRoleClient();
   const { data: recipe, error: fetchError } = await supabase
     .from("recipes")
-    .select("slug, title, ingredients, servings")
+    .select("slug, title, ingredients, servings, nutrition")
     .eq("id", recipeId)
     .single();
 
@@ -56,6 +58,19 @@ export async function POST(req: NextRequest) {
       { error: "У рецепта пустое поле ingredients — нечего считать" },
       { status: 422 },
     );
+  }
+
+  // 3.5. Кеш: если состав не менялся с прошлого расчёта (хеш совпал) и не force —
+  //      не дёргаем OpenAI, возвращаем уже сохранённое.
+  const currentHash = ingredientsHash(recipe.ingredients);
+  const existing = recipe.nutrition as NutritionData | null;
+  if (!force && existing?.ingredients_hash === currentHash) {
+    return NextResponse.json({
+      recipeId,
+      title: recipe.title,
+      nutrition: existing,
+      cached: true,
+    });
   }
 
   // 4. Парс → матч → расчёт
@@ -92,5 +107,6 @@ export async function POST(req: NextRequest) {
     recipeId,
     title: recipe.title,
     nutrition,
+    cached: false,
   });
 }
