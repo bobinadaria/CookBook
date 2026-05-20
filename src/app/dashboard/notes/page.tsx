@@ -3,19 +3,28 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { useFavorites } from "@/context/FavoritesContext";
 import { createClient } from "@/lib/supabase/client";
+import { localizedField } from "@/lib/localized-content";
+import type { LocaleCode } from "@/types";
 
 interface NoteRow {
   content: string;
   updated_at: string;
-  recipe: { id: string; title: string; slug: string; cover_image: string | null } | null;
+  recipe: {
+    id: string;
+    title: string;
+    title_en: string | null;
+    slug: string;
+    cover_image: string | null;
+  } | null;
 }
 
 export default function NotesPage() {
   const t = useTranslations("notes");
   const tc = useTranslations("common");
+  const locale = useLocale() as LocaleCode;
   const { user } = useFavorites();
   const [notes, setNotes] = useState<NoteRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -25,7 +34,7 @@ export default function NotesPage() {
     const supabase = createClient();
     supabase
       .from("user_notes")
-      .select("content, updated_at, recipe:recipes(id, title, slug, cover_image)")
+      .select("content, updated_at, recipe:recipes(id, title, title_en, slug, cover_image)")
       .order("updated_at", { ascending: false })
       .then(({ data }) => {
         // recipe приходит как объект (или null, если рецепт удалён)
@@ -85,7 +94,7 @@ export default function NotesPage() {
               </div>
               <div className="min-w-0 flex-1">
                 <h3 className="text-sm font-medium text-charcoal group-hover:text-peach transition-colors mb-1">
-                  {n.recipe!.title}
+                  {localizedField(n.recipe!, "title", locale) ?? n.recipe!.title}
                 </h3>
                 <p className="text-sm text-charcoal/60 line-clamp-3 whitespace-pre-wrap">
                   {n.content}

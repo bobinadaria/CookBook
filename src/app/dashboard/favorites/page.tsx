@@ -11,6 +11,7 @@ import { createClient } from "@/lib/supabase/client";
 interface FavoriteRecipe {
   id: string;
   title: string;
+  title_en: string | null;
   slug: string;
   cover_image: string | null;
 }
@@ -44,7 +45,7 @@ function FavoritesContent() {
     const supabase = createClient();
     supabase
       .from("recipes")
-      .select("id, title, slug, cover_image")
+      .select("id, title, title_en, slug, cover_image")
       .eq("published", true)
       .in("slug", slugs)
       .then(({ data }) => {

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>by Daria — Прототип</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;0,6..96,600;1,6..96,400;1,6..96,500&family=Work+Sans:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Playfair+Display:ital,wght@0,400;1,400&display=swap" />
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: #F2EDE3; }
+  body { font-family: 'Work Sans', system-ui, sans-serif; color: #15110D; }
+  /* Smooth page-switch */
+  .page-fade { animation: page-in .35s cubic-bezier(.2,.8,.3,1) both; }
+  @keyframes page-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  /* Hide scrollbars on overflowing chrome only (not body) */
+  details summary::-webkit-details-marker { display: none; }
+</style>
+
+<!-- React + Babel -->
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<script type="text/babel" src="redesign/shared.jsx"></script>
+<script type="text/babel" src="redesign/v4/theme.jsx"></script>
+<script type="text/babel" src="redesign/v4/page-home.jsx"></script>
+<script type="text/babel" src="redesign/v4/page-recipe.jsx"></script>
+<script type="text/babel" src="redesign/v4/page-pricing.jsx"></script>
+</head>
+<body>
+
+<div id="root"></div>
+
+<script type="text/babel" data-presets="env,react">
+const { useState, useEffect, useRef } = React;
+
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "brandName": "by Daria",
+  "headline": "emotion_classic"
+}/*EDITMODE-END*/;
+
+const BRAND_OPTIONS = [
+  'by Daria',
+  'Daria’s Kitchen',
+  'Кухня Дарьи',
+  'Дашина кухня',
+];
+
+const HEADLINES = {
+  emotion_classic: {
+    h1: 'Готовлю',
+    h2: 'для тех, кого люблю.',
+    lede: 'Личная книга рецептов Дарьи Бобиной — из Праги, с AI-нутрициологом, который считает калории через USDA. Точно. Без галлюцинаций ChatGPT. С запахом дома, который ты увезла с собой.',
+    short: '«Готовлю / для тех, кого люблю»',
+  },
+  emotion_short: {
+    h1: 'Кормлю',
+    h2: 'тех, кого люблю.',
+    lede: 'Личная книга рецептов и AI-нутрициолог в одной обложке. С историями. С точным КБЖУ через USDA — не «примерно как ChatGPT сказал». С местом для твоих собственных.',
+    short: '«Кормлю тех, кого люблю»',
+  },
+  editorial: {
+    h1: 'Эта книга —',
+    h2: 'для своих.',
+    lede: 'Не для всех. Для тех, кто увёз дом в чемодане и теперь готовит его обратно. С историями за каждым блюдом. С AI-нутрициологом, который считает КБЖУ точно — через USDA, не наугад.',
+    short: '«Эта книга — для своих»',
+  },
+  ironic: {
+    h1: 'Эстетика на стол.',
+    h2: 'Калории — посчитаны.',
+    lede: 'Личная книга рецептов и AI-нутрициолог в одной обложке. Для тех, кто платит за Notion-шаблоны и читает Substack-эссе. Никаких «здоровых похудений» — только то, что хочется готовить.',
+    short: '«Эстетика на стол. Калории — посчитаны»',
+  },
+};
+
+function App() {
+  const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+  const [page, setPage] = useState('home');
+  const pageRef = useRef(null);
+
+  const navigate = (p) => {
+    setPage(p);
+    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50);
+  };
+
+  const brandName = t.brandName || 'Дашин стол';
+  const headline  = HEADLINES[t.headline] || HEADLINES.emotion_classic;
+
+  return (
+    <>
+      <EditorialHeader brandName={brandName} page={page} onNav={navigate} />
+
+      <main key={page} ref={pageRef} className="page-fade">
+        {page === 'home'    && <PageHome    brandName={brandName} headline={headline} />}
+        {page === 'recipes' && <PageHome    brandName={brandName} headline={headline} />}
+        {page === 'recipe'  && <PageRecipe  brandName={brandName} />}
+        {page === 'pricing' && <PagePricing brandName={brandName} />}
+      </main>
+
+      <EditorialFooter brandName={brandName} />
+
+      <TweaksPanel title="Tweaks">
+        <TweakSection label="Имя бренда" />
+        <TweakRadio
+          label="Masthead"
+          value={brandName}
+          options={BRAND_OPTIONS}
+          onChange={(v) => setTweak('brandName', v)}
+        />
+
+        <TweakSection label="Заголовок на обложке" />
+        <TweakRadio
+          label="Hero"
+          value={t.headline}
+          options={[
+            { value: 'emotion_classic', label: 'Готовлю / для тех, кого люблю' },
+            { value: 'emotion_short',   label: 'Кормлю тех, кого люблю' },
+            { value: 'editorial',       label: 'Эта книга — для своих' },
+            { value: 'ironic',          label: 'Эстетика на стол. Калории — посчитаны' },
+          ]}
+          onChange={(v) => setTweak('headline', v)}
+        />
+
+        <TweakSection label="Страницы" />
+        <TweakRadio
+          label="Открыть"
+          value={page}
+          options={[
+            { value: 'home',    label: 'Главная' },
+            { value: 'recipe',  label: 'Рецепт' },
+            { value: 'pricing', label: 'Подписка' },
+          ]}
+          onChange={navigate}
+        />
+      </TweaksPanel>
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+
+</body>
+</html>
