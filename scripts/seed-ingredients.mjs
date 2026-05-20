@@ -161,6 +161,24 @@ const INGREDIENTS = [
   { name_ru: "романо",             search: "lettuce romaine raw",                category: "vegetable" },
   { name_ru: "горчица дижонская",  search: "dijon mustard",                      category: "other" },
   { name_ru: "сливки 20%",         search: "light cream",                        category: "dairy" },
+
+  // Четвёртый проход — анализ всех 22 рецептов
+  { name_ru: "мука",               search: "all-purpose wheat flour",            category: "grain" },
+  { name_ru: "куриные крылышки",   search: "chicken wing meat skin raw",         category: "meat" },
+  { name_ru: "куриная ножка",      search: "chicken leg meat skin raw",          category: "meat" },
+  { name_ru: "соевый соус",        search: "soy sauce shoyu",                    category: "other" },
+  { name_ru: "кетчуп",             search: "ketchup catsup",                     category: "other" },
+  { name_ru: "сладкий соус чили",  search: "thai sweet chili sauce",             category: "other" },
+  { name_ru: "табаско",            search: "hot pepper sauce",                   category: "other" },
+  { name_ru: "абрикосовый джем",   search: "apricot jam preserves",              category: "sweet" },
+  { name_ru: "кунжутное масло",    search: "sesame oil",                         category: "fat" },
+  { name_ru: "белое вино",         search: "white wine table",                   category: "other" },
+  { name_ru: "яблочный сок",       search: "apple juice",                        category: "other" },
+  { name_ru: "круассан",           search: "croissant butter",                   category: "grain" },
+  { name_ru: "персик",             search: "peach raw",                          category: "fruit" },
+  { name_ru: "слива",              search: "plums raw",                          category: "fruit" },
+  { name_ru: "сельдерей",          search: "celery raw",                         category: "vegetable" },
+  { name_ru: "зелень",             search: "parsley fresh",                      category: "vegetable" },
 ];
 
 // ── USDA helpers ────────────────────────────────────────────────────────────
@@ -260,6 +278,30 @@ const HARDCODED_FALLBACKS = {
   "романо":            { kcal: 17,  protein: 1.23, fat: 0.30,  carbs: 3.29,  en: "Lettuce, cos or romaine, raw",            override: true },
   "горчица дижонская": { kcal: 150, protein: 6.0,  fat: 12.0,  carbs: 5.0,   en: "Mustard, Dijon",                          override: true },
   "сливки 20%":        { kcal: 205, protein: 2.8,  fat: 20.0,  carbs: 3.5,   en: "Cream, 20% fat (Russian GOST 31451-2013)", override: true },
+
+  // === Четвёртый проход — анализ всех 22 рецептов (соусы, мясо-отрубы, мука) ===
+  // Голое «мука» в русском = пшеничная. Без этой позиции fuzzy матчил на «рисовая мука».
+  "мука":              { kcal: 366, protein: 10.9, fat: 1.48, carbs: 77.3,  en: "Wheat flour, all-purpose (= мука пшеничная)", override: true },
+  // Куриные отрубы — у крыльев/ножек СВОИ макросы, грудка их сильно искажает.
+  "куриные крылышки":  { kcal: 222, protein: 18.3, fat: 16.3, carbs: 0,     en: "Chicken wing, meat and skin, raw",        override: true },
+  "куриная ножка":     { kcal: 187, protein: 18.6, fat: 12.0, carbs: 0,     en: "Chicken leg (thigh+drumstick), meat and skin, raw", override: true },
+  // Соусы
+  "соевый соус":       { kcal: 53,  protein: 8.1,  fat: 0.6,  carbs: 4.9,   en: "Soy sauce (shoyu)",                       override: true },
+  "кетчуп":            { kcal: 101, protein: 1.0,  fat: 0.4,  carbs: 27.4,  en: "Ketchup",                                 override: true },
+  "сладкий соус чили": { kcal: 225, protein: 0.6,  fat: 0.4,  carbs: 55.0,  en: "Thai sweet chili sauce",                  override: true },
+  "табаско":           { kcal: 12,  protein: 0.5,  fat: 0.4,  carbs: 1.8,   en: "Hot pepper sauce",                        override: true },
+  "абрикосовый джем":  { kcal: 250, protein: 0.4,  fat: 0.1,  carbs: 65.0,  en: "Apricot jam/preserves",                   override: true },
+  // Масла / жидкости
+  "кунжутное масло":   { kcal: 884, protein: 0,    fat: 100,  carbs: 0,     en: "Sesame oil",                              override: true },
+  "белое вино":        { kcal: 82,  protein: 0.07, fat: 0,    carbs: 2.6,   en: "Wine, table, white, dry",                 override: true },
+  "яблочный сок":      { kcal: 46,  protein: 0.1,  fat: 0.13, carbs: 11.3,  en: "Apple juice",                             override: true },
+  // Фрукты / выпечка / зелень
+  "круассан":          { kcal: 406, protein: 8.2,  fat: 21.0, carbs: 45.8,  en: "Croissant, butter",                       override: true },
+  "персик":            { kcal: 39,  protein: 0.91, fat: 0.25, carbs: 9.54,  en: "Peach, raw",                              override: true },
+  "слива":             { kcal: 46,  protein: 0.7,  fat: 0.28, carbs: 11.4,  en: "Plum, raw",                               override: true },
+  "сельдерей":         { kcal: 16,  protein: 0.69, fat: 0.17, carbs: 2.97,  en: "Celery, raw",                             override: true },
+  // Сборный термин — среднее по травам (петрушка/укроп/кинза/шпинат)
+  "зелень":            { kcal: 30,  protein: 2.9,  fat: 0.6,  carbs: 5.0,   en: "Fresh herbs, average (parsley/dill/cilantro/spinach)", override: true },
 };
 
 async function fetchJson(url) {

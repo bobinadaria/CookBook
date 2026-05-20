@@ -12,14 +12,17 @@ import type { LocaleCode } from "@/types";
  * localizedField(recipe, "title", "en") // → recipe.title_en ?? recipe.title
  * localizedField(recipe, "title", "ru") // → recipe.title
  */
-export function localizedField(
-  record: Record<string, unknown>,
+export function localizedField<T extends object>(
+  record: T,
   field: string,
   locale: LocaleCode
 ): string | null {
-  if (locale === "ru") return (record[field] as string) ?? null;
-  const translated = record[`${field}_${locale}`] as string | undefined;
-  return translated || ((record[field] as string) ?? null);
+  // Один внутренний каст вместо каста на каждом call-site (Category/Step/Recipe
+  // — интерфейсы без index-signature, поэтому передаются как object).
+  const rec = record as Record<string, unknown>;
+  if (locale === "ru") return (rec[field] as string) ?? null;
+  const translated = rec[`${field}_${locale}`] as string | undefined;
+  return translated || ((rec[field] as string) ?? null);
 }
 
 // Re-export LocaleCode so existing imports of `Locale` from this file

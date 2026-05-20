@@ -11,6 +11,7 @@
  */
 import { createClient } from "@supabase/supabase-js";
 import OpenAI from "openai";
+import { NUTRITION_SYSTEM_PROMPT, NUTRITION_SCHEMA, NUTRITION_MODEL } from "../src/lib/nutrition/prompt.mjs";
 import { config } from "dotenv";
 import { resolve } from "path";
 
@@ -38,82 +39,17 @@ const slug = args.find((a) => !a.startsWith("--")) ?? "chashushuli-po-gruzinski"
 
 // ── Парсер ──────────────────────────────────────────────────────────────────
 
-const SYSTEM_PROMPT = `Ты — парсер ингредиентов из русских кулинарных рецептов.
-
-На вход получаешь текст рецепта, где каждая строка — один ингредиент либо служебная информация. Возвращаешь JSON-массив объектов в указанной схеме.
-
-Правила:
-
-1. Для каждой строки извлеки:
-   - "input": исходную строку как есть
-   - "name": название в именительном падеже, ед.ч., lowercase, БЕЗ прилагательных-описаний (например «отварной», «свежий», «крупный» — убираем). Примеры:
-       «100 г пшеничной муки» → "мука пшеничная"
-       «2 яйца» → "яйцо"
-       «500 г куриной грудки» → "курица грудка"
-       «1 средняя луковица» → "лук"
-       «50 г сухой чёрной фасоли» → "фасоль чёрная"
-       «пучок укропа» → "укроп"
-   - "grams": количество в граммах (число). Конвертируй сам исходя из общеизвестных оценок плотности:
-       1 ст. л. муки ≈ 10 г, сахара ≈ 25 г, масла ≈ 14 г, мёда ≈ 21 г, какао ≈ 7 г
-       1 ч. л. ≈ 5 г для большинства сыпучих
-       1 стакан (250 мл) муки ≈ 130 г, сахара ≈ 200 г
-       1 яйцо ≈ 50 г, 1 средняя луковица ≈ 150 г, 1 морковка ≈ 80 г,
-       1 помидор ≈ 120 г, 1 ломтик хлеба ≈ 30 г, 1 зубчик чеснока ≈ 5 г,
-       пучок зелени ≈ 30 г, щепотка ≈ 1 г
-       Для жидкостей: 1 мл ≈ 1 г (для воды/молока/кефира/сливок), 1 мл масла ≈ 0.92 г
-   - "skipped": true если строку нужно пропустить
-   - "skip_reason": почему пропустили (если skipped)
-
-2. Пропускай (skipped: true):
-   - Заголовки секций: «— Для крема —», «=== Соус ===», «# Подача»
-   - Соль и перец «по вкусу» (вклад в КБЖУ копеечный)
-   - «специи по вкусу», «травы по вкусу»
-   - Воду (0 калорий)
-   - Чисто декоративные подачи без указания количества: «зелень для украшения»
-   - Пустые строки
-   ВНИМАНИЕ: если у соли/перца указано количество (например, «2 ст.л. соли») — НЕ пропускай, но name="соль".
-
-3. Если в строке указан «или» — выбирай первый вариант. «Персик или слива» → name="персик".
-
-4. Если строка непонятна — skipped:true, skip_reason="unparseable: <причина>".
-
-5. Возвращай СТРОГО валидный JSON в схеме, ничего больше.`;
 
 async function parseIngredients(text) {
   const response = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
+    model: NUTRITION_MODEL,
     messages: [
-      { role: "system", content: SYSTEM_PROMPT },
+      { role: "system", content: NUTRITION_SYSTEM_PROMPT },
       { role: "user", content: text },
     ],
     response_format: {
       type: "json_schema",
-      json_schema: {
-        name: "parsed_ingredients",
-        strict: true,
-        schema: {
-          type: "object",
-          properties: {
-            ingredients: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  input: { type: "string" },
-                  name: { type: ["string", "null"] },
-                  grams: { type: ["number", "null"] },
-                  skipped: { type: "boolean" },
-                  skip_reason: { type: ["string", "null"] },
-                },
-                required: ["input", "name", "grams", "skipped", "skip_reason"],
-                additionalProperties: false,
-              },
-            },
-          },
-          required: ["ingredients"],
-          additionalProperties: false,
-        },
-      },
+      json_schema: { name: "parsed_ingredients", strict: true, schema: NUTRITION_SCHEMA },
     },
     temperature: 0,
   });
@@ -128,12 +64,14 @@ async function loadIndex() {
     .select("id, name_ru, name_en, kcal_100g, protein_100g, fat_100g, carbs_100g, category");
   if (error) throw error;
   const map = new Map();
-  for (const r of data) map.set(r.name_ru.toLowerCase().trim(), r);
+  for (const r of data) map.set(r.name_ru.toLowerCase().trim().replace(/ё/g, "е"), r);
   return map;
 }
 
+const normalizeKey = (s) => s.toLowerCase().trim().replace(/ё/g, "е");
+
 async function matchOne(query, index) {
-  const exact = index.get(query.toLowerCase().trim());
+  const exact = index.get(normalizeKey(query));
   if (exact) return { row: exact, match_type: "exact", similarity: null };
 
   const { data, error } = await supabase.rpc("match_ingredient", { query, threshold: 0.3 });
@@ -280,7 +218,7 @@ if (writeFlag) {
       similarity: m.similarity ?? null,
     })),
     calculated_at: new Date().toISOString(),
-    model: "gpt-4o-mini",
+    model: NUTRITION_MODEL,
   };
   const { error: upd } = await supabase
     .from("recipes")

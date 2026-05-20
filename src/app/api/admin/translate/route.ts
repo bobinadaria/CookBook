@@ -91,13 +91,11 @@ export async function POST(req: NextRequest) {
             title_en: enStep.title ?? null,
             description_en: enStep.description ?? null,
           };
-          console.log(`[translate] updating step ${dbStep.id} with:`, JSON.stringify(updatePayload).slice(0, 120));
-          const { data: stepData, error: stepError } = await supabase
+          const { error: stepError } = await supabase
             .from("steps")
             .update(updatePayload)
             .eq("id", dbStep.id)
             .select("id, title_en, description_en");
-          console.log(`[translate] step update result — data:`, stepData, "error:", stepError?.message ?? "none");
 
           if (stepError) {
             console.error("[translate] step update error:", stepError.message);

@@ -97,8 +97,6 @@ export async function POST(req: NextRequest) {
   const openai = new OpenAI({ apiKey });
   const prompt = buildPrompt(promptTitle, promptDescription, promptIngredients);
 
-  console.log("[generate-image] prompt:", prompt.slice(0, 200));
-
   let imageBuffer: Buffer;
   let modelUsed = "gpt-image-1";
 

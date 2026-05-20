@@ -27,6 +27,15 @@ export interface MatchResult {
   similarity: number | null;
 }
 
+/**
+ * Нормализация ключа для exact-матча: lowercase + trim + ё→е.
+ * Юзеры (и OpenAI) часто пишут «мед» вместо «мёд», «свекла» вместо «свёкла».
+ * Без ё→е такие 3-буквенные слова не ловятся даже fuzzy (similarity < 0.3).
+ */
+function normalizeKey(s: string): string {
+  return s.toLowerCase().trim().replace(/ё/g, "е");
+}
+
 /** Загружает все строки ingredients_base. Кэшировать в RAM на время одного запроса. */
 export async function loadAllIngredients(
   supabase: SupabaseClient,
@@ -42,20 +51,20 @@ export async function loadAllIngredients(
 
   const map = new Map<string, IngredientRow>();
   for (const row of data ?? []) {
-    map.set((row.name_ru as string).toLowerCase().trim(), row as IngredientRow);
+    map.set(normalizeKey(row.name_ru as string), row as IngredientRow);
   }
   return map;
 }
 
 /**
- * Точный матч по lowercase. Возвращает null если не нашли.
+ * Точный матч по нормализованному ключу (lowercase + ё→е). Null если не нашли.
  * Pure-function, не дёргает БД.
  */
 export function exactMatch(
   query: string,
   index: Map<string, IngredientRow>,
 ): IngredientRow | null {
-  return index.get(query.toLowerCase().trim()) ?? null;
+  return index.get(normalizeKey(query)) ?? null;
 }
 
 /**

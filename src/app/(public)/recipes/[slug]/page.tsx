@@ -226,7 +226,7 @@ export default async function RecipePage({ params }: RecipePageProps) {
             <div className="flex gap-2 flex-wrap mb-4">
               {recipe.categories.map((cat: Category) => (
                 <span key={cat.id} className="text-xs font-medium bg-sand text-charcoal px-3 py-1 rounded-full">
-                  {localizedField(cat as unknown as Record<string, unknown>, "name", l) ?? cat.name}
+                  {localizedField(cat, "name", l) ?? cat.name}
                 </span>
               ))}
             </div>
@@ -349,8 +349,8 @@ export default async function RecipePage({ params }: RecipePageProps) {
 
           <div className="grid md:grid-cols-2 gap-5">
             {recipe.steps.map((step: Step, index: number) => {
-              const stepTitle = localizedField(step as unknown as Record<string, unknown>, "title", l);
-              const stepDesc = localizedField(step as unknown as Record<string, unknown>, "description", l) ?? step.description;
+              const stepTitle = localizedField(step, "title", l);
+              const stepDesc = localizedField(step, "description", l) ?? step.description;
 
               return (
                 <div key={step.id} className="bg-sand/50 rounded-2xl p-6 flex flex-col gap-4">
@@ -422,20 +422,8 @@ export default async function RecipePage({ params }: RecipePageProps) {
             recipeInstructions: recipe.steps.map((step: Step, i: number) => ({
               "@type": "HowToStep",
               position: i + 1,
-              name:
-                localizedField(
-                  step as unknown as Record<string, unknown>,
-                  "title",
-                  l
-                ) ??
-                step.title ??
-                `Step ${i + 1}`,
-              text:
-                localizedField(
-                  step as unknown as Record<string, unknown>,
-                  "description",
-                  l
-                ) ?? step.description,
+              name: localizedField(step, "title", l) ?? step.title ?? `Step ${i + 1}`,
+              text: localizedField(step, "description", l) ?? step.description,
               ...(step.photo_url ? { image: step.photo_url } : {}),
             })),
           }),
