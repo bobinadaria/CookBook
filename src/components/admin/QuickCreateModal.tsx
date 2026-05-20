@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createDraftRecipe } from "@/lib/supabase/recipes";
+import { Spinner } from "@/components/ui";
 
 interface QuickCreateModalProps {
   onClose: () => void;
@@ -96,10 +97,7 @@ export default function QuickCreateModal({ onClose }: QuickCreateModalProps) {
             >
               {saving ? (
                 <>
-                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-                  </svg>
+                  <Spinner size="sm" className="text-current" />
                   Создаём…
                 </>
               ) : (

@@ -4,6 +4,7 @@ import { useState, FormEvent } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
+import { Button } from "@/components/ui";
 
 type Step = "form" | "success";
 
@@ -127,13 +128,9 @@ export default function ResetPasswordPage() {
                 </p>
               )}
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-charcoal text-cream rounded-full py-4 text-sm font-medium hover:bg-peach transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed mt-2"
-              >
+              <Button type="submit" variant="primary" size="lg" fullWidth loading={loading} className="mt-2">
                 {loading ? t("loading") : t("submit")}
-              </button>
+              </Button>
             </form>
           </div>
         )}

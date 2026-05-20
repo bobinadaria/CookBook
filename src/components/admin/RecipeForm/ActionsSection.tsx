@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { Spinner } from "@/components/ui";
 
 interface ActionsSectionProps {
   recipeId?: string;
@@ -155,10 +156,5 @@ export default function ActionsSection({
 }
 
 function SpinIcon() {
-  return (
-    <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
-      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"
-        strokeDasharray="32" strokeLinecap="round" />
-    </svg>
-  );
+  return <Spinner size="sm" className="text-current" />;
 }

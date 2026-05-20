@@ -1,31 +1,35 @@
 import { forwardRef } from "react";
 import { cn } from "@/lib/utils";
 
-export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
+export type ButtonVariant = "primary" | "accent" | "ghost" | "danger";
 export type ButtonSize = "sm" | "md" | "lg";
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   size?: ButtonSize;
-  /** Shows a spinner and disables the button while true. */
+  /** Растянуть на всю ширину контейнера (как submit в auth-формах). */
+  fullWidth?: boolean;
+  /** Показывает спиннер и блокирует кнопку пока true. */
   loading?: boolean;
 }
 
+/*
+ * Стили совпадают с живым дизайном сайта: угольная «таблетка» (rounded-full),
+ * primary = charcoal→peach на hover. Раньше компонент был персиковый/rounded-2xl
+ * и не совпадал с тем, что в проде, поэтому им никто не пользовался.
+ */
 const variantClasses: Record<ButtonVariant, string> = {
-  primary:
-    "bg-peach text-white hover:bg-peach-dark active:scale-[0.98] shadow-sm",
-  secondary:
-    "bg-sage text-white hover:bg-sage-dark active:scale-[0.98] shadow-sm",
+  primary: "bg-charcoal text-cream hover:bg-peach",
+  accent: "bg-peach/10 text-peach border border-peach/20 hover:bg-peach/20",
   ghost:
-    "bg-transparent text-charcoal border border-charcoal/15 hover:border-charcoal/35 hover:bg-sand",
-  danger:
-    "bg-red-500 text-white hover:bg-red-600 active:scale-[0.98] shadow-sm",
+    "text-charcoal/50 hover:text-charcoal border border-charcoal/10 hover:border-charcoal/25",
+  danger: "bg-red-500 text-white hover:bg-red-600",
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
-  sm: "px-3 py-1.5 text-xs rounded-xl",
-  md: "px-5 py-2.5 text-sm rounded-2xl",
-  lg: "px-7 py-3.5 text-base rounded-2xl",
+  sm: "px-4 py-2 text-xs",
+  md: "px-6 py-3 text-sm",
+  lg: "px-8 py-4 text-sm",
 };
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -33,25 +37,27 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     {
       variant = "primary",
       size = "md",
+      fullWidth = false,
       loading = false,
       disabled,
       className,
       children,
       ...props
     },
-    ref
+    ref,
   ) => {
     return (
       <button
         ref={ref}
         disabled={disabled || loading}
         className={cn(
-          "inline-flex items-center justify-center gap-2 font-medium transition-all duration-200",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-peach focus-visible:ring-offset-2",
-          "disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100",
+          "inline-flex items-center justify-center gap-2 rounded-full font-medium transition-colors duration-300",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-peach/40 focus-visible:ring-offset-2",
+          "disabled:opacity-50 disabled:cursor-not-allowed",
           variantClasses[variant],
           sizeClasses[size],
-          className
+          fullWidth && "w-full",
+          className,
         )}
         {...props}
       >
@@ -80,7 +86,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         {children}
       </button>
     );
-  }
+  },
 );
 
 Button.displayName = "Button";

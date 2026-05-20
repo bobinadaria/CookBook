@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { Spinner } from "@/components/ui";
 import type { NutritionData } from "@/types";
 
 interface NutritionSectionProps {
@@ -16,22 +17,6 @@ interface NutritionSectionProps {
   calculating: boolean;
   error: string | null;
   onCalculate: () => void;
-}
-
-function Spinner() {
-  return (
-    <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
-      <circle
-        cx="12"
-        cy="12"
-        r="10"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeDasharray="32"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
 }
 
 function StatBox({
@@ -202,7 +187,7 @@ export default function NutritionSection({
         >
           {calculating ? (
             <>
-              <Spinner />
+              <Spinner size="sm" className="text-current" />
               Считаем КБЖУ… это займёт ~10-20 сек
             </>
           ) : (
