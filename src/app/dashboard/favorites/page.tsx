@@ -5,9 +5,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import RecipeCard from "@/components/recipe/RecipeCard";
-import { FavoritesProvider, useFavorites } from "@/context/FavoritesContext";
+import { useFavorites } from "@/context/FavoritesContext";
 import { createClient } from "@/lib/supabase/client";
-import Header from "@/components/layout/Header";
 
 interface FavoriteRecipe {
   id: string;
@@ -116,12 +115,6 @@ function FavoritesContent() {
 }
 
 export default function FavoritesPage() {
-  return (
-    <FavoritesProvider>
-      <div className="pt-16">
-        <Header />
-        <FavoritesContent />
-      </div>
-    </FavoritesProvider>
-  );
+  // FavoritesProvider, Header и pt-16 теперь в dashboard/layout.tsx
+  return <FavoritesContent />;
 }

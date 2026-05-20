@@ -161,5 +161,33 @@
     "addToFavorites": "Add to favorites",
     "removeFromFavorites": "Remove from favorites",
     "cookbook": "CookBook"
+  },
+  "dashboard": {
+    "navHome": "Dashboard",
+    "navFavorites": "Favorites",
+    "navNotes": "Notes",
+    "tagline": "personal cabinet",
+    "greeting": "Hi, {name}",
+    "favoritesTitle": "Favorites",
+    "favoritesDesc": "Saved recipes",
+    "notesTitle": "Notes",
+    "notesDesc": "Personal recipe notes",
+    "profileTitle": "Profile",
+    "signOut": "Sign out"
+  },
+  "notes": {
+    "tagline": "my notes",
+    "title": "Notes",
+    "empty": "Nothing yet",
+    "emptyHint": "Open any recipe and leave a private note — it will show up here",
+    "goToRecipes": "Go to recipes →"
+  },
+  "userNote": {
+    "title": "My note",
+    "private": "private",
+    "placeholder": "Jot something for yourself: what to change, what to serve with, how it went last time…",
+    "save": "Save",
+    "saved": "Saved",
+    "loginPrompt": "Sign in to leave a private note on this recipe"
   }
 }

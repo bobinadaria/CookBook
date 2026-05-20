@@ -57,6 +57,11 @@ export const CalculateNutritionRequestSchema = z.object({
   force: z.boolean().optional().default(false),
 });
 
+/** Body expected by POST /api/admin/revalidate-recipe */
+export const RevalidateRecipeRequestSchema = z.object({
+  slug,
+});
+
 /** Allowed upload buckets */
 export const ALLOWED_BUCKETS = ["recipe-covers", "step-photos"] as const;
 export type UploadBucket = (typeof ALLOWED_BUCKETS)[number];

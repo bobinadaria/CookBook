@@ -10,6 +10,7 @@ import { localizedField, type Locale } from "@/lib/localized-content";
 import type { Category, Step } from "@/types";
 import RelatedRecipes, { RelatedRecipesSkeleton } from "@/components/recipe/RelatedRecipes";
 import NutritionFacts from "@/components/recipe/NutritionFacts";
+import RecipeNote from "@/components/recipe/RecipeNote";
 import type { NutritionData } from "@/types";
 import { getSiteUrl } from "@/lib/site-url";
 
@@ -343,6 +344,9 @@ export default async function RecipePage({ params }: RecipePageProps) {
           )}
         </section>
       )}
+
+      {/* ── Личная заметка пользователя (приватная, client island) ── */}
+      <RecipeNote recipeId={recipe.id} />
 
       {/* ── Nutrition (только цифры; диагностика — в админке) ── */}
       <NutritionFacts nutrition={recipe.nutrition as NutritionData | null} />

@@ -225,6 +225,18 @@ export function useRecipeForm(recipeId?: string, defaultValues?: RecipeFormDefau
         }
       }
 
+      // Сбросить ISR-кеш страницы рецепта и главной, чтобы правки появились
+      // сразу, а не в течение часа. Не критично — на ошибке просто молчим.
+      try {
+        await fetch("/api/admin/revalidate-recipe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ slug: input.slug }),
+        });
+      } catch {
+        /* кеш сам обновится по TTL */
+      }
+
       router.push("/admin/recipes");
       router.refresh();
     } catch (err: unknown) {

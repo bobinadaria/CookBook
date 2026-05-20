@@ -161,5 +161,33 @@
     "addToFavorites": "Добавить в избранное",
     "removeFromFavorites": "Убрать из избранного",
     "cookbook": "CookBook"
+  },
+  "dashboard": {
+    "navHome": "Кабинет",
+    "navFavorites": "Избранное",
+    "navNotes": "Заметки",
+    "tagline": "личный кабинет",
+    "greeting": "Привет, {name}",
+    "favoritesTitle": "Избранное",
+    "favoritesDesc": "Сохранённые рецепты",
+    "notesTitle": "Заметки",
+    "notesDesc": "Личные пометки к рецептам",
+    "profileTitle": "Профиль",
+    "signOut": "Выйти"
+  },
+  "notes": {
+    "tagline": "мои пометки",
+    "title": "Заметки",
+    "empty": "Пока пусто",
+    "emptyHint": "Открой любой рецепт и оставь личную заметку — она появится здесь",
+    "goToRecipes": "Перейти к рецептам →"
+  },
+  "userNote": {
+    "title": "Моя заметка",
+    "private": "только для вас",
+    "placeholder": "Записать что-то для себя: что изменить, с чем подавать, как было в прошлый раз…",
+    "save": "Сохранить",
+    "saved": "Сохранено",
+    "loginPrompt": "Войдите, чтобы оставить личную заметку к рецепту"
   }
 }
