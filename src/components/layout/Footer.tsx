@@ -86,7 +86,7 @@ export default async function Footer() {
 
         <div className="flex flex-col gap-2 pt-6 font-body text-[10px] font-semibold uppercase tracking-[0.16em] text-section-soft sm:flex-row sm:items-center sm:justify-between">
           <span>
-            &copy; {year} — Дарья Бобина &middot; bydaria.kitchen &middot; {tf("rights")}
+            &copy; {year} — {tf("author")} &middot; bydaria.kitchen &middot; {tf("rights")}
           </span>
           <span>Praha &middot; {year}</span>
         </div>

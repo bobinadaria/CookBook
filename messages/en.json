@@ -24,7 +24,8 @@
     "book": "Book",
     "account": "Account",
     "contact": "Contact",
-    "rights": "All recipes original"
+    "rights": "All recipes original",
+    "author": "Daria Bobina"
   },
   "home": {
     "heroEyebrow": "Chapter I · Breakfast · Sunday issue",
@@ -184,7 +185,7 @@
     "faq": [
       ["Which cards do you accept?", "Any EU/UK/US cards via Paddle (which also issues the invoice and pays VAT for us). Visa/Mastercard from Kazakhstan, Armenia, Georgia, Israel and the UAE work. Cards issued in Russia don’t yet — we’re looking at crypto, will let you know."],
       ["What if I subscribe and it’s not for me?", "Cancel in one click — the unused part of the month isn’t refunded (that’s a standard subscription). For Lifetime — a refund within the first 30 days, no questions."],
-      ["Does the AI really count accurately?", "Accurate means ±5%. We map ingredients into USDA FoodData Central (a government base of ~400k products) and compute deterministically. This isn’t ChatGPT, which is off by 25-40%. If an ingredient isn’t found — we ask you, we don’t make it up."],
+      ["Does the AI really count accurately?", "Accurate means ±5%. We map ingredients into USDA FoodData Central (a government database of ~400k products) and compute deterministically. This isn’t ChatGPT, which is off by 25-40%. If an ingredient isn’t found — we ask you, we don’t make it up."],
       ["Can I use the book with clients (I’m a coach)?", "For now — personal use. A B2B plan is planned for months 10-12: PDF export with your brand, white-label client folders. If you need it urgently — write, we’ll talk."],
       ["What if my child has allergies?", "AI recipe generation accounts for allergies and disliked foods (set it up once). Notes and filters — on all plans. We don’t give medical advice — that’s a legal boundary."]
     ],
