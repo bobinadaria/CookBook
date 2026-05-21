@@ -62,7 +62,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             href="/"
             className="font-display italic text-2xl text-ink hover:text-ochre-dk transition-colors"
           >
-            CookBook
+            The Slow Table
           </Link>
 
           {/* Admin nav */}

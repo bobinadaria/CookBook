@@ -115,11 +115,13 @@ export default function Header() {
           <span className="justify-self-start font-body text-[11px] font-semibold uppercase tracking-[0.16em] text-soft">
             {th("taglineLeft")}
           </span>
-          <Link
-            href="/"
-            className="justify-self-center whitespace-nowrap font-display text-[64px] font-normal italic leading-[0.9] tracking-[-0.02em] text-burg lg:text-[88px]"
-          >
-            by Daria
+          <Link href="/" className="flex flex-col items-center justify-self-center">
+            <span className="whitespace-nowrap font-display text-[48px] font-normal italic leading-[0.9] tracking-[-0.02em] text-burg lg:text-[72px]">
+              The Slow Table
+            </span>
+            <span className="mt-1 font-body text-[10px] font-semibold uppercase tracking-[0.3em] text-soft">
+              by Daria
+            </span>
           </Link>
           <span className="justify-self-end font-body text-[11px] font-semibold uppercase tracking-[0.16em] text-soft">
             {th("taglineRight")}
@@ -148,8 +150,8 @@ export default function Header() {
       {/* ─── Mobile bar (<md) — sticky ──────────────────────────────────── */}
       <div className="sticky top-0 z-50 border-b border-rule bg-paper/95 pt-safe backdrop-blur-sm md:hidden">
         <div className="flex h-14 items-center justify-between px-6">
-          <Link href="/" className="font-display text-[26px] italic leading-none text-burg">
-            by Daria
+          <Link href="/" className="font-display text-[22px] italic leading-none text-burg">
+            The Slow Table
           </Link>
           <div className="flex items-center gap-1">
             <LanguageSwitcher />

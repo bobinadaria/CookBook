@@ -21,11 +21,17 @@ const config: Config = {
         "ochre-dk":   "hsl(var(--ochre-dk) / <alpha-value>)",  // eyebrow, hover
         olive:        "hsl(var(--olive)    / <alpha-value>)",  // позитивные ●
         ink:          "hsl(var(--ink)      / <alpha-value>)",  // основной текст
+        seal:         "hsl(var(--seal)     / <alpha-value>)",  // тёмный текст НА ochre (в обеих темах)
         soft:         "var(--soft)",          // приглушённый текст, meta
         muted:        "var(--muted)",         // плейсхолдеры
         rule:         "var(--rule)",          // линии-правила
         "soft-invert": "var(--soft-invert)",  // текст на burg-поверхности
         "rule-invert": "var(--rule-invert)",  // линии на burg-поверхности
+        // Тёмные секции-баннеры — стабильны в обеих темах (НЕ инвертируются)
+        section:        "hsl(var(--section)    / <alpha-value>)",  // фон тёмной секции
+        "section-fg":   "hsl(var(--section-fg) / <alpha-value>)",  // кремовый текст на секции
+        "section-soft": "var(--section-soft)",  // приглушённый текст на секции
+        "section-rule": "var(--section-rule)",  // линии-разделители на секции
       },
       borderRadius: {
         // Magazine = прямые углы. DEFAULT (bare `rounded`) → 0.
@@ -35,9 +41,9 @@ const config: Config = {
         DEFAULT: "0",
       },
       fontFamily: {
-        display: ["var(--font-display)", "Bodoni Moda", "Playfair Display", "serif"],
-        body:    ["var(--font-body)",    "Work Sans", "system-ui", "sans-serif"],
-        reader:  ["var(--font-reader)",  "Newsreader", "Georgia", "serif"],
+        display: ["var(--font-display)", "Georgia", "serif"],
+        body:    ["var(--font-body)",    "system-ui", "sans-serif"],
+        reader:  ["var(--font-reader)",  "Georgia", "serif"],
       },
       letterSpacing: {
         eyebrow: "0.15em",

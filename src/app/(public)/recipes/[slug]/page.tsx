@@ -50,15 +50,6 @@ function toRoman(n: number): string {
   return out || "—";
 }
 
-/** Russian plural picker (1 порция / 2 порции / 5 порций). */
-function ruPlural(n: number, one: string, few: string, many: string): string {
-  const mod10 = n % 10;
-  const mod100 = n % 100;
-  if (mod10 === 1 && mod100 !== 11) return one;
-  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return few;
-  return many;
-}
-
 /**
  * Renders a text string that may contain markdown-style links [label](url)
  * as clickable <Link> elements. Everything else is rendered as plain text.
@@ -139,7 +130,7 @@ export async function generateMetadata({ params }: RecipePageProps): Promise<Met
   const slug = decodeURIComponent(params.slug);
   const recipe = await getRecipe(slug);
 
-  if (!recipe) return { title: "Recipe not found — CookBook" };
+  if (!recipe) return { title: "Recipe not found — The Slow Table" };
 
   const locale = (await getLocale()) as Locale;
   const title = localizedField(recipe, "title", locale) ?? recipe.title;
@@ -158,7 +149,7 @@ export async function generateMetadata({ params }: RecipePageProps): Promise<Met
     : [];
 
   return {
-    title: `${title} — CookBook`,
+    title: `${title} — The Slow Table`,
     description,
     alternates: { canonical: pageUrl },
     openGraph: {
@@ -167,7 +158,7 @@ export async function generateMetadata({ params }: RecipePageProps): Promise<Met
       title,
       description,
       images,
-      siteName: "CookBook",
+      siteName: "The Slow Table",
     },
     twitter: {
       card: images.length ? "summary_large_image" : "summary",
@@ -211,16 +202,16 @@ export default async function RecipePage({ params }: RecipePageProps) {
 
   // Real metrics only — no fabricated "difficulty"/"chapter" fields.
   const metrics: { label: string; value: string; unit: string }[] = [];
-  if (recipe.cook_time) metrics.push({ label: t("cookTime"), value: String(recipe.cook_time), unit: "мин" });
+  if (recipe.cook_time) metrics.push({ label: t("cookTime"), value: String(recipe.cook_time), unit: t("min") });
   if (recipe.servings) metrics.push({ label: t("servings"), value: String(recipe.servings), unit: "" });
   if (nutrition?.per_serving?.kcal)
-    metrics.push({ label: "Калории", value: String(nutrition.per_serving.kcal), unit: "ккал" });
-  if (hasSteps) metrics.push({ label: "Шагов", value: String(recipe.steps.length), unit: "" });
+    metrics.push({ label: t("calories"), value: String(nutrition.per_serving.kcal), unit: t("nutrition.kcal") });
+  if (hasSteps) metrics.push({ label: t("stepsLabel"), value: String(recipe.steps.length), unit: "" });
 
   const servingsHeading = recipe.servings
-    ? `на ${recipe.servings} ${ruPlural(recipe.servings, "порцию", "порции", "порций")}`
+    ? t("servingsHeading", { count: recipe.servings })
     : t("ingredients");
-  const stepsHeading = `${recipe.steps.length} ${ruPlural(recipe.steps.length, "шаг", "шага", "шагов")}`;
+  const stepsHeading = t("stepsHeading", { count: recipe.steps.length });
 
   return (
     <div className="bg-paper text-ink">
@@ -244,7 +235,7 @@ export default async function RecipePage({ params }: RecipePageProps) {
       <section className="mx-auto max-w-[1320px] px-6 pb-10 pt-5 md:px-10 lg:px-14">
         <div className="grid items-end gap-10 lg:grid-cols-[1.6fr_1fr] lg:gap-14">
           <div>
-            <Eyebrow color="text-ochre-dk">{categoryLabel ?? "Рецепт"}</Eyebrow>
+            <Eyebrow color="text-ochre-dk">{categoryLabel ?? t("recipeFallback")}</Eyebrow>
             <h1 className="mt-3 font-display text-[clamp(2.5rem,7vw,96px)] font-normal leading-[0.92] tracking-[-0.03em] text-burg">
               {title}
             </h1>
@@ -288,7 +279,7 @@ export default async function RecipePage({ params }: RecipePageProps) {
               sizes="(max-width: 1320px) 100vw, 1320px"
             />
             <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/65 to-transparent px-8 pb-6 pt-24">
-              <Eyebrow color="text-paper/85">Fig. I — На столе</Eyebrow>
+              <Eyebrow color="text-paper/85">{t("figCaption")}</Eyebrow>
             </div>
           </div>
         </section>
@@ -389,7 +380,7 @@ export default async function RecipePage({ params }: RecipePageProps) {
                 {renderTextWithLinks(note.slice(1))}
               </p>
               <div className="mt-3.5 font-body text-[11px] font-semibold uppercase tracking-[0.16em] text-soft">
-                — Даша
+                {t("authorSign")}
               </div>
             </div>
           )}

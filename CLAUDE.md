@@ -1,264 +1,247 @@
-# Cookbook — Project Brief for Claude Code
+# The Slow Table — операционный бриф для Claude
 
-## Project Overview
-Personal recipe book web application — a curated collection of the owner's recipes, beautifully presented. The site reflects a personal identity: beauty, taste, coziness, wellness, pleasure, uniqueness, and daily celebration. Not a generic recipe site — it should feel like a personal art object.
+> **Бренд.** Название продукта — **The Slow Table** · by Daria (домен `bydaria.kitchen`).
+> Слоган: «Твоя кухня. Твоя книга. Твой AI-нутрициолог.» Дескриптор: «Создавай свою книгу
+> красивых рецептов — уют дома, идеи на каждый день и точное КБЖУ от AI.» Рабочее имя
+> репозитория осталось «Cookbook». Полные детали бренда — `BRAND_PLAN.md`.
+>
+> **Что это.** Личная кулинарная книга-журнал русскоязычного автора (Дарья, Прага) с
+> AI-нутрициологом. Эстетика editorial-magazine, точный КБЖУ через USDA, двуязычие RU/EN.
+> Не «очередной сборник рецептов» — личный продукт-объект.
+>
+> **Этот файл** — главный контекст для ИИ-ассистента: актуальное состояние, следующие шаги,
+> правила работы. Держи его в синхроне с кодом. Длинные тексты — в `PRODUCT_STRATEGY.md`
+> (бизнес) и `AI_ARCHITECTURE.md` (AI-слой).
+>
+> **Обновлено:** 2026-05-21.
 
-## Tech Stack
-- **Framework:** Next.js 14 (App Router)
-- **Styling:** Tailwind CSS
-- **Animations:** GSAP (ScrollTrigger, stagger, smooth scroll — reference: antimetal.com feel)
-- **Language:** TypeScript (strict mode)
-- **Backend / DB:** Supabase (PostgreSQL + Auth + Storage)
-- **Deployment:** Vercel
-- **Package manager:** npm
+---
 
-## User Roles
-| Role | Access |
-|------|--------|
-| **Guest** (unauthenticated) | Browse all recipes, search, filter |
-| **User** (authenticated) | Save favorites, personal notes (MVP); own recipe book (future) |
-| **Admin** (owner only) | Full CRUD on recipes, categories, labels via /admin portal |
+## 1. Текущее состояние (single source of truth по статусу)
 
-Admin is identified by a special `role` field in Supabase. Use Supabase RLS (Row Level Security) to enforce permissions at the database level.
+**Стадия:** работающее MVP в проде на Vercel. Не pre-MVP. Монетизация ещё не подключена.
 
-## Database Schema (Supabase / PostgreSQL)
+**Готово и работает:**
 
-```sql
--- Profiles (extends Supabase auth.users)
-profiles (
-  id          uuid references auth.users primary key,
-  email       text,
-  role        text default 'user', -- 'user' | 'admin'
-  created_at  timestamptz default now()
-)
+- **Auth** — Supabase Auth: email+пароль, Google OAuth, forgot/reset password. Middleware
+  защищает `/dashboard` и `/admin`.
+- **Публичный сайт** (editorial-редизайн полностью внедрён):
+  - Главная — hero-разворот, колонка редактора, pull-quote, «Содержание выпуска» (featured),
+    «Кухня в цифрах», тизер подписки.
+  - Каталог `/recipes` — поиск + фильтры (4 типа категорий), magazine-карточки.
+  - Рецепт `/recipes/[slug]` — заголовок+метрики, состав, шаги, КБЖУ-блок, заметка автора +
+    личная заметка, related; ISR-кэш + JSON-LD.
+  - Подписка `/pricing` — 3 тарифа, AI-кредиты, FAQ, CTA (лендинг, без реальной оплаты).
+- **Личный кабинет** `/dashboard` — хаб, избранное, заметки (`user_notes`), профиль с display_name,
+  PlanBanner (каркас под монетизацию, без реальных счётчиков).
+- **Админка** `/admin` — CRUD рецептов, шаги с фото, категории, AI-секции (см. ниже). RU-only.
+- **AI-слой** (рантайм — OpenAI, не Claude):
+  - КБЖУ: парсинг ингредиентов `gpt-4o-mini` → матчинг в `ingredients_base` (USDA + рус-справочники,
+    pg_trgm fuzzy) → детерминированный расчёт. Авто-расчёт при сохранении + кеш по hash состава.
+  - Обложки: генерация через `gpt-image-1` / `dall-e-3` (см. `scripts/gen-cover.mjs`), сжатие `sharp`.
+  - Автоперевод RU→EN полей рецепта (`gpt-4o-mini`).
+- **i18n** — next-intl, RU (default) + EN, переключение по cookie без URL-префикса. Весь лендинг
+  и UI вынесены в `messages/`. Контент рецептов — двуязычный в БД (`*_en` поля).
+- **Тёмная тема** — токены для dark есть, контраст текста-на-охре починен (токен `seal`).
+  ✅ Решено (2026-05-21): «тёмные» секции-баннеры (блок КБЖУ, тёмные CTA, футер, premium-тариф)
+  больше НЕ инвертируются в кремовый. Заведено отдельное стабильное семейство токенов `section`
+  (`bg-section` / `text-section-fg` / `text-section-soft` / `border-section-rule`; объявлено в
+  `globals.css :root`, без override в `.dark`) — эти блоки остаются тёмными в обеих темах.
+  Заголовки, кнопки и бейджи по-прежнему инвертируются (светлая «пилюля» на тёмном) — это норма.
+- **Перф** — ISR-кэш страниц рецептов, статическая прегенерация, сжатие обложек.
 
--- Categories / Labels
-categories (
-  id    uuid primary key default gen_random_uuid(),
-  name  text not null,
-  slug  text unique not null,
-  type  text not null -- 'country' | 'category'
-)
+**НЕ сделано (намеренно отложено или в бэклоге):**
 
--- Recipes
-recipes (
-  id           uuid primary key default gen_random_uuid(),
-  title        text not null,
-  slug         text unique not null,
-  description  text,
-  note         text,           -- personal story / history of the dish
-  cover_image  text,           -- URL from Supabase Storage
-  published    boolean default false,
-  created_at   timestamptz default now(),
-  updated_at   timestamptz default now()
-)
+- Реальные платежи (Paddle), enforcement кредитов, гейтинг Premium-фич — **не раньше ~месяца 10**
+  по стратегии. Сейчас `/pricing` и PlanBanner — только каркас.
+- Premium-фичи: импорт рецепта по URL, экспорт в PDF, меню недели + список покупок.
+- AI-генерация рецептов для пользователя («сделай рецепт с 30 г белка»).
+- B2B-тариф (планируется месяцы 10–12).
 
--- Recipe ↔ Category (many-to-many)
-recipe_categories (
-  recipe_id   uuid references recipes(id) on delete cascade,
-  category_id uuid references categories(id) on delete cascade,
-  primary key (recipe_id, category_id)
-)
+---
 
--- Recipe Steps (ordered, each with photo)
-steps (
-  id          uuid primary key default gen_random_uuid(),
-  recipe_id   uuid references recipes(id) on delete cascade,
-  order       integer not null,
-  title       text,
-  description text not null,
-  photo_url   text  -- URL from Supabase Storage
-)
+## 2. Следующие шаги (приоритезированный бэклог)
 
--- User Favorites
-favorites (
-  id         uuid primary key default gen_random_uuid(),
-  user_id    uuid references profiles(id) on delete cascade,
-  recipe_id  uuid references recipes(id) on delete cascade,
-  created_at timestamptz default now(),
-  unique(user_id, recipe_id)
-)
+1. **Задеплоить текущую ветку** (редизайн + EN) на Vercel — `git push`, проверить прод.
+2. **Тёмная тема** — решение по инверсии секций ✅ внедрено (см. §1, токены `section`).
+   Осталось: глазами пройтись по тёмной теме на телефоне (после деплоя).
+3. **Вычитка EN-копирайта** лендинга (сейчас рабочий перевод).
+4. **Подготовка к монетизации** (когда дойдём до этапа): Paddle, таблица/логика кредитов,
+   гейтинг фич, рабочий PlanBanner.
+5. **Premium-фичи** по одной (импорт URL → PDF-экспорт → меню недели).
 
--- User Notes on Recipes
-user_notes (
-  id         uuid primary key default gen_random_uuid(),
-  user_id    uuid references profiles(id) on delete cascade,
-  recipe_id  uuid references recipes(id) on delete cascade,
-  content    text,
-  updated_at timestamptz default now(),
-  unique(user_id, recipe_id)
-)
+> Правило: при закрытии шага — обнови §1 и §2, чтобы здесь не было устаревших данных.
+
+---
+
+## 3. Стек и команды
+
+- **Framework:** Next.js 14 (App Router) · **TypeScript** (strict) · **Tailwind CSS**
+- **Backend:** Supabase (Postgres + Auth + Storage) · RLS на уровне БД
+- **AI:** OpenAI (`openai`), вспомогательно `@google/generative-ai`
+- **Анимации:** GSAP (ScrollTrigger) · **Темы:** next-themes · **i18n:** next-intl
+- **Изображения:** `sharp` (сжатие) · **Валидация:** Zod · **Деплой:** Vercel · **Пакетный менеджер:** npm
+
+```bash
+npm run dev      # http://localhost:3000 (dev, hot-reload)
+npm run build    # прод-сборка (тянет Supabase на этапе static generation)
+npm run start    # запуск прод-сборки локально
+npm run lint     # ESLint
+npx tsc --noEmit # проверка типов
 ```
 
-## Supabase Storage Buckets
-- `recipe-covers` — cover images for recipes (public)
-- `step-photos` — photos for each cooking step (public)
+> ⚠️ Не запускай `dev` и `build`/`start` одновременно — они пишут в общий `.next` и портят его.
+> При странных ошибках сборки: `rm -rf .next && npm run build`.
 
-## Project Structure (Next.js App Router)
+**One-off скрипты** (`scripts/`, запуск через `node`, тянут `.env.local`):
+`seed-ingredients.mjs` (наполнение `ingredients_base`), `recalc-all-nutrition.mjs`,
+`gen-cover.mjs` (генерация обложки), `compress-covers.mjs`, `test-calc-nutrition.mjs`.
+**SQL-миграции** (`scripts/*.sql`) — применять вручную в Supabase SQL Editor.
+
+---
+
+## 4. Структура проекта
 
 ```
 src/
 ├── app/
-│   ├── (public)/
-│   │   ├── page.tsx                  # Home — hero + featured recipes
-│   │   ├── recipes/
-│   │   │   ├── page.tsx              # Recipe catalog (search, filter)
-│   │   │   └── [slug]/
-│   │   │       └── page.tsx          # Recipe detail page
-│   │   └── layout.tsx
-│   ├── (auth)/
-│   │   ├── login/page.tsx
-│   │   ├── register/page.tsx
-│   │   └── layout.tsx
-│   ├── dashboard/
-│   │   ├── page.tsx                  # User personal cabinet
-│   │   ├── favorites/page.tsx        # Saved recipes
-│   │   └── notes/page.tsx            # Personal notes
-│   ├── admin/
-│   │   ├── page.tsx                  # Admin dashboard
-│   │   ├── recipes/
-│   │   │   ├── page.tsx              # Recipe list
-│   │   │   ├── new/page.tsx          # Create recipe
-│   │   │   └── [id]/edit/page.tsx    # Edit recipe
-│   │   └── categories/page.tsx
-│   ├── layout.tsx                    # Root layout
-│   └── globals.css
+│   ├── (public)/            # layout + Header/Footer; home, recipes, recipes/[slug], pricing
+│   ├── (auth)/              # login, register, forgot-password, reset-password
+│   ├── dashboard/           # hub, favorites, notes (+ DashboardNav, PlanBanner)
+│   ├── admin/               # dashboard, recipes (list/new/[id]/edit), categories
+│   ├── api/admin/           # calculate-nutrition, generate-image, translate, recipes,
+│   │                        #   revalidate-recipe, upload  (все защищены api-auth)
+│   ├── auth/callback/        # OAuth callback
+│   ├── layout.tsx · globals.css
+│   └── design-system, presentation  # внутренние dev-страницы (noindex, на старых классах)
 ├── components/
-│   ├── ui/                           # Base components (Button, Input, Card...)
-│   ├── recipe/                       # RecipeCard, RecipeGrid, StepCard...
-│   ├── layout/                       # Header, Footer, Nav
-│   └── animations/                   # GSAP wrappers and hooks
+│   ├── ui/                  # Editorial-примитивы: Eyebrow, DropCap, Rule, PullQuote,
+│   │                        #   EditorialButton, NumberDial, SectionLabel + Button, Input, Badge, Spinner
+│   ├── layout/              # Header, Footer, LanguageSwitcher, ThemeToggle, ThemeProvider
+│   ├── recipe/              # RecipeCard, NutritionFacts, RecipeNote, RelatedRecipes,
+│   │                        #   FilterDropdown, FavoriteButton
+│   ├── admin/               # RecipeForm (+ seciones), ConfirmModal, QuickCreateModal
+│   └── animations/          # FadeInUp, RevealCard, PageTransition, WordReveal, CursorGlow
 ├── lib/
-│   ├── supabase/
-│   │   ├── client.ts                 # Browser client
-│   │   ├── server.ts                 # Server client (RSC)
-│   │   └── middleware.ts
-│   └── utils.ts
-├── hooks/                            # Custom React hooks
-├── types/                            # TypeScript interfaces
-└── middleware.ts                     # Auth route protection
+│   ├── supabase/            # client.ts, server.ts, admin.ts (service-role), middleware.ts,
+│   │                        #   queries/ (recipes, categories)
+│   ├── nutrition/           # parse.ts, match.ts, calculate.ts, prompt.mjs, ingredients-hash.mjs
+│   ├── localized-content.ts # localizedField(record, field, locale) — RU/EN из БД
+│   ├── category-types.ts · api-auth.ts · site-url.ts · translate.ts · validations.ts · utils.ts (cn)
+├── i18n/                    # routing.ts (ru/en, defaultLocale ru, localePrefix "never"), request.ts
+├── context/                # FavoritesContext
+├── hooks/ · types/         # types/index.ts — доменные интерфейсы
+└── middleware.ts
+messages/ru.json · messages/en.json   # все UI/лендинг-строки (ключи RU/EN в паритете)
 ```
 
-## Design System
+---
 
-> **Editorial magazine redesign (2026).** Старая система (cream/sand/peach/sage,
-> Cormorant + Plus Jakarta, скруглённые карточки, тени) заменяется на magazine-стиль:
-> burgundy/ochre/paper, Bodoni Moda + Work Sans + Newsreader, **прямые углы, без теней**,
-> глубина строится линиями-правилами и сменой фона. Полный хендофф:
-> `design_handoff_editorial_redesign/README.md`. Миграция идёт по чек-листу §12 этого
-> хендоффа; legacy-токены удаляются последним шагом (#15).
+## 5. Модель данных (Supabase / Postgres)
 
-### Палитра (Tailwind tokens)
-```js
-colors: {
-  paper:    '#F2EDE3',  // основной фон страницы
-  crust:    '#E8DFCB',  // карточки, асайды, выделенные блоки
-  burg:     '#4A1E1E',  // primary — заголовки, тёмные секции, primary CTA
-  'burg-dk':'#2F1212',  // hover на burg
-  ochre:    '#C99846',  // accent — italic-вставки в h1/h2, плашки, цифры, бордеры
-  'ochre-dk':'#A37A33', // eyebrow, hover на ochre
-  olive:    '#6B7B4F',  // позитивные индикаторы (●), feature-чекмарки
-  ink:      '#15110D',  // основной текст
-  soft:     'rgba(21,17,13,.62)',  // приглушённый текст, meta
-  muted:    'rgba(21,17,13,.45)',  // плейсхолдеры
-  rule:     'rgba(21,17,13,.18)',  // линии-правила
-}
-```
-**Контрастные пары:** светлая секция `bg-paper` + `text-ink` (заголовки `text-burg`,
-акценты `text-ochre`); тёмная секция `bg-burg` + `text-paper` (акценты `text-ochre`).
+Таблицы (через RLS): `profiles` (id, email, **display_name**, role 'user'|'admin', created_at),
+`categories` (id, name, **name_en**, slug, type), `recipes`, `steps`, `recipe_categories` (M2M),
+`favorites` (по **recipe_slug**, не id), `user_notes`, `ingredients_base` (USDA-справочник для КБЖУ).
 
-### Типографика (через `next/font/google`)
-| Роль | Семейство | Tailwind | Где |
-|---|---|---|---|
-| Display | Bodoni Moda (+ italic) | `font-display` | h1/h2/h3, цены, цифры, римские цифры |
-| Body | Work Sans | `font-body` | весь UI, кнопки, eyebrow-caps, meta |
-| Reader | Newsreader (+ italic) | `font-reader` | длинные тексты (story, notes, FAQ), drop-cap абзацы |
+`recipes` — ключевые поля: `title/description/note/ingredients` (+ `*_en` переводы),
+`cover_image`, `published`, `featured`, `cook_time` (мин), `servings`, `nutrition` (jsonb, см.
+`NutritionData` в `types/index.ts`), `created_at/updated_at`.
+`steps` — `order`, `title`, `description` (+ `*_en`), `photo_url`.
 
-Шкала: hero h1/h2 88–120px (`tracking-display`, `leading` 0.88–0.92); section h3 56–80px;
-card title 22–26px; lede 16–17px (`leading` 1.7–1.85); eyebrow 10–12px caps (`tracking-eyebrow`, weight 600–700).
+**Категории — типы фильтров** (источник истины: `src/lib/category-types.ts`):
+`meal_type`, `country`, `season`, `ingredient`. Legacy-типы `meal_time`/`category` выведены.
 
-### Углы, тени, иконки
-- **Прямые углы** — `border-radius: 0` (Tailwind `rounded` = 0). Никаких `rounded-2xl`.
-- **Без теней** — глубина через линии-правила (`1px solid rule`, `2px solid burg`) и смену фона.
-- **Без SVG-иконок** — magazine использует римские цифры (I–VI), типографические дроби,
-  диакритику (№ · —), Unicode-символы (● ○ → ↗ ♡).
+**Storage buckets** (public): `recipe-covers`, `step-photos`.
+**Миграции в коде:** `scripts/migration-display-name.sql`, `migration-user-notes.sql`,
+`migration-nutrition-fuzzy-match.sql`, `archive/migration-cook-time-servings.sql`.
 
-### Сетка и отступы
-- Контентный max-width `1320px`, центрирование `mx-auto`.
-- Боковой padding: 24px (mobile) / 40px (tablet) / 56px (`px-14`, desktop).
-- Padding-y секций 64–96px; gap колонок 36–56px.
-- Hero — 2 колонки `1fr 1.1fr`, full-bleed.
+---
 
-### UI-примитивы (`src/components/ui/`)
-`Eyebrow`, `DropCap`, `Rule`, `PullQuote`, `Button` (варианты solid/ghost/ochre/paper),
-`NumberDial`, `SectionLabel` — чисто презентационные, без `'use client'`.
+## 6. AI-слой (кратко; детали — `AI_ARCHITECTURE.md`)
 
-### Анимации (GSAP)
-- Page transitions: fade-up `y: 8 → 0, opacity 0 → 1`, 0.35s, `cubic-bezier(.2,.8,.3,1)`.
-- Card hover: `y: -2px`, плашка `P. 008` темнеет до `ochre-dk`. Без scale, без тени.
-- Scroll-reveal грид карточек: ScrollTrigger, `y: 30 → 0`, `stagger: 0.08`, `0.6s`, `power2.out`.
+**Аксиома:** LLM не считает числа. Все числа (ккал, граммы) — из детерминированного источника.
 
-## Key Features (MVP)
+- **КБЖУ:** `api/admin/calculate-nutrition` → `lib/nutrition/parse.ts` (`gpt-4o-mini` парсит
+  свободный текст состава в JSON) → `match.ts` (точный + pg_trgm fuzzy матчинг в `ingredients_base`)
+  → `calculate.ts` (суммирование, деление на порции, confidence). Кеш по hash состава
+  (`ingredients-hash.mjs`) — не пересчитываем, если состав не менялся. Авто-расчёт при сохранении.
+  Публичный блок (`NutritionFacts`) показывает только цифры; диагностика (confidence/warnings) —
+  только в админке.
+- **Обложки:** `api/admin/generate-image` (+ `scripts/gen-cover.mjs`) — `gpt-image-1` / `dall-e-3`,
+  единый стиль (см. скилл `recipe-photo-prompts`), потом `sharp`-сжатие.
+- **Перевод:** `api/admin/translate` (`gpt-4o-mini`) — RU→EN поля рецепта в `*_en`.
 
-### Phase 1 — Foundation
-- [ ] Next.js 14 project init with TypeScript + Tailwind
-- [ ] Supabase project setup: schema, RLS policies, storage buckets
-- [ ] Auth: email/password login + registration
-- [ ] Middleware: route protection for /dashboard and /admin
+> Историческая заметка: `AI_ARCHITECTURE.md` планировал Claude Haiku; по факту рантайм на OpenAI.
 
-### Phase 2 — Public Front-end
-- [ ] Home page: hero section + featured recipes grid
-- [ ] Recipe catalog: asymmetric grid, search by name, filter by category/country
-- [ ] Recipe detail page: cover, description, steps with photos, note/story block, labels
-- [ ] GSAP animations across all pages
+---
 
-### Phase 3 — Admin Panel
-- [ ] /admin: dashboard overview
-- [ ] Recipe CRUD: create / edit / delete
-- [ ] Step management: add/reorder/remove steps with photo upload to Supabase Storage
-- [ ] Category management
+## 7. Дизайн-система (editorial magazine — внедрена)
 
-### Phase 4 — User Dashboard
-- [ ] Save / unsave recipes to favorites
-- [ ] Personal notes per recipe
-- [ ] User profile page
+Источник истины: `tailwind.config.ts` (токены через CSS-переменные в `globals.css`, light+dark) и
+`src/components/ui/`. Полный исторический хендофф: `design_handoff_editorial_redesign/README.md`.
 
-### Phase 5 — Polish & Deploy
-- [ ] i18n: Russian + English (use `next-intl`)
-- [ ] Responsive design (mobile-first)
-- [ ] SEO: metadata, OpenGraph, sitemap
-- [ ] Deploy to Vercel, connect Supabase env vars
+- **Палитра (Tailwind-токены):** `paper` (фон), `crust` (карточки/асайды), `burg`/`burg-dk`
+  (primary, заголовки, тёмные секции), `ochre`/`ochre-dk` (accent), `olive` (позитив ●),
+  `ink` (текст), `soft`/`muted` (приглушённый/плейсхолдер), `rule` (линии),
+  `soft-invert`/`rule-invert` (на тёмных секциях), `seal` (тёмный текст НА охре — стабилен в обеих темах).
+- **Шрифты (всё self-hosted, без Google CDN):** display-стек — латиница **Bodoni Moda**
+  (`@fontsource-variable/bodoni-moda`, локальные woff2) + кириллица/фолбэк **Playfair Display**
+  (`next/font`, var `--font-playfair`). У Bodoni Moda кириллицы НЕТ (latin/latin-ext/math/symbols —
+  подтверждено next/font и Fontsource), поэтому русские заголовки автоматически идут Playfair, как
+  и в прототипе. Стек — в `globals.css` → `--font-display` = `"Bodoni Moda Variable", var(--font-playfair), serif`.
+  `font-body` = Inter, `font-reader` = Lora (next/font; замены Work Sans/Newsreader).
+- **Стиль:** прямые углы (`rounded` = 0; круглые — только FavoriteButton), без теней (глубина —
+  линиями `border-rule`/`border-burg` и сменой фона), без SVG-иконок (римские цифры, ·, —, ●, →).
+- **Контрастные пары:** светлая секция `bg-paper`+`text-ink` (заголовки `text-burg`, акценты `ochre`);
+  тёмная секция `bg-burg`+`text-paper` (акценты `ochre`, текст `soft-invert`). На охре — `text-seal`.
+- **Сетка:** контент `max-w-[1320px] mx-auto`, паддинги `px-6 md:px-10 lg:px-14`.
 
-## Future Features (Post-MVP)
-- AI recipe generation via Claude API (e.g., "generate a recipe with 30g protein")
-- Users can create and manage their own personal recipe collections
-- Mobile app (React Native or PWA)
+---
 
-## Internationalization
-- **Languages:** Russian (default) + English
-- **Library:** `next-intl`
-- **Locale files:** `/messages/ru.json` and `/messages/en.json`
+## 8. i18n
 
-## Photography Strategy (MVP)
-All recipe images generated via **Midjourney** or **Leonardo.AI** using a consistent style prompt:
-```
-top-down view, warm natural light, wooden surface, soft shadows,
-appetizing, cozy home kitchen aesthetic, film photography feel,
-muted warm tones --ar 4:3
-```
-This ensures visual consistency across all recipes on the site.
+- Локали `ru` (default) / `en`, `localePrefix: "never"` — язык в cookie `NEXT_LOCALE`,
+  переключатель в Header. Без URL-префиксов.
+- UI/лендинг-строки — в `messages/ru.json` + `en.json`. **Ключи RU и EN держать в паритете.**
+- Списки (факты, тарифы, фичи, FAQ) читать через `t.raw(key)`. Склонения — ICU-плюралы
+  (`t("recipe.servingsHeading", { count })`), не самописные хелперы.
+- Контент рецептов из БД — через `localizedField(record, "field", locale)` (берёт `field_en` для EN).
+- Server Components: `getTranslations(ns)`. Client: `useTranslations(ns)`.
 
-## Code Conventions
-- Use **Server Components** by default; `'use client'` only when needed (interactivity, hooks, GSAP)
-- Prefer **async/await** with Supabase server client in RSC
-- All Supabase queries through typed helper functions in `lib/supabase/`
-- No `any` types — use proper TypeScript interfaces in `types/`
-- Use **Zod** for form validation
-- Component naming: PascalCase; file naming: kebab-case
-- Keep components small and focused; extract logic to custom hooks
+---
 
-## Important Constraints
-- Budget-conscious: use free tiers where possible (Supabase free, Vercel hobby)
-- No over-engineering: build only what's needed for the current phase
-- Mobile-first responsive design from day one
-- Accessibility: semantic HTML, proper alt text, keyboard navigation
+## 9. Соглашения по коду
+
+- **Server Components по умолчанию.** `'use client'` — только для интерактива/хуков/GSAP.
+- **Supabase:** в RSC/route — `lib/supabase/server.ts`; в браузере — `client.ts`; service-role
+  (билд/скрипты/обход RLS) — `admin.ts`. Запросы — через типизированные хелперы в `lib/supabase/queries/`.
+- **Типы:** без `any`. Доменные интерфейсы — в `src/types/index.ts`. Формы — Zod (`lib/validations.ts`).
+- **Именование:** компоненты PascalCase; утилиты/файлы — по сложившемуся стилю папки.
+- **Стили:** только Tailwind-токены новой системы; legacy-токены (cream/sand/charcoal/peach/sage)
+  удалены — не возвращать. Прямые углы, без теней.
+- **Классы:** склейка через `cn()` (`lib/utils.ts`, clsx + tailwind-merge).
+
+---
+
+## 10. Границы и «что НЕ делать»
+
+- Не подключать платежи/кредиты/гейтинг Premium до соответствующего этапа (см. §1, стратегия).
+- Не переводить админку на EN — она внутренняя, RU-only.
+- Не возвращать legacy дизайн-токены и скруглённые карточки.
+- Не хардкодить числа КБЖУ/калорий — только из `ingredients_base`/детерминированного расчёта.
+- Не трогать без необходимости: `AI_ARCHITECTURE.md`, `PRODUCT_STRATEGY.md` (бизнес-логика),
+  схему RLS (расширять, не ломать).
+- Dev-страницы `src/app/design-system` и `presentation` — внутренние, на старых классах;
+  можно удалить/обновить позже, на прод не влияют.
+
+---
+
+## 11. Карта документации
+
+- **`CLAUDE.md`** (этот файл) — операционный контекст, статус, правила. Обновлять при изменениях.
+- **`PRODUCT_STRATEGY.md`** — ЦА, монетизация, цены, риски, этапы. Бизнес-источник истины.
+- **`BRAND_PLAN.md`** — бренд: имя (The Slow Table), слоган, голос, нейминг-процесс.
+- **`AI_ARCHITECTURE.md`** — детали AI-слоя (КБЖУ, генерация, перевод).
+- **`design_handoff_editorial_redesign/README.md`** — хендофф редизайна (исторический, миграция завершена).
+- **`.claude/skills/`** — кастомные скиллы (генерация фото-промптов).
+- **`README.md`** — быстрый старт для человека (setup, команды, деплой).

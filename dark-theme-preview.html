@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>by Daria — превью светлой и тёмной темы</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=Inter:wght@400;500;600;700&family=Lora:ital@0;1&display=swap" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: #888; padding: 24px; }
+  .display { font-family: 'Playfair Display', Georgia, serif; }
+  .reader  { font-family: 'Lora', Georgia, serif; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; max-width: 1100px; margin: 0 auto; }
+  @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
+  .panel { padding: 28px; }
+  .tag { font-size: 11px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
+  .eyebrow { font-size: 11px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; }
+  .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+  .btn { display: inline-flex; align-items: center; padding: 13px 24px; font-size: 12px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; border: 0; cursor: default; }
+  .legend { max-width: 1100px; margin: 24px auto 0; color: #fff; font-size: 13px; line-height: 1.7; }
+</style>
+</head>
+<body>
+
+<div class="grid">
+
+  <!-- ───────────── LIGHT ───────────── -->
+  <section class="panel" style="background:#F2EDE3; color:#15110D;">
+    <div class="tag" style="color:rgba(21,17,13,.62); margin-bottom:24px;">Светлая тема</div>
+
+    <div class="eyebrow" style="color:#A37A33;">Глава I · Завтрак</div>
+    <h1 class="display" style="font-size:52px; line-height:.9; letter-spacing:-2px; color:#4A1E1E; margin:10px 0 14px;">
+      Готовлю<br><em style="font-style:italic; color:#C99846;">для своих.</em>
+    </h1>
+    <p style="font-size:15px; line-height:1.7; color:rgba(21,17,13,.62); max-width:380px;">
+      Личная книга рецептов с AI-нутрициологом, который считает калории точно.
+    </p>
+
+    <!-- card -->
+    <div style="margin:26px 0;">
+      <div style="position:relative; height:140px; background:#E8DFCB; display:flex; align-items:center; justify-content:center;">
+        <span class="display" style="font-style:italic; font-size:26px; color:rgba(74,30,30,.3);">фото</span>
+        <div class="tag" style="position:absolute; top:12px; left:12px; background:#C99846; color:#2F1212; padding:6px 10px; font-size:10px;">P. 008</div>
+      </div>
+      <div style="display:flex; gap:14px; align-items:baseline; margin-top:14px;">
+        <span class="display" style="font-style:italic; font-size:48px; line-height:.9; color:#C99846;">I</span>
+        <div>
+          <div class="eyebrow" style="color:#A37A33; margin-bottom:5px;">Завтрак</div>
+          <div class="display" style="font-size:22px; line-height:1.15; color:#15110D;">Круассан с бри и сливой</div>
+        </div>
+      </div>
+      <div class="tag" style="display:flex; justify-content:space-between; border-top:1px solid rgba(21,17,13,.18); margin-top:12px; padding-top:10px; font-size:11px; color:rgba(21,17,13,.62);">
+        <span>15 мин</span><span>Читать →</span>
+      </div>
+    </div>
+
+    <!-- contrast band (bg = burg) -->
+    <div style="background:#4A1E1E; color:#F2EDE3; padding:22px; margin:22px 0;">
+      <div class="eyebrow" style="color:#C99846;">Пищевая ценность</div>
+      <div style="display:flex; align-items:baseline; gap:12px; margin-top:8px;">
+        <span class="display" style="font-style:italic; font-size:56px; line-height:.9; color:#C99846;">425</span>
+        <span class="tag" style="font-size:11px; color:rgba(242,237,227,.8);">ккал · 24% нормы</span>
+      </div>
+    </div>
+
+    <div class="row">
+      <span class="btn" style="background:#4A1E1E; color:#F2EDE3;">Открыть номер</span>
+      <span class="btn" style="background:transparent; color:#4A1E1E; border:1.5px solid #4A1E1E;">Тарифы</span>
+      <span class="btn" style="background:#C99846; color:#2F1212;">Premium</span>
+    </div>
+  </section>
+
+  <!-- ───────────── DARK ───────────── -->
+  <section class="panel" style="background:#17120F; color:#ECE3D4;">
+    <div class="tag" style="color:rgba(236,227,212,.62); margin-bottom:24px;">Тёмная тема</div>
+
+    <div class="eyebrow" style="color:#C9A258;">Глава I · Завтрак</div>
+    <h1 class="display" style="font-size:52px; line-height:.9; letter-spacing:-2px; color:#EDE3D1; margin:10px 0 14px;">
+      Готовлю<br><em style="font-style:italic; color:#C99846;">для своих.</em>
+    </h1>
+    <p style="font-size:15px; line-height:1.7; color:rgba(236,227,212,.62); max-width:380px;">
+      Личная книга рецептов с AI-нутрициологом, который считает калории точно.
+    </p>
+
+    <!-- card -->
+    <div style="margin:26px 0;">
+      <div style="position:relative; height:140px; background:#221A15; display:flex; align-items:center; justify-content:center;">
+        <span class="display" style="font-style:italic; font-size:26px; color:rgba(237,227,209,.3);">фото</span>
+        <div class="tag" style="position:absolute; top:12px; left:12px; background:#C99846; color:#2F1212; padding:6px 10px; font-size:10px;">P. 008</div>
+      </div>
+      <div style="display:flex; gap:14px; align-items:baseline; margin-top:14px;">
+        <span class="display" style="font-style:italic; font-size:48px; line-height:.9; color:#C99846;">I</span>
+        <div>
+          <div class="eyebrow" style="color:#C9A258; margin-bottom:5px;">Завтрак</div>
+          <div class="display" style="font-size:22px; line-height:1.15; color:#ECE3D4;">Круассан с бри и сливой</div>
+        </div>
+      </div>
+      <div class="tag" style="display:flex; justify-content:space-between; border-top:1px solid rgba(236,227,212,.16); margin-top:12px; padding-top:10px; font-size:11px; color:rgba(236,227,212,.62);">
+        <span>15 мин</span><span>Читать →</span>
+      </div>
+    </div>
+
+    <!-- contrast band (bg = section → ОСТАЁТСЯ тёмной в тёмной теме) -->
+    <div style="background:#4A1E1E; color:#F2EDE3; padding:22px; margin:22px 0;">
+      <div class="eyebrow" style="color:#C9A258;">Пищевая ценность</div>
+      <div style="display:flex; align-items:baseline; gap:12px; margin-top:8px;">
+        <span class="display" style="font-style:italic; font-size:56px; line-height:.9; color:#C99846;">425</span>
+        <span class="tag" style="font-size:11px; color:rgba(242,237,227,.8);">ккал · 24% нормы</span>
+      </div>
+    </div>
+
+    <div class="row">
+      <span class="btn" style="background:#EDE3D1; color:#17120F;">Открыть номер</span>
+      <span class="btn" style="background:transparent; color:#EDE3D1; border:1.5px solid #EDE3D1;">Тарифы</span>
+      <span class="btn" style="background:#C99846; color:#2F1212;">Premium</span>
+    </div>
+  </section>
+
+</div>
+
+<div class="legend">
+  Слева — светлая тема (как на проде), справа — тёмная. Решение внедрено: «бордовая плашка»
+  (КБЖУ), тёмные CTA и футер теперь ОСТАЮТСЯ тёмными и в тёмной теме (отдельный стабильный
+  токен section), а не инвертируются в кремовый. Заголовки и кнопки по-прежнему инвертируются —
+  светлая «пилюля» на тёмном фоне. Плашки на охре (P. 008, Premium) читаются в обеих темах.
+</div>
+
+</body>
+</html>

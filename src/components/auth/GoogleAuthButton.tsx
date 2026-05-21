@@ -45,11 +45,12 @@ export default function GoogleAuthButton({ redirectTo = "/" }: GoogleAuthButtonP
         onClick={handleClick}
         disabled={loading}
         /*
-         * Цвета ФИКСИРОВАННЫЕ (не charcoal/cream-токены) — Google brand guidelines
-         * требуют белую кнопку с тёмным текстом в любой теме. Токены charcoal
-         * переворачиваются в dark-mode → текст становился невидимым на белом фоне.
+         * Фиксированные hex-цвета по официальным гайдлайнам Google (отдельные
+         * light- и dark-варианты кнопки), а НЕ токены темы — токены charcoal/cream
+         * переворачивались в dark-mode и убивали контраст. dark: даёт тёмную кнопку
+         * Google со светлым текстом; hover в каждой теме сохраняет контраст текста.
          */
-        className="w-full flex items-center justify-center gap-3 bg-white border border-black/[0.12] rounded-none py-3.5 px-4 text-sm font-medium text-[#1f1f1f] hover:bg-black/[0.04] hover:border-black/20 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full flex items-center justify-center gap-3 rounded-none py-3.5 px-4 text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-white text-[#1f1f1f] border border-black/[0.12] hover:bg-black/[0.04] hover:border-black/20 dark:bg-[#131314] dark:text-[#e3e3e3] dark:border-white/[0.22] dark:hover:bg-white/[0.07] dark:hover:border-white/[0.35]"
       >
         <GoogleLogo />
         <span>{loading ? t("googleLoading") : t("googleButton")}</span>

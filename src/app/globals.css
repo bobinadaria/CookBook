@@ -23,6 +23,28 @@
     --soft-invert: rgba(242,237,227,.78);  /* text on burg/contrast surface */
     --rule-invert: rgba(242,237,227,.20);  /* dividers on burg surface      */
 
+    /* Theme-stable dark ink for text ON ochre surfaces (badges, plates, dials,
+     * ochre buttons). NOT overridden in .dark — ochre stays mid-tone in both
+     * themes, so its text must stay dark in both themes too.                 */
+    --seal: 0 45% 13%;   /* #2F1212 */
+
+    /* Theme-stable DARK SECTION surfaces (контрастные баннеры): блок КБЖУ,
+     * тёмные CTA, футер, premium-тариф. Эти блоки остаются ТЁМНЫМИ в обеих
+     * темах — страница и заголовки инвертируются, а секции-баннеры из инверсии
+     * выходят (по образцу --seal). НЕ переопределяются в .dark. Если захочется
+     * сделать секции в тёмной теме ещё глубже — добавь --section в .dark.
+     * (Старые --soft-invert/--rule-invert оставлены для обратной совместимости,
+     * но новые тёмные секции используют section-*.)                            */
+    --section:      0 42% 20%;              /* #4A1E1E — фон тёмной секции      */
+    --section-fg:   40 37% 92%;             /* #F2EDE3 — кремовый текст на ней  */
+    --section-soft: rgba(242,237,227,.78);  /* приглушённый текст на секции     */
+    --section-rule: rgba(242,237,227,.20);  /* линии-разделители на секции      */
+
+    /* Display-шрифт (заголовки), всё self-hosted: латиница — Bodoni Moda (@fontsource,
+     * локальные woff2), кириллица + фолбэк — Playfair Display (next/font, var --font-playfair).
+     * У Bodoni Moda нет кириллицы, поэтому русские глифы автоматически берутся из Playfair. */
+    --font-display: "Bodoni Moda Variable", var(--font-playfair), Georgia, serif;
+
     /* Safe area insets (populated by browser when viewport-fit=cover) */
     --sat: env(safe-area-inset-top,    0px);
     --sar: env(safe-area-inset-right,  0px);
@@ -130,10 +152,6 @@
   }
   .scrollbar-hide::-webkit-scrollbar {
     display: none;                /* Chrome, Safari, Chrome on iOS */
-  }
-
-  .font-handwritten {
-    font-family: var(--font-satisfy), cursive;
   }
 
   .text-balance {

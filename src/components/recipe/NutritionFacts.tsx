@@ -35,50 +35,49 @@ export default async function NutritionFacts({
 
   return (
     <section className="mx-auto max-w-[1320px] px-6 pb-20 md:px-10 lg:px-14">
-      <div className="grid items-center gap-10 bg-burg px-6 py-12 text-paper md:px-14 lg:grid-cols-[1fr_1.4fr] lg:gap-14">
+      <div className="grid items-center gap-10 bg-section px-6 py-12 text-section-fg md:px-14 lg:grid-cols-[1fr_1.4fr] lg:gap-14">
         {/* Left — heading + method note */}
         <div>
           <Eyebrow color="text-ochre">{t("title")}</Eyebrow>
-          <h2 className="mb-4 mt-3 font-display text-[48px] font-normal italic leading-[0.9] tracking-[-0.02em] text-paper sm:text-[64px]">
-            На&nbsp;порцию.
+          <h2 className="mb-4 mt-3 font-display text-[48px] font-normal italic leading-[0.9] tracking-[-0.02em] text-section-fg sm:text-[64px]">
+            {t("perServingTitle")}
           </h2>
-          <p className="max-w-[360px] font-body text-[14px] leading-[1.7] text-soft-invert">
-            Считаем по USDA FoodData Central — государственная база на ~400&nbsp;000 продуктов.
-            Точность ±5%, не «примерно как ChatGPT сказал».
+          <p className="max-w-[360px] font-body text-[14px] leading-[1.7] text-section-soft">
+            {t("method")}
           </p>
-          <p className="mt-6 max-w-[360px] font-body text-[10px] font-semibold uppercase leading-[1.7] tracking-[0.16em] text-soft-invert">
+          <p className="mt-6 max-w-[360px] font-body text-[10px] font-semibold uppercase leading-[1.7] tracking-[0.16em] text-section-soft">
             ※ {t("approximate")}
           </p>
         </div>
 
         {/* Right — big kcal + macros */}
         <div>
-          <div className="flex items-baseline gap-4 border-b border-rule-invert pb-5">
+          <div className="flex items-baseline gap-4 border-b border-section-rule pb-5">
             <span className="font-display text-[80px] font-normal italic leading-[0.9] tracking-[-0.03em] text-ochre sm:text-[120px]">
               {kcal}
             </span>
-            <span className="font-body text-[12px] font-semibold uppercase tracking-[0.14em] text-paper/80">
-              {t("kcal")} · {kcalPct}% дневной нормы
+            <span className="font-body text-[12px] font-semibold uppercase tracking-[0.14em] text-section-fg/80">
+              {t("kcal")} · {kcalPct}% {t("dailyValue")}
             </span>
           </div>
 
           <div className="mt-6 grid grid-cols-3 gap-5 sm:gap-6">
             {macros.map((m) => (
               <div key={m.label}>
-                <Eyebrow color="text-paper/65">{m.label}</Eyebrow>
+                <Eyebrow color="text-section-fg/65">{m.label}</Eyebrow>
                 <div className="mt-2">
-                  <span className="font-display text-[36px] font-normal leading-none text-paper sm:text-[48px]">
+                  <span className="font-display text-[36px] font-normal leading-none text-section-fg sm:text-[48px]">
                     {m.value}
                   </span>
-                  <span className="ml-1.5 font-body text-[11px] font-semibold tracking-[0.08em] text-paper/65">
+                  <span className="ml-1.5 font-body text-[11px] font-semibold tracking-[0.08em] text-section-fg/65">
                     {t("gram")}
                   </span>
                 </div>
-                <div className="mt-2 h-1 bg-paper/15">
+                <div className="mt-2 h-1 bg-section-fg/15">
                   <div className="h-full bg-ochre" style={{ width: `${Math.min(100, m.p)}%` }} />
                 </div>
-                <div className="mt-1.5 font-body text-[10px] font-semibold tracking-[0.13em] text-paper/60">
-                  {m.p}% от нормы
+                <div className="mt-1.5 font-body text-[10px] font-semibold tracking-[0.13em] text-section-fg/60">
+                  {m.p}% {t("ofTarget")}
                 </div>
               </div>
             ))}

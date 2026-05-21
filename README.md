@@ -1,36 +1,76 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Cookbook — «by Daria»
 
-## Getting Started
+Личная кулинарная книга-журнал с AI-нутрициологом. Next.js 14 (App Router) + Supabase + OpenAI,
+двуязычие RU/EN, editorial-magazine дизайн. Прод на Vercel.
 
-First, run the development server:
+> Полный контекст проекта, актуальный статус и правила разработки — в **`CLAUDE.md`**.
+> Бизнес-стратегия — `PRODUCT_STRATEGY.md`, AI-слой — `AI_ARCHITECTURE.md`.
+
+## Стек
+
+Next.js 14 · TypeScript · Tailwind CSS · Supabase (Postgres/Auth/Storage) · OpenAI ·
+next-intl · next-themes · GSAP · Zod · deploy на Vercel.
+
+## Быстрый старт
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env.local   # затем заполни ключи (см. ниже)
+npm run dev                  # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Переменные окружения (`.env.local`)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+NEXT_PUBLIC_SITE_URL=          # базовый URL (http://localhost:3000 локально)
+NEXT_PUBLIC_SUPABASE_URL=      # Supabase project URL
+NEXT_PUBLIC_SUPABASE_ANON_KEY= # Supabase anon key
+SUPABASE_SERVICE_ROLE_KEY=     # service role (билд/скрипты, обход RLS) — секрет
+OPENAI_API_KEY=                # КБЖУ-парсинг, перевод, генерация обложек
+GOOGLE_AI_API_KEY=             # вспомогательный AI
+USDA_API_KEY=                  # наполнение справочника ингредиентов
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Команды
 
-## Learn More
+```bash
+npm run dev      # дев-сервер с hot-reload
+npm run build    # прод-сборка (на этапе static generation тянет Supabase)
+npm run start    # запуск прод-сборки локально
+npm run lint     # ESLint
+npx tsc --noEmit # проверка типов
+```
 
-To learn more about Next.js, take a look at the following resources:
+> Не запускай `dev` и `build`/`start` одновременно — общий каталог `.next` испортится.
+> При странных ошибках сборки: `rm -rf .next && npm run build`. Если порт занят:
+> `lsof -ti:3000 | xargs kill` или `npm run start -- -p 4000`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Скрипты и миграции (`scripts/`)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `seed-ingredients.mjs` — наполнение `ingredients_base` (USDA + рус-справочники).
+- `recalc-all-nutrition.mjs` — пересчёт КБЖУ по всем рецептам.
+- `gen-cover.mjs` / `compress-covers.mjs` — генерация и сжатие обложек.
+- `test-calc-nutrition.mjs` — проверка расчёта КБЖУ.
+- `*.sql` — миграции БД, применять вручную в Supabase SQL Editor.
 
-## Deploy on Vercel
+Запуск: `node scripts/<файл>.mjs` (скрипты читают `.env.local`).
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Структура
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Кратко: `src/app/(public|auth)`, `src/app/dashboard`, `src/app/admin`, `src/app/api/admin`,
+`src/components/{ui,layout,recipe,admin,animations}`, `src/lib/{supabase,nutrition}`,
+`messages/{ru,en}.json`. Подробная карта — в `CLAUDE.md` §4.
+
+## Деплой
+
+Vercel (Hobby). Подключить env-переменные в настройках проекта, затем `git push` в основную
+ветку — Vercel соберёт и задеплоит автоматически.
+
+## Документация
+
+| Файл | О чём |
+|---|---|
+| `CLAUDE.md` | Операционный контекст: статус, следующие шаги, правила, схема данных |
+| `PRODUCT_STRATEGY.md` | ЦА, монетизация, цены, риски, этапы |
+| `AI_ARCHITECTURE.md` | Архитектура AI-слоя (КБЖУ, генерация, перевод) |
+| `design_handoff_editorial_redesign/README.md` | Хендофф редизайна (исторический) |

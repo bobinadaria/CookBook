@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { localizedField } from "@/lib/localized-content";
 import type { Category, LocaleCode, RecipeCardData } from "@/types";
@@ -53,6 +53,7 @@ export default function RecipeCard({
 }: RecipeCardProps) {
   const hookLocale = useLocale() as LocaleCode;
   const locale = localeProp ?? hookLocale;
+  const t = useTranslations("recipe");
   const { favorites } = useFavorites();
   const isFavorited = favorites.has(recipe.slug);
 
@@ -96,12 +97,12 @@ export default function RecipeCard({
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-crust">
-            <span className="font-display text-3xl italic text-burg/30">by Daria</span>
+            <span className="font-display text-3xl italic text-burg/30">The Slow Table</span>
           </div>
         )}
 
         {pageNo && (
-          <div className="absolute left-3 top-3 bg-ochre px-2.5 py-1.5 font-body text-[10px] font-bold uppercase tracking-[0.16em] text-burg transition-colors group-hover:bg-ochre-dk">
+          <div className="absolute left-3 top-3 bg-ochre px-2.5 py-1.5 font-body text-[10px] font-bold uppercase tracking-[0.16em] text-seal transition-colors group-hover:bg-ochre-dk">
             P. {pageNo}
           </div>
         )}
@@ -133,8 +134,8 @@ export default function RecipeCard({
       {/* ── Footer meta ── */}
       {showMeta && (
         <div className="mt-3.5 flex items-center justify-between border-t border-rule pt-3 font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-soft">
-          <span>{recipe.cook_time ? `${recipe.cook_time} мин` : " "}</span>
-          <span className="transition-colors group-hover:text-burg">Читать &rarr;</span>
+          <span>{recipe.cook_time ? `${recipe.cook_time} ${t("min")}` : " "}</span>
+          <span className="transition-colors group-hover:text-burg">{t("readMore")}</span>
         </div>
       )}
     </Link>

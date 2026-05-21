@@ -1,9 +1,11 @@
 import type { Metadata, Viewport } from "next";
-import { Cormorant_Garamond, DM_Serif_Display, Satisfy, Plus_Jakarta_Sans } from "next/font/google";
-// Кириллические аналоги шрифтов хендоффа (Bodoni/Work Sans/Newsreader не имеют
-// cyrillic-сабсета). Playfair Display = дидон как Bodoni (есть в фолбэке хендоффа),
-// Inter = гротеск как Work Sans, Lora = текстовый сериф как Newsreader. Все с кириллицей.
+// Display-стек (self-hosted, без Google CDN): Bodoni Moda — латиница, через @fontsource (локальные
+// woff2); Playfair Display — кириллица + фолбэк, через next/font. У Bodoni Moda НЕТ кириллицы
+// (latin/latin-ext/math/symbols), поэтому русские заголовки идут Playfair — как и в прототипе.
+// body = Inter (замена Work Sans), reader = Lora (замена Newsreader).
 import { Playfair_Display, Inter, Lora } from "next/font/google";
+import "@fontsource-variable/bodoni-moda";
+import "@fontsource-variable/bodoni-moda/wght-italic.css";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import "./globals.css";
@@ -11,40 +13,13 @@ import CursorGlow from "@/components/animations/CursorGlow";
 import { ThemeProvider } from "@/components/layout/ThemeProvider";
 import { getSiteUrl } from "@/lib/site-url";
 
-const cormorant = Cormorant_Garamond({
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  variable: "--font-cormorant",
-  display: "swap",
-});
-
-const dmSerif = DM_Serif_Display({
-  subsets: ["latin"],
-  weight: ["400"],
-  variable: "--font-dm-serif",
-  display: "swap",
-});
-
-const satisfy = Satisfy({
-  subsets: ["latin"],
-  weight: ["400"],
-  variable: "--font-satisfy",
-  display: "swap",
-});
-
-const plusJakarta = Plus_Jakarta_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  variable: "--font-plus-jakarta",
-  display: "swap",
-});
-
-// ─── НОВАЯ типографика (editorial magazine redesign) ────────────────────────
-const display = Playfair_Display({
+// ─── Типографика (editorial magazine) ──────────────────────────────────────
+// Playfair Display — кириллица заголовков + фолбэк к Bodoni (у которого кириллицы нет).
+const playfair = Playfair_Display({
   subsets: ["latin", "cyrillic"],
   weight: ["400", "500", "600", "700"],
   style: ["normal", "italic"],
-  variable: "--font-display",
+  variable: "--font-playfair",
   display: "swap",
 });
 const body = Inter({
@@ -66,35 +41,35 @@ const SITE_URL = getSiteUrl();
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "bydaria.kitchen — Personal Recipe Collection",
-    template: "%s — bydaria.kitchen",
+    default: "The Slow Table — Your Cookbook with an AI Nutritionist",
+    template: "%s — The Slow Table",
   },
   description:
-    "A curated collection of personal recipes by Daria — beautifully presented, cozy, and full of flavour.",
+    "Build your own book of beautiful recipes — the comfort of home, daily ideas, and exact nutrition from an AI nutritionist.",
   alternates: {
     canonical: "/",
   },
   openGraph: {
     type: "website",
     url: SITE_URL,
-    siteName: "bydaria.kitchen",
-    title: "bydaria.kitchen — Personal Recipe Collection",
+    siteName: "The Slow Table",
+    title: "The Slow Table — Your Cookbook with an AI Nutritionist",
     description:
-      "A curated collection of personal recipes by Daria — beautifully presented, cozy, and full of flavour.",
+      "Build your own book of beautiful recipes — the comfort of home, daily ideas, and exact nutrition from an AI nutritionist.",
     images: [
       {
         url: "/og-image.jpg",
         width: 1200,
         height: 630,
-        alt: "bydaria.kitchen",
+        alt: "The Slow Table · by Daria",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "bydaria.kitchen — Personal Recipe Collection",
+    title: "The Slow Table — Your Cookbook with an AI Nutritionist",
     description:
-      "A curated collection of personal recipes by Daria — beautifully presented, cozy, and full of flavour.",
+      "Build your own book of beautiful recipes — the comfort of home, daily ideas, and exact nutrition from an AI nutritionist.",
     images: ["/og-image.jpg"],
   },
   robots: {
@@ -126,7 +101,7 @@ export default async function RootLayout({
   return (
     <html
       lang={locale}
-      className={`${cormorant.variable} ${dmSerif.variable} ${satisfy.variable} ${plusJakarta.variable} ${display.variable} ${body.variable} ${reader.variable}`}
+      className={`${playfair.variable} ${body.variable} ${reader.variable}`}
       suppressHydrationWarning
     >
       <body className="antialiased">

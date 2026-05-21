@@ -9,7 +9,7 @@ const base =
 const variants: Record<EditorialButtonVariant, string> = {
   solid: "border-0 bg-burg text-paper hover:bg-burg-dk",
   ghost: "border-[1.5px] border-burg bg-transparent text-burg hover:bg-burg hover:text-paper",
-  ochre: "border-0 bg-ochre text-burg hover:bg-ochre-dk",
+  ochre: "border-0 bg-ochre text-seal hover:bg-ochre-dk",
   paper: "border-0 bg-paper text-burg hover:bg-crust",
 };
 

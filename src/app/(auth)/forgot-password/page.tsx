@@ -50,7 +50,7 @@ function ForgotPasswordContent() {
           href="/"
           className="font-display italic text-2xl text-ink hover:text-ochre-dk transition-colors"
         >
-          CookBook
+          The Slow Table
         </Link>
         <Link href="/login" className="text-sm text-soft hover:text-ochre-dk transition-colors">
           {t("backLink")}

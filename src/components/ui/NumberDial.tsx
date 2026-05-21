@@ -19,9 +19,9 @@ export default function NumberDial({ n, label, className }: NumberDialProps) {
         className,
       )}
     >
-      <span className="font-display text-[38px] font-normal leading-none text-burg">{n}</span>
+      <span className="font-display text-[38px] font-normal leading-none text-seal">{n}</span>
       {label && (
-        <span className="mt-0.5 font-body text-[9px] font-bold uppercase tracking-[0.16em] text-burg">
+        <span className="mt-0.5 font-body text-[9px] font-bold uppercase tracking-[0.16em] text-seal">
           {label}
         </span>
       )}
