@@ -34,6 +34,7 @@ export async function fetchFeaturedRecipes(): Promise<RecipeCardData[]> {
     .from("recipes")
     .select(CARD_SELECT)
     .eq("published", true)
+    .eq("visibility", "public") // never surface private user recipes
     .eq("featured", true)
     .order("created_at", { ascending: false })
     .limit(6);
@@ -49,6 +50,7 @@ export async function fetchPublishedRecipes(): Promise<RecipeCardData[]> {
     .from("recipes")
     .select("id, title, title_en, slug, cover_image, description, note, created_at, updated_at, recipe_categories(category_id)")
     .eq("published", true)
+    .eq("visibility", "public") // never surface private user recipes
     .order("created_at", { ascending: false });
 
   if (error) throw error;
@@ -70,6 +72,7 @@ export async function fetchRecipeBySlug(slug: string): Promise<Recipe | null> {
     `)
     .eq("slug", slug)
     .eq("published", true)
+    .eq("visibility", "public") // never surface private user recipes
     .single();
 
   if (error) {
@@ -126,7 +129,8 @@ export async function fetchRelatedRecipes(
     .from("recipes")
     .select(CARD_SELECT)
     .in("id", topIds)
-    .eq("published", true);
+    .eq("published", true)
+    .eq("visibility", "public"); // never surface private user recipes
 
   // Restore the overlap-based order (Supabase .in() doesn't guarantee order).
   const byId = Object.fromEntries(

@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 
 const ITEMS = [
   { href: "/dashboard", key: "navHome" },
+  { href: "/dashboard/recipes", key: "navMyRecipes" },
   { href: "/dashboard/favorites", key: "navFavorites" },
   { href: "/dashboard/notes", key: "navNotes" },
 ] as const;
@@ -19,7 +20,12 @@ export default function DashboardNav() {
     <nav className="mx-auto max-w-5xl px-6 pt-6">
       <div className="flex flex-wrap items-center gap-2">
         {ITEMS.map((item) => {
-          const active = pathname === item.href;
+          // "/dashboard" matches exactly; sub-sections also match nested routes
+          // (e.g. /dashboard/recipes/new keeps "My cookbook" highlighted).
+          const active =
+            item.href === "/dashboard"
+              ? pathname === item.href
+              : pathname === item.href || pathname.startsWith(`${item.href}/`);
           return (
             <Link
               key={item.href}

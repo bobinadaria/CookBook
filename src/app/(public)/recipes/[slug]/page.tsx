@@ -26,7 +26,11 @@ export const revalidate = 3600;
 export async function generateStaticParams() {
   // Service-role client: на билде нет request scope (cookies/session).
   const supabase = createServiceRoleClient();
-  const { data } = await supabase.from("recipes").select("slug").eq("published", true);
+  const { data } = await supabase
+    .from("recipes")
+    .select("slug")
+    .eq("published", true)
+    .eq("visibility", "public"); // don't prerender private user recipes
   return (data ?? []).map((r) => ({ slug: r.slug }));
 }
 
@@ -93,6 +97,9 @@ const getRecipe = cache(async function getRecipe(slug: string) {
       recipe_categories ( categories ( * ) )
     `)
     .eq("slug", slug)
+    // Public route shows only public recipes — private user recipes never render
+    // here, even for their owner or an admin (defense in depth on top of RLS).
+    .eq("visibility", "public")
     .maybeSingle();
 
   if (!data) return null;

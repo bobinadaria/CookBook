@@ -1,6 +1,6 @@
 # Мини-план: «Своя книга рецептов» (первая фича Фазы B)
 
-> **Версия:** 0.1 · **Создано:** 2026-05-22 · **Статус: дизайн, перед кодом.**
+> **Версия:** 0.4 · **Создано:** 2026-05-22 · **Статус: Шаги 1–8 написаны (вся фича в коде). Локально зелёные tsc + lint + паритет i18n; финальный прод-билд прогнать на Mac.**
 >
 > Решения Дарьи: **полный формат** (переиспользуем механику сайта) + **приватно** (v1).
 > Это первая фича из Фазы B в `MONETIZATION_PLAN.md` (строим ценность; оплаты ещё нет).
@@ -102,16 +102,31 @@
 
 ## 8. Чек-лист реализации (порядок)
 
-1. **Миграция SQL** (`scripts/migration-user-recipes.sql`): `recipes` +`owner_id`/`visibility`/индекс;
-   `profiles` +`plan`; RLS для `recipes` / `steps` / `recipe_categories`. Применить в Supabase SQL Editor.
-2. **Типы:** `Recipe` +`owner_id`/`visibility`; `Profile` +`plan`.
-3. **`getEntitlements()`** + фиче-флаг `MONETIZATION_ENABLED`.
-4. **Server actions:** `createUserRecipe` / `updateUserRecipe` / `deleteUserRecipe` (owner_id форсится, лимит).
-5. **UI:** список + форма (new/edit) + просмотр + пункт в `DashboardNav`.
-6. **i18n:** строки новых экранов в `messages/ru.json` + `en.json` (паритет ключей).
-7. **Безопасность каталога:** убедиться, что публичный каталог и `generateStaticParams` фильтруют
-   `visibility = 'public'` — приватные не утекают в прероллы/каталог/`[slug]`.
-8. **Проверка:** `tsc`; RLS вручную (другой пользователь не видит чужое); лимит при включённом флаге.
+1. ✅ **Миграция SQL** (`scripts/migration-user-recipes.sql`): `recipes` +`owner_id`/`visibility`/индекс;
+   `profiles` +`plan`; RLS для `recipes` / `steps` / `recipe_categories`. **Применено в Supabase 2026-05-22**
+   (4 блоками из-за обрезки при вставке). Проверено: публичный сайт и шаги рецептов работают.
+2. ✅ **Типы:** `Recipe` +`owner_id`/`visibility`; `Profile` +`plan`. tsc прошёл.
+3. ✅ **`getEntitlements()`** + фиче-флаг `MONETIZATION_ENABLED`. Готово (`src/lib/entitlements.ts`):
+   `getEntitlements(userId)` читает `profiles.plan` через service-role → `{ plan, monetizationEnabled,
+   limits: { recipes: 15|null } }`; флаг выключен → лимит `null` (безлимит). Доп. хелпер
+   `canCreateRecipe(userId, currentCount)` для Шага 4. Флаг задокументирован в `.env.example`. tsc прошёл.
+4. ✅ **Server actions** (`src/app/dashboard/recipes/actions.ts`): `createUserRecipe` /
+   `updateUserRecipe` / `deleteUserRecipe`. Сервер форсит `owner_id=auth.uid()` / `visibility='private'`
+   / `published=false`; лимит через `canCreateRecipe` (RLS дублирует инварианты). Слаг приватного
+   рецепта — `toSlug(title)-<rand>` (вынес чистый `toSlug` в `src/lib/slug.ts`). Загрузка фото — через
+   новый auth-роут `src/app/api/upload/route.ts` (любой залогиненный, путь `u/<uid>/…`), не admin-only;
+   так обходим лимит тела server action (1MB) для картинок.
+5. ✅ **UI** (`/dashboard/recipes` список, `/new`, `/[id]/edit`, `/[id]` просмотр). Пункт «Моя книга»
+   в `DashboardNav` (+ active-state для вложенных), карточка-счётчик на хабе. Двуязычная
+   `UserRecipeForm` (`src/components/dashboard/`) на своих i18n-полях — БЕЗ admin-контролов
+   (publish/featured, AI). Просмотр — отдельный lean editorial-вид + `RecipeOwnerActions` (ред./удал.).
+6. ✅ **i18n:** namespace `myRecipes` (44 ключа) + 3 ключа в `dashboard`, паритет RU/EN проверен.
+7. ✅ **Безопасность каталога:** `visibility='public'` добавлен во все публичные запросы
+   (`queries/recipes.ts` ×4, каталог, `[slug]` `getRecipe` + `generateStaticParams`). Приватные
+   не утекают даже владельцу/админу по публичному URL. (Пользовательские и так `published=false`.)
+8. ✅/⏳ **Проверка:** `npx tsc --noEmit` — чисто; `next lint` — чисто; паритет i18n — ок.
+   Полный `next build` в sandbox не прогнать (тайминги/права на `.next`) — **прогнать на Mac**.
+   Осталось ручное: RLS «чужой не видит чужое» и лимит при `MONETIZATION_ENABLED=true`.
 
 ---
 

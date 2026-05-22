@@ -35,9 +35,18 @@
     "heroCtaOpen": "Open the issue →",
     "heroCtaTry": "42 recipes · try it",
     "heroFacts": [
-      { "v": "±5%", "l": "nutrition accuracy" },
-      { "v": "USDA", "l": "no hallucinations" },
-      { "v": "2", "l": "languages: RU & EN" }
+      {
+        "v": "±5%",
+        "l": "nutrition accuracy"
+      },
+      {
+        "v": "USDA",
+        "l": "no hallucinations"
+      },
+      {
+        "v": "2",
+        "l": "languages: RU & EN"
+      }
     ],
     "heroPlateNo": "№ 01",
     "heroPlateLabel": "On the cover",
@@ -65,10 +74,22 @@
     "statsEyebrow": "The kitchen in numbers",
     "statsTitle": "Why this isn’t just another recipe collection.",
     "stats": [
-      { "n": "±5%", "t": "Nutrition accuracy. Through USDA mapping, not ChatGPT — which is off by 30%." },
-      { "n": "10 / 5", "t": "Welcome AI credits to start. Try all the magic without reaching for your card." },
-      { "n": "€7.90", "t": "A month of Premium — lifts the limits, opens import, export, dark mode." },
-      { "n": "50", "t": "Lifetime seats for the first readers. One payment — forever." }
+      {
+        "n": "±5%",
+        "t": "Nutrition accuracy. Through USDA mapping, not ChatGPT — which is off by 30%."
+      },
+      {
+        "n": "10 / 5",
+        "t": "Welcome AI credits to start. Try all the magic without reaching for your card."
+      },
+      {
+        "n": "€7.90",
+        "t": "A month of Premium — lifts the limits, opens import, export, dark mode."
+      },
+      {
+        "n": "50",
+        "t": "Lifetime seats for the first readers. One payment — forever."
+      }
     ],
     "subEyebrow": "Subscription — €7.90 / mo",
     "subTitle1": "Get",
@@ -87,7 +108,11 @@
     "title1": "Get",
     "titleAccent": "the whole issue.",
     "headerLede": "Free — your book and ten AI credits to try. Premium lifts the ceilings and adds the nutrition magic. Lifetime — for the first fifty; one payment, forever. AI images are separate, by credits.",
-    "headerFacts": ["cancel in one click", "no ads", "VAT included · Paddle"],
+    "headerFacts": [
+      "cancel in one click",
+      "no ads",
+      "VAT included · Paddle"
+    ],
     "tiers": [
       {
         "key": "free",
@@ -97,18 +122,54 @@
         "cadence": "forever",
         "lede": "Your book, to see whether you need more. No card, no trial, no reminders.",
         "features": [
-          ["Author’s recipe catalog", true],
-          ["Create your own recipes", "20 max"],
-          ["Welcome AI credits", "10 nutrition + 5 recipes"],
-          ["Regular AI", "1 + 1 per month"],
-          ["Favorites", "50 max"],
-          ["Private notes", true],
-          ["Share a recipe", true],
-          ["Import from URL", false],
-          ["Export to PDF", false],
-          ["Dark mode", false],
-          ["Week’s menu + shopping list", false],
-          ["AI images", false]
+          [
+            "Author’s recipe catalog",
+            true
+          ],
+          [
+            "Create your own recipes",
+            "20 max"
+          ],
+          [
+            "Welcome AI credits",
+            "10 nutrition + 5 recipes"
+          ],
+          [
+            "Regular AI",
+            "1 + 1 per month"
+          ],
+          [
+            "Favorites",
+            "50 max"
+          ],
+          [
+            "Private notes",
+            true
+          ],
+          [
+            "Share a recipe",
+            true
+          ],
+          [
+            "Import from URL",
+            false
+          ],
+          [
+            "Export to PDF",
+            false
+          ],
+          [
+            "Dark mode",
+            false
+          ],
+          [
+            "Week’s menu + shopping list",
+            false
+          ],
+          [
+            "AI images",
+            false
+          ]
         ],
         "cta": "Start free",
         "noteTop": "",
@@ -122,18 +183,54 @@
         "cadence": "/ mo or €69 / yr",
         "lede": "Unlimited AI, import, export, week’s menu. That “Notion from heaven”, just for food.",
         "features": [
-          ["Author’s recipe catalog", true],
-          ["Create your own recipes", "unlimited"],
-          ["Welcome AI credits", "not needed"],
-          ["Regular AI", "unlimited"],
-          ["Favorites", "unlimited"],
-          ["Private notes", true],
-          ["Share a recipe", true],
-          ["Import from URL", true],
-          ["Export to PDF", true],
-          ["Dark mode", true],
-          ["Week’s menu + shopping list", true],
-          ["AI images", "by credits"]
+          [
+            "Author’s recipe catalog",
+            true
+          ],
+          [
+            "Create your own recipes",
+            "unlimited"
+          ],
+          [
+            "Welcome AI credits",
+            "not needed"
+          ],
+          [
+            "Regular AI",
+            "unlimited"
+          ],
+          [
+            "Favorites",
+            "unlimited"
+          ],
+          [
+            "Private notes",
+            true
+          ],
+          [
+            "Share a recipe",
+            true
+          ],
+          [
+            "Import from URL",
+            true
+          ],
+          [
+            "Export to PDF",
+            true
+          ],
+          [
+            "Dark mode",
+            true
+          ],
+          [
+            "Week’s menu + shopping list",
+            true
+          ],
+          [
+            "AI images",
+            "by credits"
+          ]
         ],
         "cta": "Get Premium",
         "noteTop": "Most popular choice",
@@ -147,17 +244,50 @@
         "cadence": "one-time · first 50",
         "lede": "One payment, Premium forever. Your name in every issue’s colophon. Closes once it fills up.",
         "features": [
-          ["Everything in Premium", true],
-          ["Premium forever", true],
-          ["50 AI images bonus", true],
-          ["Name in the colophon", true],
-          ["Early access to new chapters", true],
-          ["Direct line to the author", true],
-          ["A say in features", "vote"],
-          ["Possible B2B plan later", "discounted"],
-          ["30-day refund", true],
-          ["Transfer to another email", true],
-          ["“Founder” sticker in comments", true]
+          [
+            "Everything in Premium",
+            true
+          ],
+          [
+            "Premium forever",
+            true
+          ],
+          [
+            "50 AI images bonus",
+            true
+          ],
+          [
+            "Name in the colophon",
+            true
+          ],
+          [
+            "Early access to new chapters",
+            true
+          ],
+          [
+            "Direct line to the author",
+            true
+          ],
+          [
+            "A say in features",
+            "vote"
+          ],
+          [
+            "Possible B2B plan later",
+            "discounted"
+          ],
+          [
+            "30-day refund",
+            true
+          ],
+          [
+            "Transfer to another email",
+            true
+          ],
+          [
+            "“Founder” sticker in comments",
+            true
+          ]
         ],
         "cta": "Become a founder · 37 / 50",
         "noteTop": "Closes when 50 are reached",
@@ -170,9 +300,21 @@
     "aiLede": "Your own style — top-down, warm light, a wooden board. One preset, the book’s recognizable visual DNA. Premium only, by credits only.",
     "packLabel": "pack",
     "packs": [
-      ["S", "€4.90", "50 images"],
-      ["M", "€9.90", "120 · bonus +20%"],
-      ["L", "€19.90", "300 · bonus +50%"]
+      [
+        "S",
+        "€4.90",
+        "50 images"
+      ],
+      [
+        "M",
+        "€9.90",
+        "120 · bonus +20%"
+      ],
+      [
+        "L",
+        "€19.90",
+        "300 · bonus +50%"
+      ]
     ],
     "testimonialQuote": "I paid for Notion templates and dropped them within a week. This is the first cooking subscription I’m not embarrassed about.",
     "testimonialAuthor": "Anna, product manager · Berlin · Lifetime",
@@ -183,11 +325,26 @@
     "faqOpen": "+ Open",
     "faqClose": "– Close",
     "faq": [
-      ["Which cards do you accept?", "Any EU/UK/US cards via Paddle (which also issues the invoice and pays VAT for us). Visa/Mastercard from Kazakhstan, Armenia, Georgia, Israel and the UAE work. Cards issued in Russia don’t yet — we’re looking at crypto, will let you know."],
-      ["What if I subscribe and it’s not for me?", "Cancel in one click — the unused part of the month isn’t refunded (that’s a standard subscription). For Lifetime — a refund within the first 30 days, no questions."],
-      ["Does the AI really count accurately?", "Accurate means ±5%. We map ingredients into USDA FoodData Central (a government database of ~400k products) and compute deterministically. This isn’t ChatGPT, which is off by 25-40%. If an ingredient isn’t found — we ask you, we don’t make it up."],
-      ["Can I use the book with clients (I’m a coach)?", "For now — personal use. A B2B plan is planned for months 10-12: PDF export with your brand, white-label client folders. If you need it urgently — write, we’ll talk."],
-      ["What if my child has allergies?", "AI recipe generation accounts for allergies and disliked foods (set it up once). Notes and filters — on all plans. We don’t give medical advice — that’s a legal boundary."]
+      [
+        "Which cards do you accept?",
+        "Any EU/UK/US cards via Paddle (which also issues the invoice and pays VAT for us). Visa/Mastercard from Kazakhstan, Armenia, Georgia, Israel and the UAE work. Cards issued in Russia don’t yet — we’re looking at crypto, will let you know."
+      ],
+      [
+        "What if I subscribe and it’s not for me?",
+        "Cancel in one click — the unused part of the month isn’t refunded (that’s a standard subscription). For Lifetime — a refund within the first 30 days, no questions."
+      ],
+      [
+        "Does the AI really count accurately?",
+        "Accurate means ±5%. We map ingredients into USDA FoodData Central (a government database of ~400k products) and compute deterministically. This isn’t ChatGPT, which is off by 25-40%. If an ingredient isn’t found — we ask you, we don’t make it up."
+      ],
+      [
+        "Can I use the book with clients (I’m a coach)?",
+        "For now — personal use. A B2B plan is planned for months 10-12: PDF export with your brand, white-label client folders. If you need it urgently — write, we’ll talk."
+      ],
+      [
+        "What if my child has allergies?",
+        "AI recipe generation accounts for allergies and disliked foods (set it up once). Notes and filters — on all plans. We don’t give medical advice — that’s a legal boundary."
+      ]
     ],
     "finalEyebrow": "Ready?",
     "finalTitle1": "Open",
@@ -362,7 +519,7 @@
     "planFree": "Free",
     "planFreeDesc": "Welcome pack of AI features",
     "creditKbju": "Nutrition calcs",
-    "creditRecipes": "AI recipes",
+    "creditRecipes": "Recipe generations",
     "creditsCaption": "in the welcome pack",
     "premiumTitle": "Premium",
     "premiumDesc": "Unlimited nutrition calcs and AI recipes, no limits",
@@ -375,7 +532,10 @@
     "greetingNight": "Good night, {name}",
     "nameLabel": "Your name",
     "nameSave": "Save",
-    "nameSaved": "Saved"
+    "nameSaved": "Saved",
+    "navMyRecipes": "My Cookbook",
+    "myRecipesTitle": "My Cookbook",
+    "myRecipesDesc": "Your private recipes"
   },
   "notes": {
     "tagline": "my notes",
@@ -391,5 +551,56 @@
     "save": "Save",
     "saved": "Saved",
     "loginPrompt": "Sign in to leave a private note on this recipe"
+  },
+  "myRecipes": {
+    "tagline": "your private cookbook",
+    "title": "My Cookbook",
+    "addRecipe": "Add recipe",
+    "empty": "Your recipes will appear here",
+    "emptyHint": "Create your first — only you can see it.",
+    "noCover": "No photo",
+    "limitCount": "{count} / {limit}",
+    "private": "Private — only you",
+    "newTitle": "New recipe",
+    "editTitle": "Edit recipe",
+    "back": "← All my recipes",
+    "fieldCover": "Cover photo",
+    "coverUpload": "Upload a photo",
+    "coverReplace": "Replace",
+    "fieldTitle": "Title",
+    "fieldTitlePlaceholder": "Pumpkin soup with ginger",
+    "fieldDescription": "Short description",
+    "fieldDescriptionPlaceholder": "A few words about the dish",
+    "fieldNote": "Story / note",
+    "fieldNotePlaceholder": "A personal story about the dish — where it came from…",
+    "fieldCookTime": "Time (min)",
+    "fieldServings": "Servings",
+    "fieldIngredients": "Ingredients",
+    "ingredientsPlaceholder": "Pumpkin\nGinger\nCoconut milk\nOnion\nGarlic",
+    "ingredientsHint": "One ingredient per line",
+    "fieldCategories": "Categories",
+    "catType": {
+      "meal_type": "Dish type",
+      "country": "Cuisine",
+      "season": "Season / occasion",
+      "ingredient": "Ingredient"
+    },
+    "fieldSteps": "Preparation steps",
+    "stepsCount": "{count, plural, one {# step} other {# steps}}",
+    "stepTitlePlaceholder": "Step title (optional)",
+    "stepDescPlaceholder": "Step description",
+    "stepAddPhoto": "Photo",
+    "addStep": "Add step",
+    "save": "Save",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "deleting": "Deleting…",
+    "deleteConfirm": "Delete this recipe? This can't be undone.",
+    "errTitle": "Title is required",
+    "errStep": "Fill in a description for every step",
+    "errLimit": "Free limit reached ({limit}). Unlimited on Premium.",
+    "errGeneric": "Couldn't save. Please try again."
   }
 }

@@ -22,6 +22,7 @@ export default function DashboardHomePage() {
   const tc = useTranslations("common");
   const { user, favorites } = useFavorites();
   const [notesCount, setNotesCount] = useState<number | null>(null);
+  const [recipesCount, setRecipesCount] = useState<number | null>(null);
   const [displayName, setDisplayName] = useState("");
   const [nameDraft, setNameDraft] = useState("");
   const [savingName, setSavingName] = useState(false);
@@ -34,6 +35,11 @@ export default function DashboardHomePage() {
       .from("user_notes")
       .select("id", { count: "exact", head: true })
       .then(({ count }) => setNotesCount(count ?? 0));
+    supabase
+      .from("recipes")
+      .select("id", { count: "exact", head: true })
+      .eq("owner_id", user.id)
+      .then(({ count }) => setRecipesCount(count ?? 0));
     supabase
       .from("profiles")
       .select("display_name")
@@ -90,7 +96,15 @@ export default function DashboardHomePage() {
       <PlanBanner />
 
       {/* Карточки разделов */}
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-3">
+        <Link href="/dashboard/recipes" className="group bg-crust p-7 transition-colors hover:bg-crust/70">
+          <Eyebrow color="text-soft">{t("myRecipesTitle")}</Eyebrow>
+          <p className="mb-1 mt-2 font-display text-4xl text-burg transition-colors group-hover:text-ochre-dk">
+            {recipesCount ?? "—"}
+          </p>
+          <p className="font-body text-sm text-soft">{t("myRecipesDesc")}</p>
+        </Link>
+
         <Link href="/dashboard/favorites" className="group bg-crust p-7 transition-colors hover:bg-crust/70">
           <Eyebrow color="text-soft">{t("favoritesTitle")}</Eyebrow>
           <p className="mb-1 mt-2 font-display text-4xl text-burg transition-colors group-hover:text-ochre-dk">

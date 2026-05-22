@@ -62,6 +62,7 @@ export default function RecipesPage() {
           recipe_categories ( categories ( id, name, name_en, slug, type ) )
         `)
         .eq("published", true)
+        .eq("visibility", "public") // never surface private user recipes
         .order("created_at", { ascending: false }),
 
       supabase.from("categories").select("*").order("type").order("name"),
