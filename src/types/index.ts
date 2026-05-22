@@ -9,6 +9,8 @@ export interface Profile {
   id: string;
   email: string;
   role: "user" | "admin";
+  /** Тарифный план (каркас монетизации). По умолчанию 'free'. */
+  plan?: "free" | "premium" | "lifetime";
   created_at: string;
 }
 
@@ -108,6 +110,10 @@ export interface Recipe {
   cover_image: string | null;
   published: boolean;
   featured: boolean;
+  /** null = авторский/админский рецепт каталога; задан = личный рецепт пользователя. */
+  owner_id?: string | null;
+  /** 'public' = каталог автора; 'private' = личная книга пользователя; 'unlisted' — на будущее. */
+  visibility?: "public" | "private" | "unlisted";
   cook_time: number | null;  // total minutes
   servings: number | null;   // number of portions
   // Translated fields stored in DB (English variant)
