@@ -26,6 +26,14 @@ export interface Entitlements {
   plan: Plan;
   /** Включён ли гейтинг монетизации прямо сейчас (фиче-флаг). */
   monetizationEnabled: boolean;
+  /**
+   * Доступ к AI-функциям (расчёт КБЖУ и т.п.) на пользовательских рецептах.
+   * НАМЕРЕННО НЕ зависит от `MONETIZATION_ENABLED`: AI стоит денег, поэтому он
+   * доступен только платным планам (premium/lifetime) ВСЕГДА — в т.ч. до запуска
+   * монетизации. Так мы выдаём AI приглашённым тестерам, выставив им
+   * `profiles.plan = 'premium'`, и не открываем его всем подряд.
+   */
+  aiEnabled: boolean;
   limits: {
     /** Максимум личных рецептов. `null` = безлимит (Premium/Lifetime или флаг выключен). */
     recipes: number | null;
@@ -44,6 +52,11 @@ export function isMonetizationEnabled(): boolean {
 function recipeLimitFor(plan: Plan, monetizationEnabled: boolean): number | null {
   if (!monetizationEnabled) return null; // флаг выключен — лимит не применяется
   return plan === "free" ? FREE_RECIPE_LIMIT : null;
+}
+
+/** Доступ к AI по плану (premium/lifetime). НЕ зависит от фиче-флага монетизации. */
+function aiEnabledFor(plan: Plan): boolean {
+  return plan === "premium" || plan === "lifetime";
 }
 
 /** Безопасно привести произвольное значение из БД к Plan (фолбэк — 'free'). */
@@ -85,6 +98,7 @@ export async function getEntitlements(userId: string): Promise<Entitlements> {
   return {
     plan,
     monetizationEnabled,
+    aiEnabled: aiEnabledFor(plan),
     limits: {
       recipes: recipeLimitFor(plan, monetizationEnabled),
     },

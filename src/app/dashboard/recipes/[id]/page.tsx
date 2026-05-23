@@ -5,7 +5,10 @@ import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { Eyebrow } from "@/components/ui";
 import RecipeOwnerActions from "@/components/dashboard/RecipeOwnerActions";
-import type { Step } from "@/types";
+import NutritionFacts from "@/components/recipe/NutritionFacts";
+import NutritionCalcButton from "@/components/dashboard/NutritionCalcButton";
+import { getEntitlements } from "@/lib/entitlements";
+import type { Step, NutritionData } from "@/types";
 
 export const dynamic = "force-dynamic";
 
@@ -38,9 +41,10 @@ export default async function ViewUserRecipePage({
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const [t, tr, recipeRes] = await Promise.all([
+  const [t, tr, ent, recipeRes] = await Promise.all([
     getTranslations("myRecipes"),
     getTranslations("recipe"),
+    getEntitlements(user.id),
     supabase
       .from("recipes")
       .select("*, steps(*)")
@@ -51,6 +55,9 @@ export default async function ViewUserRecipePage({
 
   const recipe = recipeRes.data;
   if (!recipe) notFound();
+
+  const aiEnabled = ent.aiEnabled;
+  const nutrition = (recipe.nutrition ?? null) as NutritionData | null;
 
   const steps = ((recipe.steps ?? []) as Step[]).slice().sort((a, b) => a.order - b.order);
   const ingredientLines = (recipe.ingredients ?? "")
@@ -187,6 +194,26 @@ export default async function ViewUserRecipePage({
           )}
         </div>
       )}
+
+      {/* Пищевая ценность (AI) — только для AI-доступных аккаунтов (приглашённые тестеры / premium) */}
+      {recipe.nutrition ? (
+        <div className="mt-14">
+          <NutritionFacts nutrition={nutrition} />
+          {aiEnabled && (
+            <div className="mt-4 px-6 md:px-10 lg:px-14">
+              <NutritionCalcButton recipeId={recipe.id} hasNutrition />
+            </div>
+          )}
+        </div>
+      ) : aiEnabled ? (
+        <section className="mt-14 border-t border-rule pt-8">
+          <Eyebrow color="text-ochre-dk">{t("nutritionTitle")}</Eyebrow>
+          <p className="mb-5 mt-3 max-w-[560px] font-body text-[14px] leading-[1.7] text-soft">
+            {t("nutritionHint")}
+          </p>
+          <NutritionCalcButton recipeId={recipe.id} hasNutrition={false} />
+        </section>
+      ) : null}
 
       {/* Note / story */}
       {recipe.note && (

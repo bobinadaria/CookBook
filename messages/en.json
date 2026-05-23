@@ -584,6 +584,12 @@
     "errTitle": "Title is required",
     "errStep": "Fill in a description for every step",
     "errLimit": "Free limit reached ({limit}). Unlimited on Premium.",
-    "errGeneric": "Couldn't save. Please try again."
+    "errGeneric": "Couldn't save. Please try again.",
+    "nutritionTitle": "Nutrition (AI)",
+    "nutritionHint": "The AI nutritionist will calculate accurate nutrition from your ingredients.",
+    "nutritionCalc": "Calculate nutrition",
+    "nutritionRecalc": "Recalculate",
+    "nutritionCalculating": "Calculating…",
+    "nutritionError": "Couldn't calculate. Please try again."
   }
 }
