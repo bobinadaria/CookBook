@@ -10,7 +10,6 @@ import { localizedField, type Locale } from "@/lib/localized-content";
 import type { Category, Step } from "@/types";
 import RelatedRecipes, { RelatedRecipesSkeleton } from "@/components/recipe/RelatedRecipes";
 import NutritionFacts from "@/components/recipe/NutritionFacts";
-import RecipeNote from "@/components/recipe/RecipeNote";
 import FavoriteButton from "@/components/recipe/FavoriteButton";
 import { DropCap, Eyebrow } from "@/components/ui";
 import type { NutritionData } from "@/types";
@@ -376,10 +375,10 @@ export default async function RecipePage({ params }: RecipePageProps) {
       {/* ── КБЖУ (только цифры; диагностика — в админке) ─────────────────── */}
       <NutritionFacts nutrition={nutrition} />
 
-      {/* ── Notes: author note + your private note ──────────────────────── */}
-      <section className="mx-auto max-w-[1320px] px-6 pb-20 md:px-10 lg:px-14">
-        <div className="grid items-start gap-10 lg:grid-cols-[1.4fr_1fr] lg:gap-14">
-          {note && (
+      {/* ── Author note: история блюда ──────────────────────────────────── */}
+      {note && (
+        <section className="mx-auto max-w-[1320px] px-6 pb-20 md:px-10 lg:px-14">
+          <div className="lg:max-w-[760px]">
             <div className="border-l-4 border-ochre bg-crust px-8 py-9">
               <Eyebrow color="text-burg">{t("dishStory")}</Eyebrow>
               <p className="mt-3.5 font-display text-[22px] font-normal italic leading-[1.45] text-burg sm:text-[24px]">
@@ -390,12 +389,9 @@ export default async function RecipePage({ params }: RecipePageProps) {
                 {t("authorSign")}
               </div>
             </div>
-          )}
-          <div className={note ? "" : "lg:col-span-2 lg:max-w-[640px]"}>
-            <RecipeNote recipeId={recipe.id} />
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* ── Related (streamed — не блокирует first paint) ───────────────── */}
       <Suspense fallback={<RelatedRecipesSkeleton />}>

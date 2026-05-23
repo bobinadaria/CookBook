@@ -29,5 +29,7 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  return { supabaseResponse, user };
+  // Возвращаем и клиент: middleware использует его для серверной проверки роли
+  // на /admin (под сессией пользователя — читает свою же строку profiles).
+  return { supabaseResponse, user, supabase };
 }

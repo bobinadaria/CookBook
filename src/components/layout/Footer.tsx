@@ -75,7 +75,7 @@ export default async function Footer() {
             links={[
               { href: "/login", label: t("signIn") },
               { href: "/register", label: t("register") },
-              { href: "/dashboard", label: t("myBook") },
+              { href: "/dashboard/recipes", label: t("myBook") },
             ]}
           />
           <FooterCol

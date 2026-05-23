@@ -10,7 +10,7 @@ export async function middleware(request: NextRequest) {
   const intlResponse = intlMiddleware(request);
 
   // 2. Run Supabase auth middleware
-  const { supabaseResponse, user } = await updateSession(request);
+  const { supabaseResponse, user, supabase } = await updateSession(request);
   const { pathname } = request.nextUrl;
 
   // 3. Copy locale-related headers from intl response to supabase response
@@ -28,9 +28,21 @@ export async function middleware(request: NextRequest) {
   }
 
   // 4. Auth protection — /dashboard and /admin require login
-  //    Admin role check happens in admin/layout.tsx and API routes (server-side)
   if ((pathname.startsWith("/dashboard") || pathname.startsWith("/admin")) && !user) {
     return NextResponse.redirect(new URL("/login", request.url));
+  }
+
+  // 5. Server-side admin gate — non-admins never reach /admin pages.
+  //    (Client check in admin/layout.tsx остаётся вторым слоем; API — requireAdmin.)
+  if (pathname.startsWith("/admin") && user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+    if (profile?.role !== "admin") {
+      return NextResponse.redirect(new URL("/", request.url));
+    }
   }
 
   return supabaseResponse;

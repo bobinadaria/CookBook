@@ -5,14 +5,14 @@
   },
   "nav": {
     "recipes": "Рецепты",
-    "favorites": "Избранное",
     "signOut": "Выйти",
     "signIn": "Войти",
     "register": "Регистрация",
-    "dashboard": "Кабинет",
     "myBook": "Моя книга",
+    "account": "Аккаунт",
     "home": "Обложка",
-    "pricing": "Подписка"
+    "pricing": "Подписка",
+    "admin": "Админ"
   },
   "header": {
     "tagline": "Твоя кухня · твоя книга · твой AI-нутрициолог",
@@ -489,14 +489,6 @@
       "dividerText": "или войти по email"
     }
   },
-  "favorites": {
-    "tagline": "моя коллекция",
-    "title": "Избранное",
-    "empty": "Пока пусто",
-    "emptyHint": "Нажми на сердечко на карточке рецепта, чтобы сохранить его сюда",
-    "goToRecipes": "Перейти к рецептам →",
-    "recipeCount": "{count, plural, one {# рецепт} few {# рецепта} other {# рецептов}}"
-  },
   "common": {
     "loading": "Загрузка...",
     "addToFavorites": "Добавить в избранное",
@@ -504,15 +496,8 @@
     "cookbook": "The Slow Table"
   },
   "dashboard": {
-    "navHome": "Кабинет",
-    "navFavorites": "Избранное",
-    "navNotes": "Заметки",
     "tagline": "личный кабинет",
     "greeting": "Привет, {name}",
-    "favoritesTitle": "Избранное",
-    "favoritesDesc": "Сохранённые рецепты",
-    "notesTitle": "Заметки",
-    "notesDesc": "Личные пометки к рецептам",
     "profileTitle": "Профиль",
     "signOut": "Выйти",
     "planTitle": "Ваш план",
@@ -533,24 +518,14 @@
     "nameLabel": "Как к вам обращаться",
     "nameSave": "Сохранить",
     "nameSaved": "Сохранено",
-    "navMyRecipes": "Моя книга",
-    "myRecipesTitle": "Моя книга",
-    "myRecipesDesc": "Личные рецепты"
-  },
-  "notes": {
-    "tagline": "мои пометки",
-    "title": "Заметки",
-    "empty": "Пока пусто",
-    "emptyHint": "Открой любой рецепт и оставь личную заметку — она появится здесь",
-    "goToRecipes": "Перейти к рецептам →"
-  },
-  "userNote": {
-    "title": "Моя заметка",
-    "private": "только для вас",
-    "placeholder": "Записать что-то для себя: что изменить, с чем подавать, как было в прошлый раз…",
-    "save": "Сохранить",
-    "saved": "Сохранено",
-    "loginPrompt": "Войдите, чтобы оставить личную заметку к рецепту"
+    "tabRecipes": "Мои рецепты",
+    "tabAccount": "Мой аккаунт",
+    "subscribeTitle": "Подписка",
+    "subscribeText": "Посмотрите тарифы и что открывает Premium.",
+    "subscribeCta": "Смотреть тарифы",
+    "emailLabel": "Почта",
+    "compareShow": "Сравнить планы",
+    "compareHide": "Свернуть"
   },
   "myRecipes": {
     "tagline": "личная книга рецептов",
@@ -560,6 +535,14 @@
     "emptyHint": "Создайте первый — он будет виден только вам.",
     "noCover": "Без фото",
     "limitCount": "{count} / {limit}",
+    "tabAll": "Все",
+    "tabMine": "Свои",
+    "tabSaved": "Сохранённые",
+    "labelMine": "Мой рецепт",
+    "labelSaved": "Сохранённое",
+    "open": "Открыть",
+    "savedEmpty": "Здесь пока пусто",
+    "savedEmptyHint": "Нажмите на сердечко на карточке рецепта в каталоге — он появится здесь.",
     "private": "Только для вас",
     "newTitle": "Новый рецепт",
     "editTitle": "Редактировать рецепт",

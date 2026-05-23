@@ -5,14 +5,14 @@
   },
   "nav": {
     "recipes": "Recipes",
-    "favorites": "Favorites",
     "signOut": "Sign out",
     "signIn": "Sign in",
     "register": "Register",
-    "dashboard": "Dashboard",
     "myBook": "My book",
+    "account": "Account",
     "home": "Cover",
-    "pricing": "Subscribe"
+    "pricing": "Subscribe",
+    "admin": "Admin"
   },
   "header": {
     "tagline": "Your kitchen · your cookbook · your AI nutritionist",
@@ -489,14 +489,6 @@
       "dividerText": "or sign in with email"
     }
   },
-  "favorites": {
-    "tagline": "my collection",
-    "title": "Favorites",
-    "empty": "Nothing here yet",
-    "emptyHint": "Tap the heart on a recipe card to save it here",
-    "goToRecipes": "Browse recipes →",
-    "recipeCount": "{count, plural, one {# recipe} other {# recipes}}"
-  },
   "common": {
     "loading": "Loading...",
     "addToFavorites": "Add to favorites",
@@ -504,15 +496,8 @@
     "cookbook": "The Slow Table"
   },
   "dashboard": {
-    "navHome": "Dashboard",
-    "navFavorites": "Favorites",
-    "navNotes": "Notes",
     "tagline": "personal cabinet",
     "greeting": "Hi, {name}",
-    "favoritesTitle": "Favorites",
-    "favoritesDesc": "Saved recipes",
-    "notesTitle": "Notes",
-    "notesDesc": "Personal recipe notes",
     "profileTitle": "Profile",
     "signOut": "Sign out",
     "planTitle": "Your plan",
@@ -533,24 +518,14 @@
     "nameLabel": "Your name",
     "nameSave": "Save",
     "nameSaved": "Saved",
-    "navMyRecipes": "My Cookbook",
-    "myRecipesTitle": "My Cookbook",
-    "myRecipesDesc": "Your private recipes"
-  },
-  "notes": {
-    "tagline": "my notes",
-    "title": "Notes",
-    "empty": "Nothing yet",
-    "emptyHint": "Open any recipe and leave a private note — it will show up here",
-    "goToRecipes": "Go to recipes →"
-  },
-  "userNote": {
-    "title": "My note",
-    "private": "private",
-    "placeholder": "Jot something for yourself: what to change, what to serve with, how it went last time…",
-    "save": "Save",
-    "saved": "Saved",
-    "loginPrompt": "Sign in to leave a private note on this recipe"
+    "tabRecipes": "My Recipes",
+    "tabAccount": "My Account",
+    "subscribeTitle": "Subscription",
+    "subscribeText": "See the plans and what Premium unlocks.",
+    "subscribeCta": "View plans",
+    "emailLabel": "Email",
+    "compareShow": "View more",
+    "compareHide": "View less"
   },
   "myRecipes": {
     "tagline": "your private cookbook",
@@ -560,6 +535,14 @@
     "emptyHint": "Create your first — only you can see it.",
     "noCover": "No photo",
     "limitCount": "{count} / {limit}",
+    "tabAll": "All",
+    "tabMine": "Mine",
+    "tabSaved": "Saved",
+    "labelMine": "My recipe",
+    "labelSaved": "Saved",
+    "open": "Open",
+    "savedEmpty": "Nothing saved yet",
+    "savedEmptyHint": "Tap the heart on a recipe card in the catalog and it'll show up here.",
     "private": "Private — only you",
     "newTitle": "New recipe",
     "editTitle": "Edit recipe",

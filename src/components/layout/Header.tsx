@@ -29,28 +29,36 @@ export default function Header() {
 
   useEffect(() => {
     const supabase = createClient();
+    // Какого пользователя мы сейчас «обслуживаем». Нужно, чтобы медленный
+    // запрос роли из прошлой сессии не протёк админ-состоянием в другой аккаунт.
+    let currentUserId: string | null = null;
 
-    const checkAdmin = async (userId: string) => {
+    const applyUser = async (nextUser: User | null) => {
+      currentUserId = nextUser?.id ?? null;
+      setUser(nextUser);
+      // Сброс в первую очередь: никогда не тащим флаг админа из прошлого аккаунта.
+      setIsAdmin(false);
+      if (!nextUser) return;
+
       const { data: profile } = await supabase
         .from("profiles")
         .select("role")
-        .eq("id", userId)
+        .eq("id", nextUser.id)
         .single();
+
+      // Игнорируем «опоздавший» ответ, если активный пользователь уже сменился.
+      if (currentUserId !== nextUser.id) return;
       setIsAdmin(profile?.role === "admin");
     };
 
-    supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user);
-      if (data.user) checkAdmin(data.user.id);
-    });
+    supabase.auth.getUser().then(({ data }) => applyUser(data.user));
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      if (session?.user) checkAdmin(session.user.id);
-      else setIsAdmin(false);
+      applyUser(session?.user ?? null);
     });
+
     return () => subscription.unsubscribe();
   }, []);
 
@@ -71,17 +79,22 @@ export default function Header() {
   const navItems: NavItem[] = [
     { href: "/", label: t("home"), active: pathname === "/" },
     { href: "/recipes", label: t("recipes"), active: pathname.startsWith("/recipes") },
-    { href: "/pricing", label: t("pricing"), active: pathname.startsWith("/pricing") },
   ];
+  if (!user) {
+    // «Подписка» — витрина для гостей. У вошедших она живёт внутри «Моей книги»
+    // (вкладка «Аккаунт» → ссылка на тарифы), поэтому из верхнего меню её убираем.
+    navItems.push({ href: "/pricing", label: t("pricing"), active: pathname.startsWith("/pricing") });
+  }
   if (user) {
+    // Единая точка входа в кабинет. Внутри — вкладки «Рецепты» и «Аккаунт».
     navItems.push({
-      href: "/dashboard",
+      href: "/dashboard/recipes",
       label: t("myBook"),
       active: pathname.startsWith("/dashboard"),
     });
   }
   if (isAdmin) {
-    navItems.push({ href: "/admin", label: "Админ", active: pathname.startsWith("/admin") });
+    navItems.push({ href: "/admin", label: t("admin"), active: pathname.startsWith("/admin") });
   }
 
   return (

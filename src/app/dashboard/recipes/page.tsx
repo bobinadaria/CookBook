@@ -1,42 +1,88 @@
-import Link from "next/link";
-import Image from "next/image";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { getEntitlements } from "@/lib/entitlements";
 import { EditorialButton, Eyebrow } from "@/components/ui";
+import MyBookView, { type BookItem } from "@/components/dashboard/MyBookView";
 
 // User-specific data — never statically cache this page.
 export const dynamic = "force-dynamic";
 
-export default async function MyRecipesPage() {
+export default async function MyBookPage() {
   const supabase = createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const [t, recipesRes, entitlements] = await Promise.all([
+  const [t, ownRes, favRes, entitlements] = await Promise.all([
     getTranslations("myRecipes"),
     supabase
       .from("recipes")
-      .select("id, title, cover_image, created_at")
+      .select("id, title, title_en, cover_image, created_at")
       .eq("owner_id", user.id)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("favorites")
+      .select("recipe_slug, created_at")
+      .eq("user_id", user.id)
       .order("created_at", { ascending: false }),
     getEntitlements(user.id),
   ]);
 
-  const list = recipesRes.data ?? [];
+  const own = ownRes.data ?? [];
+
+  // Сохранённые (бывшее «Избранное») — публичные рецепты каталога по слагам.
+  const favSlugs = (favRes.data ?? []).map((f) => f.recipe_slug as string);
+  let saved: {
+    id: string;
+    title: string;
+    title_en: string | null;
+    slug: string;
+    cover_image: string | null;
+  }[] = [];
+  if (favSlugs.length > 0) {
+    const { data } = await supabase
+      .from("recipes")
+      .select("id, title, title_en, slug, cover_image")
+      .eq("visibility", "public")
+      .eq("published", true)
+      .in("slug", favSlugs);
+    saved = data ?? [];
+    // Сохраняем порядок добавления в избранное (favRes уже отсортирован по дате).
+    const order = new Map(favSlugs.map((s, i) => [s, i]));
+    saved.sort((a, b) => (order.get(a.slug) ?? 0) - (order.get(b.slug) ?? 0));
+  }
+
+  const items: BookItem[] = [
+    ...own.map((r) => ({
+      id: r.id as string,
+      kind: "own" as const,
+      href: `/dashboard/recipes/${r.id as string}`,
+      title: r.title as string,
+      title_en: (r.title_en as string | null) ?? null,
+      cover_image: (r.cover_image as string | null) ?? null,
+    })),
+    ...saved.map((r) => ({
+      id: r.id,
+      kind: "saved" as const,
+      href: `/recipes/${r.slug}`,
+      title: r.title,
+      title_en: r.title_en,
+      cover_image: r.cover_image,
+    })),
+  ];
+
   const { limits, monetizationEnabled } = entitlements;
   const atLimit =
-    monetizationEnabled && limits.recipes !== null && list.length >= limits.recipes;
+    monetizationEnabled && limits.recipes !== null && own.length >= limits.recipes;
 
   return (
-    <main className="mx-auto min-h-dvh max-w-5xl px-6 pb-24">
+    <main className="mx-auto min-h-dvh max-w-[1320px] px-6 pb-24 md:px-10 lg:px-14">
       <div className="flex flex-wrap items-end justify-between gap-6 pb-8 pt-10">
         <div>
           <Eyebrow color="text-ochre-dk">{t("tagline")}</Eyebrow>
-          <h1 className="mt-3 font-display text-[clamp(2.5rem,5vw,3.5rem)] font-normal leading-[0.95] tracking-[-0.02em] text-burg">
+          <h1 className="mt-3 font-display text-[clamp(2.75rem,6vw,72px)] font-normal leading-[0.92] tracking-[-0.03em] text-burg">
             {t("title")}
           </h1>
         </div>
@@ -53,7 +99,7 @@ export default async function MyRecipesPage() {
 
       {monetizationEnabled && limits.recipes !== null && (
         <p className="mb-6 font-body text-[11px] font-semibold uppercase tracking-[0.16em] text-soft">
-          {t("limitCount", { count: list.length, limit: limits.recipes })}
+          {t("limitCount", { count: own.length, limit: limits.recipes })}
         </p>
       )}
 
@@ -63,7 +109,7 @@ export default async function MyRecipesPage() {
         </p>
       )}
 
-      {list.length === 0 ? (
+      {items.length === 0 ? (
         <div className="border-t border-rule py-28 text-center">
           <p className="mb-4 font-display text-[28px] italic text-burg/40">{t("empty")}</p>
           <p className="mb-8 font-body text-sm text-soft">{t("emptyHint")}</p>
@@ -72,30 +118,7 @@ export default async function MyRecipesPage() {
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-x-6 gap-y-10 lg:grid-cols-3">
-          {list.map((r) => (
-            <Link key={r.id} href={`/dashboard/recipes/${r.id}`} className="group">
-              <div className="relative mb-3 aspect-[4/3] overflow-hidden bg-crust">
-                {r.cover_image ? (
-                  <Image
-                    src={r.cover_image}
-                    alt=""
-                    fill
-                    sizes="(max-width:1024px) 50vw, 33vw"
-                    className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-                  />
-                ) : (
-                  <div className="flex h-full items-center justify-center font-display text-3xl italic text-burg/20">
-                    {t("noCover")}
-                  </div>
-                )}
-              </div>
-              <h2 className="font-display text-xl leading-tight text-burg transition-colors group-hover:text-ochre-dk">
-                {r.title}
-              </h2>
-            </Link>
-          ))}
-        </div>
+        <MyBookView items={items} />
       )}
     </main>
   );
