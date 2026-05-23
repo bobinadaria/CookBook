@@ -111,6 +111,7 @@ export async function createUserRecipe(
       cover_image: input.cover_image,
       cook_time: input.cook_time,
       servings: input.servings,
+      nutrition: input.nutrition ?? null,
       // Server-forced invariants (RLS also enforces these on insert):
       owner_id: user.id,
       visibility: "private",
@@ -166,6 +167,7 @@ export async function updateUserRecipe(
       cover_image: input.cover_image,
       cook_time: input.cook_time,
       servings: input.servings,
+      nutrition: input.nutrition ?? null,
       updated_at: new Date().toISOString(),
     })
     .eq("id", recipeId)

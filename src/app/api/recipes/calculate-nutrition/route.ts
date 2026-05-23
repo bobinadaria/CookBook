@@ -1,35 +1,32 @@
 /**
  * POST /api/recipes/calculate-nutrition
  *
- * Пользовательский аналог /api/admin/calculate-nutrition: считает КБЖУ для
- * СВОЕГО (приватного) рецепта текущего пользователя и сохраняет в recipes.nutrition.
+ * Считает КБЖУ ПО ТЕКСТУ состава (без recipeId и без сохранения) для текущего
+ * пользователя и возвращает результат. Сохраняет его потом форма — вместе с
+ * рецептом. Так расчёт работает прямо в форме, в т.ч. для нового, ещё не
+ * сохранённого рецепта.
  *
- * Доступ (гейт): требуется залогиненный пользователь, у которого план даёт доступ
- * к AI (`entitlements.aiEnabled` → premium/lifetime). Так приглашённые тестеры
- * получают AI ДО запуска монетизации: достаточно выставить им profiles.plan='premium'.
- * Считать можно ТОЛЬКО свой рецепт (owner_id === user.id).
+ * Доступ (гейт): нужен залогиненный пользователь с планом, дающим AI
+ * (entitlements.aiEnabled → premium/lifetime). Free → 403. Так приглашённые
+ * тестеры получают AI до запуска монетизации (profiles.plan='premium').
  *
- * Body: { recipeId: uuid, force?: boolean }
- * Возвращает: { recipeId, nutrition, cached }
+ * Body: { ingredients: string, servings?: number | null }
+ * Возвращает: { nutrition }
  */
 import { createClient } from "@/lib/supabase/server";
 import { createServiceRoleClient } from "@/lib/supabase/admin";
 import { getEntitlements } from "@/lib/entitlements";
-import { CalculateNutritionRequestSchema } from "@/lib/validations";
+import { UserNutritionCalcSchema } from "@/lib/validations";
 import { calculateNutrition } from "@/lib/nutrition/calculate";
-import { ingredientsHash } from "@/lib/nutrition/ingredients-hash.mjs";
-import type { NutritionData } from "@/types";
 import { NextRequest, NextResponse } from "next/server";
-import { revalidatePath } from "next/cache";
 
 // OpenAI-парсинг может занять до ~30с на большом составе.
 export const maxDuration = 60;
 
 /**
  * Best-effort per-user rate limit. AI-вызовы стоят денег, поэтому ограничиваем
- * частоту. NOTE: in-memory, живёт в пределах тёплого инстанса — это лишь грубая
- * защита от циклов злоупотребления, не жёсткая квота (жёсткая придёт со слоем
- * кредитов/монетизации). Глобальный потолок расходов задаётся лимитом в OpenAI.
+ * частоту. NOTE: in-memory, живёт в пределах тёплого инстанса — грубая защита от
+ * циклов злоупотребления, не жёсткая квота. Глобальный потолок — лимит в OpenAI.
  */
 const RATE_WINDOW_MS = 60_000;
 const RATE_MAX = 10; // расчётов в минуту на пользователя
@@ -75,54 +72,32 @@ export async function POST(req: NextRequest) {
 
   // 4. Валидация тела.
   const body = await req.json().catch(() => ({}));
-  const parsed = CalculateNutritionRequestSchema.safeParse(body);
+  const parsed = UserNutritionCalcSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
       { error: "Invalid request", details: parsed.error.flatten() },
       { status: 400 },
     );
   }
-  const { recipeId, force } = parsed.data;
+  const { ingredients, servings } = parsed.data;
 
-  // 5. Читаем рецепт через service-role (нужен и для чтения ingredients_base).
-  const supabase = createServiceRoleClient();
-  const { data: recipe, error: fetchError } = await supabase
-    .from("recipes")
-    .select("title, ingredients, servings, nutrition, owner_id")
-    .eq("id", recipeId)
-    .single();
-  if (fetchError || !recipe) {
-    return NextResponse.json({ error: "Recipe not found" }, { status: 404 });
-  }
-
-  // 6. Владелец: считать можно только СВОЙ рецепт.
-  if (recipe.owner_id !== user.id) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
-
-  if (!recipe.ingredients || recipe.ingredients.trim().length === 0) {
+  if (!ingredients.trim()) {
     return NextResponse.json(
-      { error: "У рецепта пустой состав — нечего считать." },
+      { error: "Пустой состав — нечего считать." },
       { status: 422 },
     );
   }
 
-  // 7. Кеш по хешу состава (как в админском роуте): если состав не менялся и не
-  //    force — не дёргаем OpenAI, возвращаем сохранённое.
-  const currentHash = ingredientsHash(recipe.ingredients);
-  const existing = recipe.nutrition as NutritionData | null;
-  if (!force && existing?.ingredients_hash === currentHash) {
-    return NextResponse.json({ recipeId, nutrition: existing, cached: true });
-  }
-
-  // 8. Парс → матч → расчёт (тот же движок, что и в админке).
-  let nutrition;
+  // 5. Парс → матч → расчёт (тот же движок, что и в админке). service-role нужен
+  //    для чтения справочника ingredients_base внутри calculateNutrition.
+  const supabase = createServiceRoleClient();
   try {
-    nutrition = await calculateNutrition({
-      ingredientsText: recipe.ingredients,
-      servings: recipe.servings,
+    const nutrition = await calculateNutrition({
+      ingredientsText: ingredients,
+      servings: servings ?? null,
       supabase,
     });
+    return NextResponse.json({ nutrition });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error("[user calculate-nutrition] failed:", msg);
@@ -131,19 +106,4 @@ export async function POST(req: NextRequest) {
       { status: 500 },
     );
   }
-
-  // 9. Сохраняем (ещё раз scoped to owner — defense in depth).
-  const { error: updateError } = await supabase
-    .from("recipes")
-    .update({ nutrition, updated_at: new Date().toISOString() })
-    .eq("id", recipeId)
-    .eq("owner_id", user.id);
-  if (updateError) {
-    return NextResponse.json({ error: updateError.message }, { status: 500 });
-  }
-
-  // 10. Обновляем кеш страницы просмотра рецепта.
-  revalidatePath(`/dashboard/recipes/${recipeId}`);
-
-  return NextResponse.json({ recipeId, nutrition, cached: false });
 }

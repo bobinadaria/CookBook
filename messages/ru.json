@@ -590,6 +590,8 @@
     "nutritionCalc": "Рассчитать КБЖУ",
     "nutritionRecalc": "Пересчитать КБЖУ",
     "nutritionCalculating": "Считаю…",
-    "nutritionError": "Не удалось рассчитать. Попробуйте ещё раз."
+    "nutritionError": "Не удалось рассчитать. Попробуйте ещё раз.",
+    "nutritionPerServing": "на порцию",
+    "nutritionNeedIngredients": "Заполните состав, чтобы рассчитать"
   }
 }

@@ -590,6 +590,8 @@
     "nutritionCalc": "Calculate nutrition",
     "nutritionRecalc": "Recalculate",
     "nutritionCalculating": "Calculating…",
-    "nutritionError": "Couldn't calculate. Please try again."
+    "nutritionError": "Couldn't calculate. Please try again.",
+    "nutritionPerServing": "per serving",
+    "nutritionNeedIngredients": "Fill in the ingredients to calculate"
   }
 }

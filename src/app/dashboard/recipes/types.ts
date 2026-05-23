@@ -6,6 +6,8 @@
  * is fragile. Both the actions and the client form import these from here.
  */
 
+import type { NutritionData } from "@/types";
+
 export interface UserRecipeStepInput {
   /** Present when editing an existing step (preserves it in place). */
   id?: string;
@@ -26,6 +28,8 @@ export interface UserRecipeInput {
   /** Already-uploaded cover URL (uploaded client-side via /api/upload) or null. */
   cover_image: string | null;
   steps: UserRecipeStepInput[];
+  /** Рассчитанное КБЖУ (AI-нутрициолог) или null. Сохраняется вместе с рецептом. */
+  nutrition?: NutritionData | null;
 }
 
 export type UserRecipeResult =

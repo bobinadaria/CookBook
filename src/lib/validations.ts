@@ -57,6 +57,12 @@ export const CalculateNutritionRequestSchema = z.object({
   force: z.boolean().optional().default(false),
 });
 
+/** Body expected by POST /api/recipes/calculate-nutrition (расчёт по тексту состава, без сохранения). */
+export const UserNutritionCalcSchema = z.object({
+  ingredients: z.string().min(1, "Empty ingredients").max(5000),
+  servings: z.number().int().positive().nullable().optional().default(null),
+});
+
 /** Body expected by POST /api/admin/revalidate-recipe */
 export const RevalidateRecipeRequestSchema = z.object({
   slug,

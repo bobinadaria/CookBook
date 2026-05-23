@@ -18,7 +18,7 @@ import { EditorialButton } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { localizedField } from "@/lib/localized-content";
 import { DISPLAYED_CATEGORY_TYPES } from "@/lib/category-types";
-import type { Category, LocaleCode } from "@/types";
+import type { Category, LocaleCode, NutritionData } from "@/types";
 import { createUserRecipe, updateUserRecipe } from "@/app/dashboard/recipes/actions";
 import type { UserRecipeResult } from "@/app/dashboard/recipes/types";
 
@@ -42,12 +42,15 @@ export interface UserRecipeFormDefaults {
   cover_image: string | null;
   categoryIds: string[];
   steps: StepState[];
+  nutrition?: NutritionData | null;
 }
 
 interface UserRecipeFormProps {
   categories: Category[];
   recipeId?: string;
   defaultValues?: UserRecipeFormDefaults;
+  /** Доступ к AI-функциям (расчёт КБЖУ) — premium/lifetime. Управляет показом кнопки. */
+  aiEnabled?: boolean;
 }
 
 async function uploadImage(bucket: string, file: File): Promise<string> {
@@ -69,8 +72,10 @@ export default function UserRecipeForm({
   categories,
   recipeId,
   defaultValues,
+  aiEnabled = false,
 }: UserRecipeFormProps) {
   const t = useTranslations("myRecipes");
+  const tn = useTranslations("recipe.nutrition");
   const locale = useLocale() as LocaleCode;
   const router = useRouter();
   const coverInputRef = useRef<HTMLInputElement>(null);
@@ -92,6 +97,12 @@ export default function UserRecipeForm({
   );
 
   const [steps, setSteps] = useState<StepState[]>(defaultValues?.steps ?? []);
+
+  const [nutrition, setNutrition] = useState<NutritionData | null>(
+    defaultValues?.nutrition ?? null,
+  );
+  const [calcLoading, setCalcLoading] = useState(false);
+  const [calcError, setCalcError] = useState<string | null>(null);
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -152,6 +163,29 @@ export default function UserRecipeForm({
     updateStep(index, { photoFile: file, photo_url: URL.createObjectURL(file) });
   };
 
+  const handleCalcNutrition = async () => {
+    if (!ingredients.trim() || calcLoading) return;
+    setCalcLoading(true);
+    setCalcError(null);
+    try {
+      const res = await fetch("/api/recipes/calculate-nutrition", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ingredients, servings }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setCalcError(json.error || t("nutritionError"));
+        return;
+      }
+      setNutrition(json.nutrition as NutritionData);
+    } catch {
+      setCalcError(t("nutritionError"));
+    } finally {
+      setCalcLoading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) {
@@ -196,6 +230,7 @@ export default function UserRecipeForm({
         categoryIds: Array.from(selectedCategoryIds),
         cover_image: coverUrl,
         steps: resolvedSteps,
+        nutrition,
       };
 
       const result: UserRecipeResult = recipeId
@@ -352,6 +387,51 @@ export default function UserRecipeForm({
         />
         <p className="mt-1 text-xs text-muted">{t("ingredientsHint")}</p>
       </section>
+
+      {/* КБЖУ через AI — только для аккаунтов с доступом к AI (premium). Кнопка
+          видна всегда, но неактивна, пока не заполнен состав. */}
+      {aiEnabled && (
+        <section className="border border-rule bg-crust/40 p-5">
+          <p className="mb-1 text-xs uppercase tracking-wider text-soft">{t("nutritionTitle")}</p>
+          <p className="mb-4 text-xs text-muted">{t("nutritionHint")}</p>
+          <div className="flex flex-wrap items-center gap-3">
+            <EditorialButton
+              type="button"
+              variant="ghost"
+              onClick={handleCalcNutrition}
+              disabled={calcLoading || !ingredients.trim()}
+              className="px-6 py-3"
+            >
+              {calcLoading
+                ? t("nutritionCalculating")
+                : nutrition
+                  ? t("nutritionRecalc")
+                  : t("nutritionCalc")}
+            </EditorialButton>
+            {!ingredients.trim() && (
+              <span className="text-xs text-muted">{t("nutritionNeedIngredients")}</span>
+            )}
+            {calcError && <span className="text-sm text-red-500">{calcError}</span>}
+          </div>
+          {nutrition?.per_serving && (
+            <div className="mt-4 border-t border-rule pt-4">
+              <p>
+                <span className="font-display text-3xl leading-none text-burg">
+                  {nutrition.per_serving.kcal}
+                </span>{" "}
+                <span className="text-xs uppercase tracking-wider text-soft">
+                  {tn("kcal")} · {t("nutritionPerServing")}
+                </span>
+              </p>
+              <p className="mt-2 text-xs text-soft">
+                {tn("protein")} {nutrition.per_serving.protein} {tn("gram")} · {tn("fat")}{" "}
+                {nutrition.per_serving.fat} {tn("gram")} · {tn("carbs")}{" "}
+                {nutrition.per_serving.carbs} {tn("gram")}
+              </p>
+            </div>
+          )}
+        </section>
+      )}
 
       {/* Categories */}
       {groupedCategories.length > 0 && (

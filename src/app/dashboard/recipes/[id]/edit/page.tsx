@@ -4,7 +4,8 @@ import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { fetchAllCategories } from "@/lib/supabase/queries";
 import UserRecipeForm from "@/components/dashboard/UserRecipeForm";
-import type { Step } from "@/types";
+import { getEntitlements } from "@/lib/entitlements";
+import type { Step, NutritionData } from "@/types";
 
 export const dynamic = "force-dynamic";
 
@@ -19,9 +20,10 @@ export default async function EditUserRecipePage({
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const [t, categories, recipeRes] = await Promise.all([
+  const [t, categories, ent, recipeRes] = await Promise.all([
     getTranslations("myRecipes"),
     fetchAllCategories(),
+    getEntitlements(user.id),
     supabase
       .from("recipes")
       .select("*, steps(*), recipe_categories(category_id)")
@@ -59,6 +61,7 @@ export default async function EditUserRecipePage({
     cover_image: recipe.cover_image ?? null,
     categoryIds,
     steps,
+    nutrition: (recipe.nutrition ?? null) as NutritionData | null,
   };
 
   return (
@@ -74,7 +77,12 @@ export default async function EditUserRecipePage({
           {t("editTitle")}
         </h1>
       </div>
-      <UserRecipeForm categories={categories} recipeId={params.id} defaultValues={defaultValues} />
+      <UserRecipeForm
+        categories={categories}
+        recipeId={params.id}
+        defaultValues={defaultValues}
+        aiEnabled={ent.aiEnabled}
+      />
     </main>
   );
 }

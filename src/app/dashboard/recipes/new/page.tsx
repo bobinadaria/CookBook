@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { fetchAllCategories } from "@/lib/supabase/queries";
 import { createClient } from "@/lib/supabase/server";
-import { canCreateRecipe } from "@/lib/entitlements";
+import { canCreateRecipe, getEntitlements } from "@/lib/entitlements";
 import UserRecipeForm from "@/components/dashboard/UserRecipeForm";
 
 export const dynamic = "force-dynamic";
@@ -25,9 +25,10 @@ export default async function NewUserRecipePage() {
   const { allowed } = await canCreateRecipe(user.id, count ?? 0);
   if (!allowed) redirect("/dashboard/recipes");
 
-  const [t, categories] = await Promise.all([
+  const [t, categories, ent] = await Promise.all([
     getTranslations("myRecipes"),
     fetchAllCategories(),
+    getEntitlements(user.id),
   ]);
 
   return (
@@ -43,7 +44,7 @@ export default async function NewUserRecipePage() {
           {t("newTitle")}
         </h1>
       </div>
-      <UserRecipeForm categories={categories} />
+      <UserRecipeForm categories={categories} aiEnabled={ent.aiEnabled} />
     </main>
   );
 }
