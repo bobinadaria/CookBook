@@ -151,9 +151,14 @@ export async function createRecipe(input: RecipeInput): Promise<string> {
       description: input.description || null,
       note: input.note || null,
       ingredients: input.ingredients || null,
+      title_en: input.title_en?.trim() || null,
+      description_en: input.description_en?.trim() || null,
+      note_en: input.note_en?.trim() || null,
+      ingredients_en: input.ingredients_en?.trim() || null,
       cover_image,
       published: input.published,
       featured: input.featured,
+      recipe_type: input.recipe_type ?? "food",
       cook_time: input.cook_time ?? null,
       servings: input.servings ?? null,
     })
@@ -187,6 +192,8 @@ export async function createRecipe(input: RecipeInput): Promise<string> {
           order: step.order,
           title: step.title || null,
           description: step.description,
+          title_en: step.title_en?.trim() || null,
+          description_en: step.description_en?.trim() || null,
           photo_url,
         };
       })
@@ -216,9 +223,14 @@ export async function updateRecipe(recipeId: string, input: RecipeInput): Promis
       description: input.description || null,
       note: input.note || null,
       ingredients: input.ingredients || null,
+      title_en: input.title_en?.trim() || null,
+      description_en: input.description_en?.trim() || null,
+      note_en: input.note_en?.trim() || null,
+      ingredients_en: input.ingredients_en?.trim() || null,
       cover_image,
       published: input.published,
       featured: input.featured,
+      recipe_type: input.recipe_type ?? "food",
       cook_time: input.cook_time ?? null,
       servings: input.servings ?? null,
       updated_at: new Date().toISOString(),
@@ -263,13 +275,16 @@ export async function updateRecipe(recipeId: string, input: RecipeInput): Promis
       }
 
       if (step.id) {
-        // Update existing step in-place (preserves title_en, description_en)
+        // Update existing step in-place, включая английские поля (форма грузит их
+        // из БД и обновляет при авто-переводе, поэтому пишем их явно).
         await supabase
           .from("steps")
           .update({
             order: step.order,
             title: step.title || null,
             description: step.description,
+            title_en: step.title_en?.trim() || null,
+            description_en: step.description_en?.trim() || null,
             photo_url,
           })
           .eq("id", step.id);
@@ -280,6 +295,8 @@ export async function updateRecipe(recipeId: string, input: RecipeInput): Promis
           order: step.order,
           title: step.title || null,
           description: step.description,
+          title_en: step.title_en?.trim() || null,
+          description_en: step.description_en?.trim() || null,
           photo_url,
         });
       }

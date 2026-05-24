@@ -11,15 +11,20 @@ interface StepRowProps {
   index: number;
   isFirst: boolean;
   isLast: boolean;
+  /** Какой язык редактируем: ru → title/description, en → title_en/description_en. */
+  lang: "ru" | "en";
   onChange: (updated: StepInput) => void;
   onRemove: () => void;
   onMoveUp: () => void;
   onMoveDown: () => void;
 }
 
-function StepRow({ step, index, isFirst, isLast, onChange, onRemove, onMoveUp, onMoveDown }: StepRowProps) {
+function StepRow({ step, index, isFirst, isLast, lang, onChange, onRemove, onMoveUp, onMoveDown }: StepRowProps) {
   const photoInputRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(step.photo_url);
+  const isEn = lang === "en";
+  const titleValue = isEn ? (step.title_en ?? "") : step.title;
+  const descValue = isEn ? (step.description_en ?? "") : step.description;
 
   const handlePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -52,16 +57,20 @@ function StepRow({ step, index, isFirst, isLast, onChange, onRemove, onMoveUp, o
       {/* Fields */}
       <div className="flex-1 flex flex-col gap-3">
         <input
-          placeholder="Заголовок шага (необязательно)"
-          value={step.title}
-          onChange={(e) => onChange({ ...step, title: e.target.value })}
+          placeholder={isEn ? "Step title (optional)" : "Заголовок шага (необязательно)"}
+          value={titleValue}
+          onChange={(e) =>
+            onChange(isEn ? { ...step, title_en: e.target.value } : { ...step, title: e.target.value })
+          }
           className="w-full bg-crust rounded-none px-4 py-3 text-sm text-ink placeholder:text-muted outline-none focus:ring-2 focus:ring-burg/30 transition"
         />
         <textarea
-          placeholder="Описание шага *"
-          value={step.description}
+          placeholder={isEn ? "Step description" : "Описание шага *"}
+          value={descValue}
           rows={2}
-          onChange={(e) => onChange({ ...step, description: e.target.value })}
+          onChange={(e) =>
+            onChange(isEn ? { ...step, description_en: e.target.value } : { ...step, description: e.target.value })
+          }
           className="w-full bg-crust rounded-none px-4 py-3 text-sm text-ink resize-none placeholder:text-muted outline-none focus:ring-2 focus:ring-burg/30 transition"
         />
 
@@ -106,13 +115,15 @@ function StepRow({ step, index, isFirst, isLast, onChange, onRemove, onMoveUp, o
 
 interface StepsSectionProps {
   steps: StepInput[];
+  /** Язык редактирования контента шагов (ru/en). */
+  lang: "ru" | "en";
   onAdd: () => void;
   onUpdate: (index: number, updated: StepInput) => void;
   onRemove: (index: number) => void;
   onMove: (index: number, dir: -1 | 1) => void;
 }
 
-export default function StepsSection({ steps, onAdd, onUpdate, onRemove, onMove }: StepsSectionProps) {
+export default function StepsSection({ steps, lang, onAdd, onUpdate, onRemove, onMove }: StepsSectionProps) {
   return (
     <section>
       <div className="flex items-center justify-between mb-4">
@@ -130,6 +141,7 @@ export default function StepsSection({ steps, onAdd, onUpdate, onRemove, onMove 
             index={i}
             isFirst={i === 0}
             isLast={i === steps.length - 1}
+            lang={lang}
             onChange={(updated) => onUpdate(i, updated)}
             onRemove={() => onRemove(i)}
             onMoveUp={() => onMove(i, -1)}

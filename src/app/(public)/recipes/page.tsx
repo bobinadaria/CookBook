@@ -8,6 +8,7 @@ import RevealCard from "@/components/animations/RevealCard";
 import { EditorialButton, Eyebrow } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
 import { DISPLAYED_CATEGORY_TYPES } from "@/lib/category-types";
+import { cn } from "@/lib/utils";
 import type { Recipe, Category } from "@/types";
 
 type ActiveFilters = Record<string, Set<string>>;
@@ -23,6 +24,7 @@ interface FilterGroup {
 
 const CATEGORY_LABEL_KEYS: Record<string, string> = {
   meal_type: "mealType",
+  drink_type: "drinkType",
   ingredient: "ingredient",
   season: "season",
   country: "country",
@@ -47,6 +49,7 @@ export default function RecipesPage() {
 
   const [search, setSearch] = useState("");
   const [activeFilters, setActiveFilters] = useState<ActiveFilters>({});
+  const [drinksOnly, setDrinksOnly] = useState(false);
   const [openGroup, setOpenGroup] = useState<string | null>(null);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
@@ -58,7 +61,7 @@ export default function RecipesPage() {
       supabase
         .from("recipes")
         .select(`
-          id, title, title_en, slug, description, description_en, note, cover_image, cook_time, published, created_at, updated_at,
+          id, title, title_en, slug, description, description_en, note, cover_image, cook_time, recipe_type, published, created_at, updated_at,
           recipe_categories ( categories ( id, name, name_en, slug, type ) )
         `)
         .eq("published", true)
@@ -115,17 +118,19 @@ export default function RecipesPage() {
   const clearAll = () => {
     setActiveFilters({});
     setSearch("");
+    setDrinksOnly(false);
   };
 
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
-  }, [search, activeFilters]);
+  }, [search, activeFilters, drinksOnly]);
 
   const totalActive = Object.values(activeFilters).reduce((sum, s) => sum + s.size, 0);
-  const hasActiveFilters = totalActive > 0 || search !== "";
+  const hasActiveFilters = totalActive > 0 || search !== "" || drinksOnly;
 
   const filtered = useMemo(() => {
     return recipes.filter((recipe) => {
+      if (drinksOnly && recipe.recipe_type !== "drink") return false;
       if (search) {
         const q = search.toLowerCase();
         if (!getSearchableText(recipe).includes(q)) return false;
@@ -139,7 +144,7 @@ export default function RecipesPage() {
       }
       return true;
     });
-  }, [recipes, search, activeFilters]);
+  }, [recipes, search, activeFilters, drinksOnly]);
 
   const countLabel = (n: number) => t("recipeCount", { count: n });
 
@@ -191,6 +196,21 @@ export default function RecipesPage() {
               </button>
             )}
           </div>
+
+          <div className="mx-1 h-5 w-px flex-shrink-0 bg-rule" />
+
+          {/* Тип рецепта (не категория): показать только напитки */}
+          <button
+            onClick={() => setDrinksOnly((v) => !v)}
+            className={cn(
+              "flex min-h-[44px] flex-shrink-0 items-center gap-2 whitespace-nowrap rounded-none border px-4 py-2.5 font-body text-[12px] font-semibold uppercase tracking-[0.12em] transition-all duration-200",
+              drinksOnly
+                ? "border-burg bg-burg text-paper"
+                : "border-rule bg-transparent text-soft hover:border-burg hover:text-burg",
+            )}
+          >
+            {t("drinksFilter")}
+          </button>
 
           {filterGroups.length > 0 && <div className="mx-1 h-5 w-px flex-shrink-0 bg-rule" />}
 

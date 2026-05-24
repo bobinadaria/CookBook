@@ -20,7 +20,8 @@ export type CategoryType =
   | "meal_type"
   | "meal_time"
   | "ingredient"
-  | "season";
+  | "season"
+  | "drink_type";
 
 export interface Category {
   id: string;
@@ -110,6 +111,8 @@ export interface Recipe {
   cover_image: string | null;
   published: boolean;
   featured: boolean;
+  /** 'food' (по умолчанию) | 'drink'. У напитков нет КБЖУ/времени/порций. */
+  recipe_type: "food" | "drink";
   /** null = авторский/админский рецепт каталога; задан = личный рецепт пользователя. */
   owner_id?: string | null;
   /** 'public' = каталог автора; 'private' = личная книга пользователя; 'unlisted' — на будущее. */
@@ -120,6 +123,7 @@ export interface Recipe {
   title_en?: string | null;
   description_en?: string | null;
   note_en?: string | null;
+  ingredients_en?: string | null;
   created_at: string;
   updated_at: string;
   // KBJU calculated by /api/admin/calculate-nutrition. Null when not yet computed.
@@ -172,6 +176,8 @@ export type RecipeCardData = Pick<
 > & {
   /** Optional — present when the query selects it (magazine card meta row). */
   cook_time?: number | null;
+  /** Optional — 'drink' показывает на карточке метку «Напиток» вместо категории. */
+  recipe_type?: "food" | "drink";
   /** Optional primary categories — used for the card's category eyebrow. */
   categories?: Pick<Category, "id" | "name" | "name_en" | "type">[];
 };
@@ -190,6 +196,9 @@ export interface StepInput {
   order: number;
   title: string;
   description: string;
+  /** English variants (двуязычное редактирование). */
+  title_en?: string;
+  description_en?: string;
   photo_url: string | null;
   /** New local file selected by the user — uploaded on save. */
   photoFile?: File;
@@ -201,8 +210,15 @@ export interface RecipeInput {
   description: string;
   note: string;
   ingredients: string;
+  /** English variants (двуязычное редактирование). Пусто → null при сохранении. */
+  title_en?: string;
+  description_en?: string;
+  note_en?: string;
+  ingredients_en?: string;
   published: boolean;
   featured: boolean;
+  /** 'food' (по умолчанию) | 'drink'. У напитков нет КБЖУ/времени/порций. */
+  recipe_type: "food" | "drink";
   cook_time: number | null;  // total minutes
   servings: number | null;   // number of portions
   categoryIds: string[];

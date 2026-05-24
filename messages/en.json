@@ -364,7 +364,8 @@
     "noRecipes": "No recipes added yet",
     "resetFilters": "Reset filters",
     "loadMore": "Load more",
-    "recipeCount": "{count, plural, one {# recipe} other {# recipes}}"
+    "recipeCount": "{count, plural, one {# recipe} other {# recipes}}",
+    "drinksFilter": "Drinks"
   },
   "recipe": {
     "backToAll": "← All recipes",
@@ -384,6 +385,7 @@
     "stepsLabel": "Steps",
     "min": "min",
     "readMore": "Read →",
+    "drinkLabel": "Drink",
     "figCaption": "Fig. I — On the table",
     "authorSign": "— Daria",
     "servingsHeading": "for {count, plural, one {# serving} other {# servings}}",
@@ -405,6 +407,7 @@
   },
   "filters": {
     "mealType": "Meal type",
+    "drinkType": "Drink type",
     "mealTime": "Meal time",
     "ingredient": "Ingredient",
     "season": "Season / occasion",

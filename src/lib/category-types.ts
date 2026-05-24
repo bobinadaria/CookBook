@@ -12,9 +12,26 @@
  */
 export const DISPLAYED_CATEGORY_TYPES = [
   "meal_type",
+  "drink_type",
   "country",
   "season",
   "ingredient",
 ] as const;
 
 export type DisplayedCategoryType = (typeof DISPLAYED_CATEGORY_TYPES)[number];
+
+/** Типы категорий только для напитков (у еды скрыты). */
+const DRINK_ONLY_CATEGORY_TYPES: readonly string[] = ["drink_type"];
+/** Типы категорий только для еды (у напитков скрыты). */
+const FOOD_ONLY_CATEGORY_TYPES: readonly string[] = ["meal_type"];
+
+/**
+ * Какие типы категорий показывать в админ-пикере для конкретного рецепта.
+ * Напиток не видит «Тип блюда» (салаты/супы), еда не видит «Тип напитка».
+ * Каталог НЕ использует этот фильтр — там видны все типы сразу.
+ */
+export function categoryTypesForRecipe(isDrink: boolean): readonly string[] {
+  return DISPLAYED_CATEGORY_TYPES.filter((t) =>
+    isDrink ? !FOOD_ONLY_CATEGORY_TYPES.includes(t) : !DRINK_ONLY_CATEGORY_TYPES.includes(t),
+  );
+}

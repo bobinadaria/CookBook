@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
 import { useRecipeForm, type RecipeFormDefaults } from "./useRecipeForm";
 import BasicInfoSection from "./BasicInfoSection";
 import StepsSection from "./StepsSection";
@@ -18,21 +19,84 @@ interface RecipeFormProps {
 export default function RecipeForm({ recipeId, defaultValues }: RecipeFormProps) {
   const router = useRouter();
   const form = useRecipeForm(recipeId, defaultValues);
+  const isDrink = form.recipeType === "drink";
+  const isEn = form.formLang === "en";
 
   return (
     <form onSubmit={form.handleSubmit} className="flex flex-col gap-10">
+      {/* ── Recipe type: еда / напиток ─────────────────────────────────── */}
+      <section>
+        <label className="block text-xs text-soft uppercase tracking-wider mb-2">
+          Тип рецепта
+        </label>
+        <div className="inline-flex gap-2">
+          {(["food", "drink"] as const).map((type) => (
+            <button
+              key={type}
+              type="button"
+              onClick={() => form.setRecipeType(type)}
+              className={cn(
+                "rounded-none border px-5 py-2.5 text-sm transition-colors",
+                form.recipeType === type
+                  ? "border-burg bg-burg text-paper"
+                  : "border-rule bg-crust text-soft hover:text-burg",
+              )}
+            >
+              {type === "food" ? "Еда" : "Напиток"}
+            </button>
+          ))}
+        </div>
+        {isDrink && (
+          <p className="mt-2 text-xs text-muted">
+            У напитков нет КБЖУ, времени приготовления и порций — только состав и шаги.
+          </p>
+        )}
+      </section>
+
+      {/* ── Язык контента: RU / EN ─────────────────────────────────────── */}
+      <section>
+        <label className="block text-xs text-soft uppercase tracking-wider mb-2">
+          Язык контента
+        </label>
+        <div className="inline-flex gap-2">
+          {(["ru", "en"] as const).map((lang) => (
+            <button
+              key={lang}
+              type="button"
+              onClick={() => form.setFormLang(lang)}
+              className={cn(
+                "rounded-none border px-5 py-2.5 text-sm uppercase tracking-wider transition-colors",
+                form.formLang === lang
+                  ? "border-burg bg-burg text-paper"
+                  : "border-rule bg-crust text-soft hover:text-burg",
+              )}
+            >
+              {lang === "ru" ? "RU" : "EN"}
+            </button>
+          ))}
+        </div>
+        {isEn && (
+          <p className="mt-2 text-xs text-muted">
+            Редактируешь английскую версию. Адрес страницы, время, порции, категории,
+            КБЖУ и обложка — общие для обоих языков. Кнопка «Перевести» внизу заполнит
+            эти поля автоматически.
+          </p>
+        )}
+      </section>
+
       <BasicInfoSection
-        title={form.title}
+        title={isEn ? form.titleEn : form.title}
         slug={form.slug}
-        description={form.description}
-        note={form.note}
+        description={isEn ? form.descriptionEn : form.description}
+        note={isEn ? form.noteEn : form.note}
         cookTime={form.cookTime}
         servings={form.servings}
-        onTitleChange={form.setTitle}
+        isDrink={isDrink}
+        onTitleChange={isEn ? form.setTitleEn : form.setTitle}
         onSlugChange={form.setSlug}
         onSlugEdit={() => form.setSlugEdited(true)}
-        onDescriptionChange={form.setDescription}
-        onNoteChange={form.setNote}
+        onDescriptionChange={isEn ? form.setDescriptionEn : form.setDescription}
+        onNoteChange={isEn ? form.setNoteEn : form.setNote}
         onCookTimeChange={form.setCookTime}
         onServingsChange={form.setServings}
       />
@@ -44,33 +108,45 @@ export default function RecipeForm({ recipeId, defaultValues }: RecipeFormProps)
         </label>
         <textarea
           rows={6}
-          value={form.ingredients}
-          onChange={(e) => form.setIngredients(e.target.value)}
-          placeholder={"Персик\nКамамбер\nТимьян\nКруассаны\nМёд\nГрецкий орех"}
+          value={isEn ? form.ingredientsEn : form.ingredients}
+          onChange={(e) => (isEn ? form.setIngredientsEn : form.setIngredients)(e.target.value)}
+          placeholder={
+            isDrink
+              ? "Тоник — 200 мл\nЭспрессо — 60 мл\nЛёд — 4-5 кубиков\nАпельсин — 1 долька"
+              : "Персик\nКамамбер\nТимьян\nКруассаны\nМёд\nГрецкий орех"
+          }
           className="w-full bg-crust rounded-none px-4 py-3 text-sm text-ink resize-none placeholder:text-muted outline-none focus:ring-2 focus:ring-burg/30 transition"
         />
-        <p className="mt-1 text-xs text-muted">По одному ингредиенту на строку</p>
+        <p className="mt-1 text-xs text-muted">
+          {isDrink
+            ? "По одному ингредиенту на строку, можно с количеством"
+            : "По одному ингредиенту на строку"}
+        </p>
       </section>
 
-      <NutritionSection
-        current={form.currentNutrition}
-        fresh={form.freshNutrition}
-        recipeId={recipeId}
-        ingredientsEmpty={form.ingredients.trim().length === 0}
-        ingredientsDirty={form.ingredientsDirty}
-        calculating={form.calculatingNutrition}
-        error={form.nutritionError}
-        onCalculate={form.handleCalculateNutrition}
-      />
+      {!isDrink && (
+        <NutritionSection
+          current={form.currentNutrition}
+          fresh={form.freshNutrition}
+          recipeId={recipeId}
+          ingredientsEmpty={form.ingredients.trim().length === 0}
+          ingredientsDirty={form.ingredientsDirty}
+          calculating={form.calculatingNutrition}
+          error={form.nutritionError}
+          onCalculate={form.handleCalculateNutrition}
+        />
+      )}
 
       <CategoriesSection
         allCategories={form.allCategories}
         selectedIds={form.selectedCategoryIds}
         onToggle={form.toggleCategory}
+        isDrink={isDrink}
       />
 
       <StepsSection
         steps={form.steps}
+        lang={form.formLang}
         onAdd={form.addStep}
         onUpdate={form.updateStep}
         onRemove={form.removeStep}

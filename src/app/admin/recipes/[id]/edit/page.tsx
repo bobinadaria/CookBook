@@ -22,8 +22,13 @@ export default function EditRecipePage() {
           description: recipe.description ?? "",
           note: recipe.note ?? "",
           ingredients: recipe.ingredients ?? "",
+          title_en: recipe.title_en ?? "",
+          description_en: recipe.description_en ?? "",
+          note_en: recipe.note_en ?? "",
+          ingredients_en: recipe.ingredients_en ?? "",
           published: recipe.published,
           featured: recipe.featured ?? false,
+          recipe_type: (recipe.recipe_type ?? "food") as "food" | "drink",
           cook_time: recipe.cook_time ?? null,
           servings: recipe.servings ?? null,
           cover_image: recipe.cover_image ?? undefined,
@@ -33,11 +38,13 @@ export default function EditRecipePage() {
           ),
           steps: (recipe.steps ?? [])
             .sort((a: { order: number }, b: { order: number }) => a.order - b.order)
-            .map((s: { id: string; order: number; title: string | null; description: string; photo_url: string | null }) => ({
+            .map((s: { id: string; order: number; title: string | null; description: string; title_en: string | null; description_en: string | null; photo_url: string | null }) => ({
               id: s.id,
               order: s.order,
               title: s.title ?? "",
               description: s.description,
+              title_en: s.title_en ?? "",
+              description_en: s.description_en ?? "",
               photo_url: s.photo_url,
             })),
         });

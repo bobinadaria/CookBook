@@ -7,6 +7,8 @@ interface BasicInfoSectionProps {
   note: string;
   cookTime: number | null;
   servings: number | null;
+  /** Напиток → скрыть поля «время приготовления» и «порции». */
+  isDrink?: boolean;
   onTitleChange: (v: string) => void;
   onSlugChange: (v: string) => void;
   onSlugEdit: () => void;
@@ -44,7 +46,7 @@ function FieldTextarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>)
 }
 
 export default function BasicInfoSection({
-  title, slug, description, note, cookTime, servings,
+  title, slug, description, note, cookTime, servings, isDrink = false,
   onTitleChange, onSlugChange, onSlugEdit, onDescriptionChange, onNoteChange,
   onCookTimeChange, onServingsChange,
 }: BasicInfoSectionProps) {
@@ -55,8 +57,7 @@ export default function BasicInfoSection({
         <FieldInput
           value={title}
           onChange={(e) => onTitleChange(e.target.value)}
-          placeholder="Тарт с инжиром и рикоттой"
-          required
+          placeholder={isDrink ? "Эспрессо-тоник" : "Тарт с инжиром и рикоттой"}
         />
       </div>
 
@@ -65,7 +66,7 @@ export default function BasicInfoSection({
         <FieldInput
           value={slug}
           onChange={(e) => { onSlugChange(e.target.value); onSlugEdit(); }}
-          placeholder="tart-s-inzhirom"
+          placeholder={isDrink ? "espresso-tonik" : "tart-s-inzhirom"}
         />
         <p className="mt-1 text-xs text-muted">/recipes/{slug || "…"}</p>
       </div>
@@ -75,7 +76,11 @@ export default function BasicInfoSection({
         <FieldTextarea
           value={description}
           onChange={(e) => onDescriptionChange(e.target.value)}
-          placeholder="Нежный французский тарт с рикоттой, свежим инжиром и тимьяном"
+          placeholder={
+            isDrink
+              ? "Бодрящий летний напиток: двойной эспрессо поверх ледяного тоника с долькой апельсина"
+              : "Нежный французский тарт с рикоттой, свежим инжиром и тимьяном"
+          }
         />
       </div>
 
@@ -85,41 +90,47 @@ export default function BasicInfoSection({
           rows={4}
           value={note}
           onChange={(e) => onNoteChange(e.target.value)}
-          placeholder="Личная история о блюде — откуда оно появилось, с чем связано..."
+          placeholder={
+            isDrink
+              ? "Личная история напитка — где попробовала, с чем ассоциируется..."
+              : "Личная история о блюде — откуда оно появилось, с чем связано..."
+          }
         />
         <p className="mt-1 text-xs text-muted">
           Отображается на странице рецепта в рукописном стиле
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <FieldLabel>Время приготовления (мин)</FieldLabel>
-          <FieldInput
-            type="number"
-            min={1}
-            value={cookTime ?? ""}
-            onChange={(e) =>
-              onCookTimeChange(e.target.value === "" ? null : Number(e.target.value))
-            }
-            placeholder="45"
-          />
-          <p className="mt-1 text-xs text-muted">Общее время в минутах</p>
+      {!isDrink && (
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <FieldLabel>Время приготовления (мин)</FieldLabel>
+            <FieldInput
+              type="number"
+              min={1}
+              value={cookTime ?? ""}
+              onChange={(e) =>
+                onCookTimeChange(e.target.value === "" ? null : Number(e.target.value))
+              }
+              placeholder="45"
+            />
+            <p className="mt-1 text-xs text-muted">Общее время в минутах</p>
+          </div>
+          <div>
+            <FieldLabel>Количество порций</FieldLabel>
+            <FieldInput
+              type="number"
+              min={1}
+              value={servings ?? ""}
+              onChange={(e) =>
+                onServingsChange(e.target.value === "" ? null : Number(e.target.value))
+              }
+              placeholder="4"
+            />
+            <p className="mt-1 text-xs text-muted">Для скольких человек</p>
+          </div>
         </div>
-        <div>
-          <FieldLabel>Количество порций</FieldLabel>
-          <FieldInput
-            type="number"
-            min={1}
-            value={servings ?? ""}
-            onChange={(e) =>
-              onServingsChange(e.target.value === "" ? null : Number(e.target.value))
-            }
-            placeholder="4"
-          />
-          <p className="mt-1 text-xs text-muted">Для скольких человек</p>
-        </div>
-      </div>
+      )}
     </section>
   );
 }

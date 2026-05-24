@@ -1,11 +1,12 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { DISPLAYED_CATEGORY_TYPES } from "@/lib/category-types";
+import { categoryTypesForRecipe } from "@/lib/category-types";
 import type { Category } from "@/types";
 
 const CATEGORY_LABELS: Record<string, string> = {
   meal_type:  "Тип блюда",
+  drink_type: "Тип напитка",
   country:    "Кухня",
   season:     "Сезон / повод",
   ingredient: "Ингредиент",
@@ -15,17 +16,20 @@ interface CategoriesSectionProps {
   allCategories: Category[];
   selectedIds: Set<string>;
   onToggle: (id: string) => void;
+  /** Напиток → показываем «Тип напитка», прячем «Тип блюда» (и наоборот). */
+  isDrink?: boolean;
 }
 
-export default function CategoriesSection({ allCategories, selectedIds, onToggle }: CategoriesSectionProps) {
+export default function CategoriesSection({ allCategories, selectedIds, onToggle, isDrink = false }: CategoriesSectionProps) {
   const grouped = allCategories.reduce<Record<string, Category[]>>((acc, cat) => {
     (acc[cat.type] ??= []).push(cat);
     return acc;
   }, {});
 
-  // Показываем только актуальные типы фильтров, в фиксированном порядке.
+  // Показываем только актуальные типы фильтров, в фиксированном порядке, и
+  // зависящие от типа рецепта: напиток не видит «Тип блюда», еда — «Тип напитка».
   // meal_time и старый category в пикер не выводим (см. lib/category-types).
-  const orderedTypes = DISPLAYED_CATEGORY_TYPES.filter((t) => grouped[t]?.length);
+  const orderedTypes = categoryTypesForRecipe(isDrink).filter((t) => grouped[t]?.length);
 
   return (
     <section>

@@ -364,7 +364,8 @@
     "noRecipes": "Рецепты пока не добавлены",
     "resetFilters": "Сбросить фильтры",
     "loadMore": "Загрузить ещё",
-    "recipeCount": "{count, plural, one {# рецепт} few {# рецепта} other {# рецептов}}"
+    "recipeCount": "{count, plural, one {# рецепт} few {# рецепта} other {# рецептов}}",
+    "drinksFilter": "Напитки"
   },
   "recipe": {
     "backToAll": "← Все рецепты",
@@ -384,6 +385,7 @@
     "stepsLabel": "Шагов",
     "min": "мин",
     "readMore": "Читать →",
+    "drinkLabel": "Напиток",
     "figCaption": "Fig. I — На столе",
     "authorSign": "— Даша",
     "servingsHeading": "на {count, plural, one {# порцию} few {# порции} many {# порций} other {# порции}}",
@@ -405,6 +407,7 @@
   },
   "filters": {
     "mealType": "Тип блюда",
+    "drinkType": "Тип напитка",
     "mealTime": "Приём пищи",
     "ingredient": "Ингредиент",
     "season": "Сезон / повод",

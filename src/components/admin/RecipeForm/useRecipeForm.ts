@@ -32,6 +32,52 @@ export function useRecipeForm(recipeId?: string, defaultValues?: RecipeFormDefau
   const [featured, setFeatured] = useState(defaultValues?.featured ?? false);
   const [cookTime, setCookTime] = useState<number | null>(defaultValues?.cook_time ?? null);
   const [servings, setServings] = useState<number | null>(defaultValues?.servings ?? null);
+  const [recipeType, setRecipeType] = useState<"food" | "drink">(
+    defaultValues?.recipe_type ?? "food",
+  );
+
+  /** Переключение типа. При выборе «напиток» обнуляем поля, которых у напитков нет. */
+  const changeRecipeType = (type: "food" | "drink") => {
+    setRecipeType(type);
+    if (type === "drink") {
+      setCookTime(null);
+      setServings(null);
+    }
+  };
+
+  // ── Двуязычные поля (английская версия контента) ───────────────────────────
+  // Язык, который сейчас редактируется в форме. Влияет только на текстовый
+  // контент рецепта (название/описание/заметка/состав/шаги); slug, время,
+  // порции, категории, КБЖУ, обложка — общие.
+  const [formLang, setFormLang] = useState<"ru" | "en">("ru");
+  const [titleEn, setTitleEn] = useState(defaultValues?.title_en ?? "");
+  const [descriptionEn, setDescriptionEn] = useState(defaultValues?.description_en ?? "");
+  const [noteEn, setNoteEn] = useState(defaultValues?.note_en ?? "");
+  const [ingredientsEn, setIngredientsEn] = useState(defaultValues?.ingredients_en ?? "");
+
+  /** Заполняет английские поля результатом авто-перевода (Gemini). */
+  const applyEnTranslations = (en: {
+    title?: string | null;
+    description?: string | null;
+    note?: string | null;
+    ingredients?: string | null;
+    steps?: { order: number; title?: string | null; description?: string | null }[];
+  }) => {
+    setTitleEn(en.title ?? "");
+    setDescriptionEn(en.description ?? "");
+    setNoteEn(en.note ?? "");
+    setIngredientsEn(en.ingredients ?? "");
+    if (en.steps?.length) {
+      setSteps((prev) =>
+        prev.map((s) => {
+          const match = en.steps!.find((es) => es.order === s.order);
+          return match
+            ? { ...s, title_en: match.title ?? "", description_en: match.description ?? "" }
+            : s;
+        }),
+      );
+    }
+  };
 
   // ── Cover ──────────────────────────────────────────────────────────────────
   const [coverFile, setCoverFile] = useState<File | undefined>();
@@ -91,6 +137,11 @@ export function useRecipeForm(recipeId?: string, defaultValues?: RecipeFormDefau
       if (d.description) setDescription(d.description);
       if (d.note) setNote(d.note);
       if (d.ingredients) setIngredients(d.ingredients);
+      if (d.recipe_type) setRecipeType(d.recipe_type);
+      if (d.title_en) setTitleEn(d.title_en);
+      if (d.description_en) setDescriptionEn(d.description_en);
+      if (d.note_en) setNoteEn(d.note_en);
+      if (d.ingredients_en) setIngredientsEn(d.ingredients_en);
       if (d.published) setPublished(d.published);
       if (d.featured) setFeatured(d.featured);
       if (d.categoryIds) setSelectedCategoryIds(new Set(d.categoryIds));
@@ -105,16 +156,18 @@ export function useRecipeForm(recipeId?: string, defaultValues?: RecipeFormDefau
     const timer = setTimeout(() => {
       const draft = {
         title, slug, description, note, ingredients, published, featured,
+        recipe_type: recipeType,
+        title_en: titleEn, description_en: descriptionEn, note_en: noteEn, ingredients_en: ingredientsEn,
         cook_time: cookTime, servings,
         categoryIds: Array.from(selectedCategoryIds),
-        steps: steps.map(({ id, order, title, description, photo_url }) => ({
-          id, order, title, description, photo_url,
+        steps: steps.map(({ id, order, title, description, title_en, description_en, photo_url }) => ({
+          id, order, title, description, title_en, description_en, photo_url,
         })),
       };
       localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
     }, 500);
     return () => clearTimeout(timer);
-  }, [title, slug, description, note, ingredients, published, featured, cookTime, servings, selectedCategoryIds, steps, recipeId]);
+  }, [title, slug, description, note, ingredients, published, featured, recipeType, titleEn, descriptionEn, noteEn, ingredientsEn, cookTime, servings, selectedCategoryIds, steps, recipeId]);
 
   // ── Auto-generate slug from title ─────────────────────────────────────────
   useEffect(() => {
@@ -187,8 +240,13 @@ export function useRecipeForm(recipeId?: string, defaultValues?: RecipeFormDefau
       description: description.trim(),
       note: note.trim(),
       ingredients: ingredients.trim(),
+      title_en: titleEn.trim(),
+      description_en: descriptionEn.trim(),
+      note_en: noteEn.trim(),
+      ingredients_en: ingredientsEn.trim(),
       published,
       featured,
+      recipe_type: recipeType,
       cook_time: cookTime,
       servings,
       categoryIds: Array.from(selectedCategoryIds),
@@ -209,7 +267,9 @@ export function useRecipeForm(recipeId?: string, defaultValues?: RecipeFormDefau
       // Авто-расчёт КБЖУ: только когда есть смысл — новый рецепт, изменился состав,
       // или КБЖУ ещё ни разу не считали. Если менялся только заголовок/тег — не дёргаем.
       // Кеш на сервере (по хешу состава) подстрахует от лишнего вызова OpenAI.
+      // Напитки не считают КБЖУ — пропускаем авто-расчёт целиком.
       const needsNutrition =
+        recipeType !== "drink" &&
         !!input.ingredients && !!savedId && (!recipeId || ingredientsDirty || !currentNutrition);
       if (needsNutrition) {
         setAutoCalcNutrition(true);
@@ -286,9 +346,12 @@ export function useRecipeForm(recipeId?: string, defaultValues?: RecipeFormDefau
         body: JSON.stringify({ recipeId }),
       });
       const text = await res.text();
-      let json: { error?: string } = {};
+      let json: { error?: string; translations?: { en: Parameters<typeof applyEnTranslations>[0] } } = {};
       try { json = JSON.parse(text); } catch { /* non-JSON */ }
       if (!res.ok) throw new Error(json.error || `Ошибка ${res.status}`);
+      // Подтягиваем свежий перевод в форму, чтобы вкладка EN сразу показывала
+      // результат, а сохранение не перезатёрло его старыми значениями.
+      if (json.translations?.en) applyEnTranslations(json.translations.en);
       setTranslateSuccess(true);
       setTimeout(() => setTranslateSuccess(false), 4000);
     } catch (err: unknown) {
@@ -345,9 +408,10 @@ export function useRecipeForm(recipeId?: string, defaultValues?: RecipeFormDefau
         body: JSON.stringify({ recipeId }),
       });
       const text = await translateRes.text();
-      let json: { error?: string } = {};
+      let json: { error?: string; translations?: { en: Parameters<typeof applyEnTranslations>[0] } } = {};
       try { json = JSON.parse(text); } catch { /* non-JSON */ }
       if (!translateRes.ok) throw new Error(json.error || `Ошибка перевода ${translateRes.status}`);
+      if (json.translations?.en) applyEnTranslations(json.translations.en);
 
       setCombinedStep("generating");
       const genRes = await fetch("/api/admin/generate-image", {
@@ -385,6 +449,13 @@ export function useRecipeForm(recipeId?: string, defaultValues?: RecipeFormDefau
     featured, setFeatured,
     cookTime, setCookTime,
     servings, setServings,
+    recipeType, setRecipeType: changeRecipeType,
+    // Language + English content
+    formLang, setFormLang,
+    titleEn, setTitleEn,
+    descriptionEn, setDescriptionEn,
+    noteEn, setNoteEn,
+    ingredientsEn, setIngredientsEn,
     // Cover
     coverPreview, setCoverPreview,
     coverInputRef,

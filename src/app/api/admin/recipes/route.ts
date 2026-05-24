@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { title, description, note, ingredients, published, featured, categories, steps } = body;
+  const { title, description, note, ingredients, published, featured, recipe_type, categories, steps } = body;
 
   if (!title || typeof title !== "string") {
     return NextResponse.json({ error: "title is required" }, { status: 400 });
@@ -50,6 +50,7 @@ export async function POST(req: NextRequest) {
       ingredients: ingredients || null,
       published: published ?? false,
       featured: featured ?? false,
+      recipe_type: recipe_type === "drink" ? "drink" : "food",
     })
     .select("id, slug")
     .single();

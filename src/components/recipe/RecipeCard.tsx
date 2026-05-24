@@ -67,6 +67,10 @@ export default function RecipeCard({
     ? localizedField(primaryCat, "name", locale) ?? primaryCat.name
     : null;
 
+  // У напитков показываем метку «Напиток» вместо категории.
+  const isDrink = recipe.recipe_type === "drink";
+  const eyebrowLabel = isDrink ? t("drinkLabel") : categoryLabel;
+
   const hasNumber = typeof index === "number";
   const roman = hasNumber ? toRoman(index as number) : null;
   const pageNo = hasNumber ? String((index as number) * 6 + 2).padStart(3, "0") : null;
@@ -120,9 +124,9 @@ export default function RecipeCard({
           </span>
         )}
         <div className="flex-1">
-          {categoryLabel && (
+          {eyebrowLabel && (
             <div className="mb-1.5 font-body text-[11px] font-semibold uppercase tracking-[0.2em] text-ochre-dk">
-              {categoryLabel}
+              {eyebrowLabel}
             </div>
           )}
           <h3 className="font-display text-[20px] font-normal leading-[1.15] text-ink transition-colors group-hover:text-burg sm:text-[24px]">

@@ -8,6 +8,7 @@ import type { Category, CategoryType } from "@/types";
 
 const CATEGORY_TYPES: { value: CategoryType; label: string }[] = [
   { value: "meal_type", label: "Тип блюда" },
+  { value: "drink_type", label: "Тип напитка" },
   { value: "meal_time", label: "Приём пищи" },
   { value: "ingredient", label: "Ингредиент" },
   { value: "season", label: "Сезон / повод" },

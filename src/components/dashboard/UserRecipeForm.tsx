@@ -63,7 +63,9 @@ async function uploadImage(bucket: string, file: File): Promise<string> {
   return json.url as string;
 }
 
-const CAT_TYPE_KEYS = DISPLAYED_CATEGORY_TYPES;
+// Пользовательские рецепты пока не различают еду/напиток — «Тип напитка» здесь
+// не показываем, чтобы не предлагать неуместные категории.
+const CAT_TYPE_KEYS = DISPLAYED_CATEGORY_TYPES.filter((t) => t !== "drink_type");
 
 const inputClass =
   "w-full bg-crust rounded-none px-4 py-3 text-sm text-ink placeholder:text-muted outline-none focus:ring-2 focus:ring-burg/30 transition";

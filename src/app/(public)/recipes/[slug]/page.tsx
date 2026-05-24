@@ -201,6 +201,9 @@ export default async function RecipePage({ params }: RecipePageProps) {
   const hasSteps = recipe.steps.length > 0;
 
   const nutrition = recipe.nutrition as NutritionData | null;
+  // Напитки не показывают КБЖУ — даже если у рецепта осталась старая nutrition
+  // (например, его сконвертировали из «еды» в «напиток»).
+  const isDrink = recipe.recipe_type === "drink";
   const primaryCategory = recipe.categories[0];
   const categoryLabel = primaryCategory
     ? localizedField(primaryCategory, "name", l) ?? primaryCategory.name
@@ -210,7 +213,7 @@ export default async function RecipePage({ params }: RecipePageProps) {
   const metrics: { label: string; value: string; unit: string }[] = [];
   if (recipe.cook_time) metrics.push({ label: t("cookTime"), value: String(recipe.cook_time), unit: t("min") });
   if (recipe.servings) metrics.push({ label: t("servings"), value: String(recipe.servings), unit: "" });
-  if (nutrition?.per_serving?.kcal)
+  if (!isDrink && nutrition?.per_serving?.kcal)
     metrics.push({ label: t("calories"), value: String(nutrition.per_serving.kcal), unit: t("nutrition.kcal") });
   if (hasSteps) metrics.push({ label: t("stepsLabel"), value: String(recipe.steps.length), unit: "" });
 
@@ -372,8 +375,8 @@ export default async function RecipePage({ params }: RecipePageProps) {
         </section>
       )}
 
-      {/* ── КБЖУ (только цифры; диагностика — в админке) ─────────────────── */}
-      <NutritionFacts nutrition={nutrition} />
+      {/* ── КБЖУ (только цифры; диагностика — в админке). Напитки — без КБЖУ. ── */}
+      {!isDrink && <NutritionFacts nutrition={nutrition} />}
 
       {/* ── Author note: история блюда ──────────────────────────────────── */}
       {note && (
