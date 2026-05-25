@@ -24,19 +24,22 @@ export default function AccountPage() {
   const [nameDraft, setNameDraft] = useState("");
   const [savingName, setSavingName] = useState(false);
   const [nameSaved, setNameSaved] = useState(false);
+  const [plan, setPlan] = useState<"free" | "premium" | "lifetime">("free");
 
   useEffect(() => {
     if (!user) return;
     const supabase = createClient();
     supabase
       .from("profiles")
-      .select("display_name")
+      .select("display_name, plan")
       .eq("id", user.id)
       .maybeSingle()
       .then(({ data }) => {
         const n = data?.display_name ?? user.email?.split("@")[0] ?? "";
         setDisplayName(n);
         setNameDraft(n);
+        const p = data?.plan;
+        setPlan(p === "premium" || p === "lifetime" ? p : "free");
       });
   }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -126,7 +129,7 @@ export default function AccountPage() {
         </section>
 
         {/* План + подписка (карточка с «View more») */}
-        <PlanBanner />
+        <PlanBanner plan={plan} />
       </div>
     </main>
   );

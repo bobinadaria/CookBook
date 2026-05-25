@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
-import { Eyebrow } from "@/components/ui";
+import { Eyebrow, DropCap } from "@/components/ui";
 import RecipeOwnerActions from "@/components/dashboard/RecipeOwnerActions";
 import NutritionFacts from "@/components/recipe/NutritionFacts";
 import type { Step, NutritionData } from "@/types";
@@ -83,10 +83,22 @@ export default async function ViewUserRecipePage({
         <h1 className="mt-3 font-display text-[clamp(2.2rem,6vw,72px)] font-normal leading-[0.95] tracking-[-0.03em] text-burg">
           {recipe.title}
         </h1>
-        {recipe.description && (
-          <p className="mt-5 max-w-[560px] font-body text-[16px] leading-[1.75] text-soft">
-            {recipe.description}
-          </p>
+        {recipe.note && (
+          <div className="mt-6 max-w-[640px]">
+            <Eyebrow color="text-burg" className="mb-3">
+              {tr("dishStory")}
+            </Eyebrow>
+            <p className="font-display text-[20px] font-normal italic leading-[1.55] text-burg sm:text-[22px]">
+              {recipe.note.length > 120 ? (
+                <>
+                  <DropCap>{recipe.note.charAt(0)}</DropCap>
+                  {recipe.note.slice(1)}
+                </>
+              ) : (
+                recipe.note
+              )}
+            </p>
+          </div>
         )}
         {(recipe.cook_time || recipe.servings) && (
           <div className="mt-6 flex gap-8 border-t-2 border-burg pt-4">
@@ -117,15 +129,15 @@ export default async function ViewUserRecipePage({
         )}
       </header>
 
-      {/* Cover */}
+      {/* Cover (квадрат, как и фото в рецептах) */}
       {recipe.cover_image && (
-        <div className="relative mb-12 h-[300px] overflow-hidden sm:h-[420px]">
+        <div className="relative mx-auto mb-12 aspect-square w-full max-w-[560px] overflow-hidden">
           <Image
             src={recipe.cover_image}
             alt={recipe.title}
             fill
             priority
-            sizes="(max-width:1100px) 100vw, 1100px"
+            sizes="(max-width:600px) 100vw, 560px"
             className="object-cover"
           />
         </div>
@@ -198,15 +210,7 @@ export default async function ViewUserRecipePage({
         </div>
       )}
 
-      {/* Note / story */}
-      {recipe.note && (
-        <section className="mt-14 max-w-[640px] border-l-4 border-ochre bg-crust px-8 py-9">
-          <Eyebrow color="text-burg">{tr("dishStory")}</Eyebrow>
-          <p className="mt-3.5 font-display text-[22px] font-normal italic leading-[1.45] text-burg">
-            {recipe.note}
-          </p>
-        </section>
-      )}
+      {/* История блюда теперь показывается под заголовком (см. header выше). */}
     </main>
   );
 }

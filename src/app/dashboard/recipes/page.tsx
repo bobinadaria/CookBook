@@ -2,8 +2,10 @@ import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { getEntitlements } from "@/lib/entitlements";
-import { EditorialButton, Eyebrow } from "@/components/ui";
+import { Eyebrow } from "@/components/ui";
 import MyBookView, { type BookItem } from "@/components/dashboard/MyBookView";
+import MyBookEmptyState from "@/components/dashboard/MyBookEmptyState";
+import CreateRecipeButton from "@/components/dashboard/CreateRecipeButton";
 
 // User-specific data — never statically cache this page.
 export const dynamic = "force-dynamic";
@@ -86,15 +88,7 @@ export default async function MyBookPage() {
             {t("title")}
           </h1>
         </div>
-        {atLimit ? (
-          <EditorialButton type="button" disabled className="px-6 py-3">
-            {t("addRecipe")}
-          </EditorialButton>
-        ) : (
-          <EditorialButton href="/dashboard/recipes/new" className="px-6 py-3">
-            {t("addRecipe")}
-          </EditorialButton>
-        )}
+        <CreateRecipeButton disabled={atLimit} className="px-6 py-3" />
       </div>
 
       {monetizationEnabled && limits.recipes !== null && (
@@ -110,13 +104,7 @@ export default async function MyBookPage() {
       )}
 
       {items.length === 0 ? (
-        <div className="border-t border-rule py-28 text-center">
-          <p className="mb-4 font-display text-[28px] italic text-burg/40">{t("empty")}</p>
-          <p className="mb-8 font-body text-sm text-soft">{t("emptyHint")}</p>
-          <div className="flex justify-center">
-            <EditorialButton href="/dashboard/recipes/new">{t("addRecipe")}</EditorialButton>
-          </div>
-        </div>
+        <MyBookEmptyState />
       ) : (
         <MyBookView items={items} />
       )}

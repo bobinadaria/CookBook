@@ -22,6 +22,8 @@ export interface UserRecipeInput {
   description: string;
   note: string;
   ingredients: string;
+  /** «Еда» или «Напиток». У напитков нет КБЖУ/времени/порций. */
+  recipe_type: "food" | "drink";
   cook_time: number | null;
   servings: number | null;
   categoryIds: string[];

@@ -21,9 +21,11 @@ export default function Header() {
   const router = useRouter();
   const t = useTranslations("nav");
   const th = useTranslations("header");
+  const tp = useTranslations("dashboard");
 
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [plan, setPlan] = useState<"free" | "premium" | "lifetime">("free");
   const [signingOut, setSigningOut] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -36,19 +38,22 @@ export default function Header() {
     const applyUser = async (nextUser: User | null) => {
       currentUserId = nextUser?.id ?? null;
       setUser(nextUser);
-      // Сброс в первую очередь: никогда не тащим флаг админа из прошлого аккаунта.
+      // Сброс в первую очередь: никогда не тащим флаг админа/план из прошлого аккаунта.
       setIsAdmin(false);
+      setPlan("free");
       if (!nextUser) return;
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("role")
+        .select("role, plan")
         .eq("id", nextUser.id)
         .single();
 
       // Игнорируем «опоздавший» ответ, если активный пользователь уже сменился.
       if (currentUserId !== nextUser.id) return;
       setIsAdmin(profile?.role === "admin");
+      const p = (profile as { plan?: string } | null)?.plan;
+      setPlan(p === "premium" || p === "lifetime" ? p : "free");
     };
 
     supabase.auth.getUser().then(({ data }) => applyUser(data.user));
@@ -97,6 +102,26 @@ export default function Header() {
     navItems.push({ href: "/admin", label: t("admin"), active: pathname.startsWith("/admin") });
   }
 
+  // Бейдж плана пользователя (free/premium/lifetime). Premium/Lifetime —
+  // акцентный (охра), Free — приглушённый. Показываем только вошедшим.
+  const isPaid = plan === "premium" || plan === "lifetime";
+  const planLabel =
+    plan === "premium" ? tp("planPremium") : plan === "lifetime" ? tp("planLifetime") : tp("planFree");
+  const planBadge = user ? (
+    <Link
+      href="/pricing"
+      aria-label={planLabel}
+      className={cn(
+        "rounded-none px-2 py-0.5 font-body text-[10px] font-semibold uppercase tracking-[0.12em] transition-colors",
+        isPaid
+          ? "bg-ochre-dk text-paper hover:bg-burg"
+          : "border border-rule text-soft hover:border-burg hover:text-burg",
+      )}
+    >
+      {planLabel}
+    </Link>
+  ) : null;
+
   return (
     <header className="bg-paper">
       {/* ─── Desktop masthead (md+) ─────────────────────────────────────── */}
@@ -107,6 +132,7 @@ export default function Header() {
           <span className="flex items-center gap-5">
             <LanguageSwitcher />
             <ThemeToggle />
+            {planBadge}
             {user ? (
               <button
                 onClick={handleSignOut}
@@ -207,6 +233,8 @@ export default function Header() {
                 {it.label}
               </Link>
             ))}
+
+            {planBadge && <div className="flex min-h-[44px] items-center">{planBadge}</div>}
 
             <div className="my-2 h-px bg-rule" />
 

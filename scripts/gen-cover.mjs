@@ -13,7 +13,7 @@
  *   --recipe-id     If provided, updates the cover_image field in Supabase (optional)
  *
  * Requires in .env.local:
- *   OPENAI_API_KEY
+ *   GOOGLE_AI_API_KEY
  *   NEXT_PUBLIC_SUPABASE_URL
  *   SUPABASE_SERVICE_ROLE_KEY
  */
@@ -22,7 +22,6 @@ import { readFileSync, existsSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { createClient } from "@supabase/supabase-js";
-import OpenAI from "openai";
 
 // ── Resolve project root ──────────────────────────────────────────────────────
 
@@ -62,7 +61,7 @@ function parseArgs() {
   return result;
 }
 
-// ── Build DALL-E 3 prompt ─────────────────────────────────────────────────────
+// ── Build image prompt ────────────────────────────────────────────────────────
 
 function buildPrompt(title, description) {
   const subject = description ? `${title} — ${description}` : title;
@@ -89,12 +88,12 @@ async function main() {
     process.exit(1);
   }
 
-  const openaiKey = process.env.OPENAI_API_KEY;
+  const googleKey = process.env.GOOGLE_AI_API_KEY;
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  if (!openaiKey || openaiKey === "YOUR_OPENAI_API_KEY_HERE") {
-    console.error("❌  OPENAI_API_KEY не настроен в .env.local");
+  if (!googleKey) {
+    console.error("❌  GOOGLE_AI_API_KEY не настроен в .env.local");
     process.exit(1);
   }
   if (!supabaseUrl || !supabaseServiceKey) {
@@ -102,40 +101,33 @@ async function main() {
     process.exit(1);
   }
 
-  // 1. Generate image
-  console.log(`\n🎨  Генерирую обложку для «${title}»…`);
+  // 1. Generate image (Imagen 4 Ultra, формат 1:1 — квадрат, единый для всех рецептов)
+  console.log(`\n🎨  Генерирую обложку для «${title}» (Imagen 4 Ultra)…`);
   const prompt = buildPrompt(title, description);
   console.log(`📝  Промпт: ${prompt.slice(0, 100)}…\n`);
 
-  const openai = new OpenAI({ apiKey: openaiKey });
-  let tempUrl;
-  try {
-    const response = await openai.images.generate({
-      model: "dall-e-3",
-      prompt,
-      n: 1,
-      size: "1792x1024",
-      quality: "standard",
-      response_format: "url",
-    });
-    tempUrl = response.data[0]?.url;
-    if (!tempUrl) throw new Error("OpenAI вернул пустой URL");
-    console.log("✅  Изображение сгенерировано");
-  } catch (err) {
-    console.error("❌  Ошибка OpenAI:", err.message);
-    process.exit(1);
-  }
-
-  // 2. Download image
-  console.log("⬇️   Скачиваю изображение…");
   let imageBuffer;
   try {
-    const res = await fetch(tempUrl);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    imageBuffer = Buffer.from(await res.arrayBuffer());
-    console.log(`✅  Скачано (${(imageBuffer.length / 1024).toFixed(0)} KB)`);
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-ultra-generate-001:predict?key=${googleKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          instances: [{ prompt }],
+          parameters: { sampleCount: 1, aspectRatio: "1:1", personGeneration: "dont_allow" },
+        }),
+      },
+    );
+    if (!res.ok) throw new Error(`Imagen ${res.status}: ${(await res.text()).slice(0, 200)}`);
+    const data = await res.json();
+    const b64 =
+      data.predictions?.[0]?.bytesBase64Encoded ?? data.predictions?.[0]?.image?.bytesBase64Encoded;
+    if (!b64) throw new Error("Imagen вернул пустой ответ");
+    imageBuffer = Buffer.from(b64, "base64");
+    console.log(`✅  Изображение сгенерировано (${(imageBuffer.length / 1024).toFixed(0)} KB)`);
   } catch (err) {
-    console.error("❌  Ошибка скачивания:", err.message);
+    console.error("❌  Ошибка Imagen:", err.message);
     process.exit(1);
   }
 

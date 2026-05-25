@@ -56,6 +56,7 @@ export default async function EditUserRecipePage({
     description: recipe.description ?? "",
     note: recipe.note ?? "",
     ingredients: recipe.ingredients ?? "",
+    recipe_type: (recipe.recipe_type === "drink" ? "drink" : "food") as "food" | "drink",
     cook_time: recipe.cook_time ?? null,
     servings: recipe.servings ?? null,
     cover_image: recipe.cover_image ?? null,
@@ -65,7 +66,7 @@ export default async function EditUserRecipePage({
   };
 
   return (
-    <main className="mx-auto min-h-dvh max-w-2xl px-6 pb-24">
+    <main className="mx-auto min-h-dvh max-w-3xl px-6 pb-24">
       <div className="pb-8 pt-10">
         <Link
           href={`/dashboard/recipes/${params.id}`}

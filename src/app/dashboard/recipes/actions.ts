@@ -108,10 +108,12 @@ export async function createUserRecipe(
       description: input.description.trim() || null,
       note: input.note.trim() || null,
       ingredients: input.ingredients.trim() || null,
+      recipe_type: input.recipe_type === "drink" ? "drink" : "food",
       cover_image: input.cover_image,
-      cook_time: input.cook_time,
-      servings: input.servings,
-      nutrition: input.nutrition ?? null,
+      // У напитков нет времени/порций/КБЖУ — форма уже шлёт null, подстрахуемся.
+      cook_time: input.recipe_type === "drink" ? null : input.cook_time,
+      servings: input.recipe_type === "drink" ? null : input.servings,
+      nutrition: input.recipe_type === "drink" ? null : (input.nutrition ?? null),
       // Server-forced invariants (RLS also enforces these on insert):
       owner_id: user.id,
       visibility: "private",
@@ -164,10 +166,11 @@ export async function updateUserRecipe(
       description: input.description.trim() || null,
       note: input.note.trim() || null,
       ingredients: input.ingredients.trim() || null,
+      recipe_type: input.recipe_type === "drink" ? "drink" : "food",
       cover_image: input.cover_image,
-      cook_time: input.cook_time,
-      servings: input.servings,
-      nutrition: input.nutrition ?? null,
+      cook_time: input.recipe_type === "drink" ? null : input.cook_time,
+      servings: input.recipe_type === "drink" ? null : input.servings,
+      nutrition: input.recipe_type === "drink" ? null : (input.nutrition ?? null),
       updated_at: new Date().toISOString(),
     })
     .eq("id", recipeId)

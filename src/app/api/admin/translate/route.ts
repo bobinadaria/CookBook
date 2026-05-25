@@ -22,7 +22,36 @@ export async function POST(req: NextRequest) {
       { status: 400 }
     );
   }
-  const { recipeId } = parsed.data;
+  const { recipeId, content } = parsed.data;
+
+  // 3. Inline-content path: рецепт ещё не сохранён в БД (создание). Переводим
+  //    переданный текст и возвращаем результат — ничего не пишем и не
+  //    ревалидируем. Форма подставит перевод в EN-поля и сохранит при submit.
+  if (!recipeId && content) {
+    try {
+      const translations = await translateRecipe({
+        title: content.title,
+        description: content.description ?? null,
+        note: content.note ?? null,
+        ingredients: content.ingredients ?? null,
+        steps: (content.steps ?? []).map((s) => ({
+          order: s.order,
+          title: s.title ?? null,
+          description: s.description,
+        })),
+      });
+      return NextResponse.json({ success: true, translations });
+    } catch (err) {
+      console.error("[translate] inline error:", err);
+      const message = err instanceof Error ? err.message : String(err);
+      return NextResponse.json({ error: message || "Translation failed" }, { status: 500 });
+    }
+  }
+
+  if (!recipeId) {
+    return NextResponse.json({ error: "recipeId is required" }, { status: 400 });
+  }
+
   const supabase = createClient();
 
   // 4. Fetch recipe with steps (also fetch slug for cache revalidation)

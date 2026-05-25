@@ -9,10 +9,17 @@ import { cn } from "@/lib/utils";
  * Навигация внутри «Моей книги»: переключение между списком рецептов и
  * аккаунтом. «Подписка» живёт разделом внутри «Аккаунта» (см. dashboard/page.tsx).
  * Список рецептов сохраняет свои внутренние фильтры (Все / Мои / Сохранённые).
+ *
+ * Показываем вкладки только на «верхних» экранах кабинета — список рецептов и
+ * аккаунт. На вложенных страницах (создание/просмотр/редактирование рецепта)
+ * пользователь уже ушёл на уровень глубже, поэтому вкладки прячем.
  */
 export default function DashboardTabs() {
   const pathname = usePathname();
   const t = useTranslations("dashboard");
+
+  const showTabs = pathname === "/dashboard" || pathname === "/dashboard/recipes";
+  if (!showTabs) return null;
 
   const tabs = [
     {

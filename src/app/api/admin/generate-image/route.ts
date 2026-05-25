@@ -3,19 +3,28 @@ import { requireAdmin, isAuthSuccess } from "@/lib/api-auth";
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 
-// DALL-E 3 can take up to 60s on slower prompts
+// Генерация изображения может занимать до ~60с
 export const maxDuration = 60;
 
 /**
- * Builds a DALL-E 3 prompt based on the actual recipe content.
+ * Builds an image-generation prompt (Imagen 4 / gpt-image-1) based on the recipe content.
  * Always in English for best results — uses EN translations when available,
  * falls back to the original (Russian) text.
+ *
+ * Для напитков (`type === "drink"`) сцена другая: напиток в подходящем бокале/
+ * стакане, без тарелки и столовых приборов — иначе генератор рисует «блюдо на
+ * тарелке» вместо коктейля.
  */
-function buildPrompt(title: string, description?: string, ingredients?: string): string {
+function buildPrompt(
+  title: string,
+  type: "food" | "drink",
+  description?: string,
+  ingredients?: string,
+): string {
   const parts: string[] = [title];
   if (description) parts.push(description);
 
-  // Extract key ingredients so DALL-E renders the dish accurately
+  // Extract key ingredients so the model renders the recipe accurately
   let ingredientHint = "";
   if (ingredients) {
     const lines = ingredients
@@ -28,10 +37,26 @@ function buildPrompt(title: string, description?: string, ingredients?: string):
     }
   }
 
-  const dishContext = parts.join(". ");
+  const context = parts.join(". ");
+
+  if (type === "drink") {
+    return (
+      `Award-winning editorial beverage photograph of "${context}".${ingredientHint} ` +
+      `The drink is served in an appropriate glass or cup for this kind of beverage (cocktail, coffee, tea, lemonade, smoothie, etc.) — ` +
+      `accurate color, real liquid, natural condensation or steam, ice or garnish only if it belongs to this drink. ` +
+      `NO plate, NO cutlery, NO main dish — this is a drink, not food on a plate. ` +
+      `Shot on Sony A7R IV with 85mm f/1.8 lens. Natural window light from the left, soft diffused, no harsh studio flash. ` +
+      `Angle: slight 20–35 degrees, close crop on the glass. Slightly shallow depth of field — glass sharp, background softly out of focus. ` +
+      `Background: simple dark linen, weathered dark oak wood, or a calm bar counter. ` +
+      `Props: ONLY items directly from the recipe — nothing else. No random objects. ` +
+      `Looks freshly poured: natural highlights, realistic liquid texture — not CGI, not 3D render, not advertising photo. ` +
+      `Color grading: warm, slightly desaturated, natural film tones. Subtle grain. ` +
+      `No text, no watermarks.`
+    );
+  }
 
   return (
-    `Award-winning editorial food photograph of "${dishContext}".${ingredientHint} ` +
+    `Award-winning editorial food photograph of "${context}".${ingredientHint} ` +
     `The dish must look exactly as the name implies — accurate textures, real sauce, real food. ` +
     `Shot on Sony A7R IV with 85mm f/1.8 lens. Natural window light from the left, soft diffused, no harsh studio flash. ` +
     `Angle: 40–50 degrees, close crop on the plate. Slightly shallow depth of field — foreground sharp, background softly out of focus. ` +
@@ -50,11 +75,12 @@ export async function POST(req: NextRequest) {
 
   // 2. Parse + validate request body
   const body = await req.json().catch(() => ({}));
-  const { title, description, ingredients, recipeId } = body as {
+  const { title, description, ingredients, recipeId, recipeType } = body as {
     title?: string;
     description?: string;
     ingredients?: string;
     recipeId?: string;
+    recipeType?: "food" | "drink";
   };
 
   if (!title?.trim()) {
@@ -66,12 +92,15 @@ export async function POST(req: NextRequest) {
   let promptTitle = title.trim();
   let promptDescription = description?.trim();
   let promptIngredients = ingredients?.trim();
+  // Тип берём из тела (форма передаёт текущий выбор). Если есть recipeId —
+  // тип из БД авторитетнее (на случай рассинхрона). По умолчанию «food».
+  let promptType: "food" | "drink" = recipeType === "drink" ? "drink" : "food";
 
   if (recipeId && isValidUUID(recipeId)) {
     const supabaseAdmin = createServiceRoleClient();
     const { data: recipe } = await supabaseAdmin
       .from("recipes")
-      .select("title_en, description_en, ingredients_en")
+      .select("title_en, description_en, ingredients_en, recipe_type")
       .eq("id", recipeId)
       .single();
 
@@ -80,70 +109,77 @@ export async function POST(req: NextRequest) {
       if (recipe.title_en)       promptTitle       = recipe.title_en;
       if (recipe.description_en) promptDescription = recipe.description_en;
       if (recipe.ingredients_en) promptIngredients = recipe.ingredients_en;
+      if (recipe.recipe_type === "drink" || recipe.recipe_type === "food") {
+        promptType = recipe.recipe_type;
+      }
     }
   }
 
-  // 5. Check OpenAI key is configured
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey || apiKey === "YOUR_OPENAI_API_KEY_HERE") {
-    return NextResponse.json(
-      { error: "OPENAI_API_KEY не настроен. Добавь ключ в .env.local" },
-      { status: 500 }
+  // 5. Generate image.
+  //    Основная модель — Imagen 4 Ultra (Google): заметно фотореалистичнее на еде.
+  //    Фолбэк — gpt-image-1 (OpenAI), если Imagen вернул ошибку, чтобы кнопка не «умирала».
+  const googleKey = process.env.GOOGLE_AI_API_KEY;
+  const openaiKey = process.env.OPENAI_API_KEY;
+
+  const prompt = buildPrompt(promptTitle, promptType, promptDescription, promptIngredients);
+
+  // Imagen 4 Ultra через Google AI API (тот же ключ, что и автоперевод).
+  // Формат 1:1 — квадратная обложка, единый формат для всех рецептов.
+  async function generateWithImagen(): Promise<Buffer> {
+    if (!googleKey) throw new Error("GOOGLE_AI_API_KEY не настроен в .env.local");
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-ultra-generate-001:predict?key=${googleKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          instances: [{ prompt }],
+          parameters: { sampleCount: 1, aspectRatio: "1:1", personGeneration: "dont_allow" },
+        }),
+      },
     );
+    if (!res.ok) throw new Error(`Imagen ${res.status}: ${(await res.text()).slice(0, 300)}`);
+    const data = (await res.json()) as {
+      predictions?: { bytesBase64Encoded?: string; image?: { bytesBase64Encoded?: string } }[];
+    };
+    const b64 =
+      data.predictions?.[0]?.bytesBase64Encoded ?? data.predictions?.[0]?.image?.bytesBase64Encoded;
+    if (!b64) throw new Error("Imagen вернул пустой ответ");
+    return Buffer.from(b64, "base64");
   }
 
-  // 6. Generate image — tries gpt-image-1 first (same model as ChatGPT, much more photorealistic),
-  //    falls back to DALL-E 3 if billing limit is hit.
-  const openai = new OpenAI({ apiKey });
-  const prompt = buildPrompt(promptTitle, promptDescription, promptIngredients);
-
-  let imageBuffer: Buffer;
-  let modelUsed = "gpt-image-1";
-
-  try {
-    // Attempt 1: gpt-image-1
+  // Фолбэк: gpt-image-1, квадрат.
+  async function generateWithGptImage(): Promise<Buffer> {
+    if (!openaiKey || openaiKey === "YOUR_OPENAI_API_KEY_HERE")
+      throw new Error("OPENAI_API_KEY не настроен");
+    const openai = new OpenAI({ apiKey: openaiKey });
     const response = await openai.images.generate({
       model: "gpt-image-1",
       prompt,
       n: 1,
-      size: "1024x1024", // square — cheaper than 1536x1024, same quality; crops nicely to 16:7 card
-      quality: "medium", // "high" takes >60s and times out; "medium" is fast and looks great
+      size: "1024x1024", // квадрат
+      quality: "medium",
     });
-
-    // gpt-image-1 returns base64-encoded image data directly (no expiring URLs)
     const b64 = response.data?.[0]?.b64_json;
     if (!b64) throw new Error("OpenAI вернул пустой ответ");
-    imageBuffer = Buffer.from(b64, "base64");
-  } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    const isBillingError = message.includes("billing") || message.includes("quota") || message.includes("limit");
+    return Buffer.from(b64, "base64");
+  }
 
-    if (!isBillingError) {
-      console.error("[generate-image] OpenAI gpt-image-1 error:", err);
-      return NextResponse.json({ error: `Ошибка генерации: ${message}` }, { status: 500 });
-    }
+  let imageBuffer: Buffer;
+  let modelUsed = "imagen-4.0-ultra";
 
-    // Fallback to DALL-E 3 if billing limit reached
-    console.warn("[generate-image] gpt-image-1 billing limit hit, falling back to dall-e-3");
-    modelUsed = "dall-e-3";
+  try {
+    imageBuffer = await generateWithImagen();
+  } catch (imagenErr) {
+    console.warn("[generate-image] Imagen 4 Ultra failed, fallback → gpt-image-1:", imagenErr);
     try {
-      const fallbackResponse = await openai.images.generate({
-        model: "dall-e-3",
-        prompt,
-        n: 1,
-        size: "1024x1024",
-        quality: "standard",
-        response_format: "url",
-      });
-      const url = fallbackResponse.data?.[0]?.url;
-      if (!url) throw new Error("DALL-E 3 вернул пустой ответ");
-      const fetchRes = await fetch(url);
-      if (!fetchRes.ok) throw new Error(`HTTP ${fetchRes.status}`);
-      imageBuffer = Buffer.from(await fetchRes.arrayBuffer());
-    } catch (fallbackErr) {
-      console.error("[generate-image] DALL-E 3 fallback error:", fallbackErr);
-      const fallbackMessage = fallbackErr instanceof Error ? fallbackErr.message : String(fallbackErr);
-      return NextResponse.json({ error: `Ошибка генерации: ${fallbackMessage}` }, { status: 500 });
+      imageBuffer = await generateWithGptImage();
+      modelUsed = "gpt-image-1";
+    } catch (openaiErr) {
+      const m1 = imagenErr instanceof Error ? imagenErr.message : String(imagenErr);
+      const m2 = openaiErr instanceof Error ? openaiErr.message : String(openaiErr);
+      console.error("[generate-image] оба генератора упали:", m1, "|", m2);
+      return NextResponse.json({ error: `Ошибка генерации: ${m1}` }, { status: 500 });
     }
   }
 

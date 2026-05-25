@@ -104,8 +104,8 @@ export default function MyBookView({ items }: { items: BookItem[] }) {
                 href={item.href}
                 className="group block transition-transform duration-300 hover:-translate-y-0.5"
               >
-                {/* Изображение */}
-                <div className="relative aspect-[4/3] w-full overflow-hidden bg-crust">
+                {/* Изображение — квадрат (фото в рецептах квадратные) */}
+                <div className="relative aspect-square w-full overflow-hidden bg-crust">
                   {item.cover_image ? (
                     <Image
                       src={item.cover_image}

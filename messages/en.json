@@ -24,7 +24,6 @@
     "book": "Book",
     "account": "Account",
     "contact": "Contact",
-    "rights": "All recipes original",
     "author": "Daria Bobina"
   },
   "home": {
@@ -52,7 +51,7 @@
     "heroPlateLabel": "On the cover",
     "heroCaptionEyebrow": "Fig. I — Dish portrait",
     "heroCaptionTitle": "Croissant with brie, plum and pistachio cream",
-    "heroCaptionMeta": "15 min · 2 servings · 425 kcal · photo — Daria",
+    "heroCaptionMeta": "15 min · 2 servings · 425 kcal · photo — AI",
     "heroAlt": "Cooking for those we love",
     "editorEyebrow": "Editor’s note",
     "editorTitle1": "Why",
@@ -76,7 +75,7 @@
     "stats": [
       {
         "n": "±5%",
-        "t": "Nutrition accuracy. Through USDA mapping, not ChatGPT — which is off by 30%."
+        "t": "Nutrition accuracy. Through USDA mapping and deterministic math — no hallucinations."
       },
       {
         "n": "10 / 5",
@@ -99,7 +98,36 @@
     "subCtaCompare": "Compare plans →",
     "subLifetimeEyebrow": "Lifetime · first 50",
     "subLifetimeLede": "One payment — Premium forever + 50 AI images. Your name in every issue’s colophon. Closes once all 50 seats are filled.",
-    "subLifetimeSeats": "37 / 50 already taken"
+    "subLifetimeSeats": "37 / 50 already taken",
+    "demoEyebrow": "How it works",
+    "demoTitle1": "From a link —",
+    "demoTitleAccent": "to a page in your book.",
+    "demoLede": "Paste a recipe link — and The Slow Table fills in the ingredients, works out exact nutrition, and creates a cover.",
+    "demoUrlLabel": "Recipe link",
+    "demoUrl": "the-kitchen.blog/croissant-brie-plum",
+    "demoImporting": "Importing…",
+    "demoRecipeTitle": "Croissant with brie & plum",
+    "demoDescription": "A warm croissant, melting brie and sweet plum with pistachio. A five-minute breakfast that feels like a small celebration.",
+    "demoIngredientsLabel": "Ingredients",
+    "demoIngredients": [
+      "Croissant — 1",
+      "Brie — 50 g",
+      "Plum — 2",
+      "Pistachios — 10 g",
+      "Honey — 1 tsp"
+    ],
+    "demoNutritionLabel": "Nutrition · AI",
+    "demoKcal": "kcal · per serving",
+    "demoGram": "g",
+    "demoMacroProtein": "Protein",
+    "demoMacroFat": "Fat",
+    "demoMacroCarbs": "Carbs",
+    "demoImageGenerating": "Generating cover…",
+    "demoImageLabel": "Cover · AI",
+    "demoNote": "This is how it works in your book too: ingredients, exact USDA-based nutrition, and a cover — all from one link. The image in the reel is real.",
+    "demoCta": "Make your book →",
+    "demoCtaGhost": "Browse the issue",
+    "demoReplay": "Replay"
   },
   "pricing": {
     "metaTitle": "Subscription",
@@ -335,7 +363,7 @@
       ],
       [
         "Does the AI really count accurately?",
-        "Accurate means ±5%. We map ingredients into USDA FoodData Central (a government database of ~400k products) and compute deterministically. This isn’t ChatGPT, which is off by 25-40%. If an ingredient isn’t found — we ask you, we don’t make it up."
+        "Accurate means ±5%. We map ingredients into USDA FoodData Central (a government database of ~400k products) and compute deterministically. If an ingredient isn’t found — we ask you, we don’t make it up."
       ],
       [
         "Can I use the book with clients (I’m a coach)?",
@@ -394,7 +422,7 @@
       "title": "Nutrition",
       "perServing": "per serving",
       "perServingTitle": "Per serving.",
-      "method": "Calculated via USDA FoodData Central — a government database of ~400,000 products. Accuracy ±5%, not “roughly what ChatGPT said”.",
+      "method": "Calculated via USDA FoodData Central — a government database of ~400,000 products. Accuracy ±5%.",
       "dailyValue": "of daily value",
       "ofTarget": "of target",
       "kcal": "kcal",
@@ -506,6 +534,10 @@
     "planTitle": "Your plan",
     "planFree": "Free",
     "planFreeDesc": "Welcome pack of AI features",
+    "planPremium": "Premium",
+    "planLifetime": "Lifetime",
+    "planActiveTitle": "Full access unlocked",
+    "planActiveCaption": "All AI features, no limits",
     "creditKbju": "Nutrition calcs",
     "creditRecipes": "Recipe generations",
     "creditsCaption": "in the welcome pack",
@@ -546,6 +578,19 @@
     "open": "Open",
     "savedEmpty": "Nothing saved yet",
     "savedEmptyHint": "Tap the heart on a recipe card in the catalog and it'll show up here.",
+    "emptyEyebrow": "Chapter I · your first page",
+    "emptyHeadline1": "Your book begins",
+    "emptyHeadline2": "with a single recipe.",
+    "emptyLede": "Paste a link to a recipe you love, or just list the ingredients — and The Slow Table turns it into a beautiful page with exact AI nutrition.",
+    "emptyMagic1Title": "Import from a link",
+    "emptyMagic1Body": "Paste a link from any site — ingredients and steps fill in automatically.",
+    "emptyMagic2Title": "Exact AI nutrition",
+    "emptyMagic2Body": "The AI nutritionist works out calories and macros from your ingredients — no manual entry.",
+    "emptyPreviewLabel": "Example page",
+    "emptyPreviewTitle": "Pumpkin soup with ginger",
+    "emptyPreviewNutritionLabel": "Nutrition · AI",
+    "emptyPreviewKcal": "kcal · per serving",
+    "emptyPreviewMacros": "Protein 3 · Fat 12 · Carbs 15 g",
     "private": "Private — only you",
     "newTitle": "New recipe",
     "editTitle": "Edit recipe",
@@ -557,8 +602,8 @@
     "fieldTitlePlaceholder": "Pumpkin soup with ginger",
     "fieldDescription": "Short description",
     "fieldDescriptionPlaceholder": "A few words about the dish",
-    "fieldNote": "Story / note",
-    "fieldNotePlaceholder": "A personal story about the dish — where it came from…",
+    "fieldNote": "Story",
+    "fieldNotePlaceholder": "A personal story about the dish — where it came from, what it means to you…",
     "fieldCookTime": "Time (min)",
     "fieldServings": "Servings",
     "fieldIngredients": "Ingredients",
@@ -595,6 +640,28 @@
     "nutritionCalculating": "Calculating…",
     "nutritionError": "Couldn't calculate. Please try again.",
     "nutritionPerServing": "per serving",
-    "nutritionNeedIngredients": "Fill in the ingredients to calculate"
+    "nutritionNeedIngredients": "Fill in the ingredients to calculate",
+    "importTitle": "Import from a link",
+    "importHint": "Paste a recipe link — the fields fill in automatically. Add the cover and step photos yourself.",
+    "importPlaceholder": "https://… recipe link",
+    "importButton": "Import",
+    "importLoading": "Importing…",
+    "importDoneStructured": "Done — fields filled from the page's data. Review and save.",
+    "importDoneAi": "Done — AI parsed the page. Double-check the fields: something may be slightly off.",
+    "importErrTimeout": "The site took too long to respond. Try again or use another link.",
+    "importErrUnreachable": "Couldn't open this link. Check it or try another one.",
+    "importErrNotRecipe": "No recipe found on that page. Try a direct recipe link or fill it in manually.",
+    "importErrGeneric": "Couldn't import the recipe. Try another link or fill it in manually.",
+    "modalQuestion": "What's the recipe called?",
+    "modalHint": "Enter a name and pick a type — the rest comes next",
+    "modalTypeLabel": "Type",
+    "typeFood": "Food",
+    "typeDrink": "Drink",
+    "modalContinue": "Continue →",
+    "drinkNoNutrition": "Drinks have no nutrition, time or servings — just ingredients and steps.",
+    "leaveTitle": "Save before you go?",
+    "leaveMessage": "You've started something but haven't saved it yet. You can stay and finish — or leave, and the draft won't be saved.",
+    "leaveConfirm": "Leave without saving",
+    "leaveCancel": "Stay and finish"
   }
 }

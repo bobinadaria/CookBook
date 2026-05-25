@@ -34,7 +34,14 @@ const PAGE_SIZE = 24;
 
 /** Собирает весь текстовый контент рецепта по всем языкам для поиска. */
 function getSearchableText(recipe: Recipe): string {
-  return [recipe.title, recipe.title_en, recipe.description, recipe.description_en]
+  return [
+    recipe.title,
+    recipe.title_en,
+    recipe.note, // история блюда — теперь основной текст рецепта
+    recipe.note_en,
+    recipe.description, // legacy-описание: оставляем в поиске для старых рецептов
+    recipe.description_en,
+  ]
     .filter(Boolean)
     .join(" ")
     .toLowerCase();
@@ -61,7 +68,7 @@ export default function RecipesPage() {
       supabase
         .from("recipes")
         .select(`
-          id, title, title_en, slug, description, description_en, note, cover_image, cook_time, recipe_type, published, created_at, updated_at,
+          id, title, title_en, slug, description, description_en, note, note_en, cover_image, cook_time, recipe_type, published, created_at, updated_at,
           recipe_categories ( categories ( id, name, name_en, slug, type ) )
         `)
         .eq("published", true)
@@ -252,7 +259,7 @@ export default function RecipesPage() {
           <div className="grid grid-cols-1 gap-x-9 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="space-y-4">
-                <div className="aspect-[4/3] animate-pulse bg-crust" />
+                <div className="aspect-square animate-pulse bg-crust" />
                 <div className="h-5 w-3/4 animate-pulse bg-crust" />
                 <div className="h-px bg-rule" />
               </div>
