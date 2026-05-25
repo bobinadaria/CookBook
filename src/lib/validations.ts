@@ -39,10 +39,35 @@ export type RecipeFormValues = z.infer<typeof RecipeFormSchema>;
 
 // ── API route bodies ─────────────────────────────────────────────────────────
 
-/** Body expected by POST /api/admin/translate */
-export const TranslateRequestSchema = z.object({
-  recipeId: uuid,
+/** Body expected by POST /api/admin/translate.
+ *  Принимает ЛИБО recipeId (перевод сохранённого рецепта в БД), ЛИБО content
+ *  (перевод «на лету» для ещё не сохранённого рецепта — результат возвращается
+ *  в ответе, в БД не пишется). */
+const TranslateContentSchema = z.object({
+  title: z.string(),
+  description: z.string().nullable().optional(),
+  note: z.string().nullable().optional(),
+  ingredients: z.string().nullable().optional(),
+  steps: z
+    .array(
+      z.object({
+        order: z.number().int(),
+        title: z.string().nullable().optional(),
+        description: z.string(),
+      }),
+    )
+    .optional()
+    .default([]),
 });
+
+export const TranslateRequestSchema = z
+  .object({
+    recipeId: uuid.optional(),
+    content: TranslateContentSchema.optional(),
+  })
+  .refine((d) => d.recipeId || d.content, {
+    message: "Either recipeId or content is required",
+  });
 
 /** Body expected by POST /api/admin/generate-image */
 export const GenerateImageRequestSchema = z.object({
@@ -61,6 +86,11 @@ export const CalculateNutritionRequestSchema = z.object({
 export const UserNutritionCalcSchema = z.object({
   ingredients: z.string().min(1, "Empty ingredients").max(5000),
   servings: z.number().int().positive().nullable().optional().default(null),
+});
+
+/** Body expected by POST /api/recipes/import-url (импорт рецепта по ссылке, premium). */
+export const ImportUrlSchema = z.object({
+  url: z.string().url("Некорректная ссылка").max(2000),
 });
 
 /** Body expected by POST /api/admin/revalidate-recipe */

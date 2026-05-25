@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createDraftRecipe } from "@/lib/supabase/recipes";
+import { cn } from "@/lib/utils";
 import { Spinner } from "@/components/ui";
 
 interface QuickCreateModalProps {
@@ -13,6 +13,7 @@ export default function QuickCreateModal({ onClose }: QuickCreateModalProps) {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const [title, setTitle] = useState("");
+  const [type, setType] = useState<"food" | "drink">("food");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -37,14 +38,12 @@ export default function QuickCreateModal({ onClose }: QuickCreateModalProps) {
 
     setSaving(true);
     setError(null);
-    try {
-      const { id } = await createDraftRecipe(trimmed);
-      router.push(`/admin/recipes/${id}/edit`);
-      // keep modal open while navigating — router.push is async
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Не удалось создать рецепт");
-      setSaving(false);
-    }
+    // Не создаём пустой черновик в БД заранее — ведём на полную форму создания
+    // с подставленным названием. Рецепт появится в базе только после «Создать
+    // рецепт» и по умолчанию будет опубликован (см. useRecipeForm). Это убирает
+    // «осиротевшие» пустые черновики и неожиданный статус «Черновик».
+    router.push(`/admin/recipes/new?title=${encodeURIComponent(trimmed)}&type=${type}`);
+    // keep modal open (spinner) while navigating — router.push is async
   };
 
   return (
@@ -57,7 +56,7 @@ export default function QuickCreateModal({ onClose }: QuickCreateModalProps) {
       <div className="absolute inset-0 bg-burg/30 backdrop-blur-sm" />
 
       {/* Panel */}
-      <div className="relative w-full max-w-md bg-paper rounded-3xl shadow-2xl p-8 flex flex-col gap-6">
+      <div className="relative w-full max-w-md bg-paper rounded-3xl shadow-2xl p-8 flex flex-col gap-6 text-left">
 
         {/* Header */}
         <div>
@@ -66,7 +65,7 @@ export default function QuickCreateModal({ onClose }: QuickCreateModalProps) {
             Как называется блюдо?
           </h2>
           <p className="text-sm text-soft mt-1.5">
-            Введи название — остальное заполнишь на следующем шаге
+            Введи название и выбери тип — остальное заполнишь на следующем шаге
           </p>
         </div>
 
@@ -82,6 +81,29 @@ export default function QuickCreateModal({ onClose }: QuickCreateModalProps) {
                        placeholder:text-muted outline-none focus:ring-2 focus:ring-burg/30
                        transition disabled:opacity-50"
           />
+
+          {/* Тип: еда / напиток */}
+          <div>
+            <label className="block text-xs text-soft uppercase tracking-wider mb-2">Тип</label>
+            <div className="inline-flex gap-2">
+              {(["food", "drink"] as const).map((tp) => (
+                <button
+                  key={tp}
+                  type="button"
+                  onClick={() => setType(tp)}
+                  disabled={saving}
+                  className={cn(
+                    "rounded-none border px-5 py-2.5 text-sm transition-colors disabled:opacity-50",
+                    type === tp
+                      ? "border-burg bg-burg text-paper"
+                      : "border-rule bg-crust text-soft hover:text-burg",
+                  )}
+                >
+                  {tp === "food" ? "Еда" : "Напиток"}
+                </button>
+              ))}
+            </div>
+          </div>
 
           {error && (
             <p className="text-sm text-red-400 bg-red-50 rounded-none px-4 py-2.5">{error}</p>

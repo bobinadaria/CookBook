@@ -8,7 +8,11 @@ import UserRecipeForm from "@/components/dashboard/UserRecipeForm";
 
 export const dynamic = "force-dynamic";
 
-export default async function NewUserRecipePage() {
+export default async function NewUserRecipePage({
+  searchParams,
+}: {
+  searchParams?: { title?: string; type?: string };
+}) {
   const supabase = createClient();
   const {
     data: { user },
@@ -31,8 +35,12 @@ export default async function NewUserRecipePage() {
     getEntitlements(user.id),
   ]);
 
+  // Название и тип приходят из модалки создания (?title=…&type=food|drink).
+  const presetTitle = searchParams?.title?.trim();
+  const presetType = searchParams?.type === "drink" ? "drink" : "food";
+
   return (
-    <main className="mx-auto min-h-dvh max-w-2xl px-6 pb-24">
+    <main className="mx-auto min-h-dvh max-w-3xl px-6 pb-24">
       <div className="pb-8 pt-10">
         <Link
           href="/dashboard/recipes"
@@ -44,7 +52,11 @@ export default async function NewUserRecipePage() {
           {t("newTitle")}
         </h1>
       </div>
-      <UserRecipeForm categories={categories} aiEnabled={ent.aiEnabled} />
+      <UserRecipeForm
+        categories={categories}
+        aiEnabled={ent.aiEnabled}
+        defaultValues={{ title: presetTitle, recipe_type: presetType }}
+      />
     </main>
   );
 }

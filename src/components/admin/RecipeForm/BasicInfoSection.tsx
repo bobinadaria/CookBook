@@ -3,7 +3,6 @@
 interface BasicInfoSectionProps {
   title: string;
   slug: string;
-  description: string;
   note: string;
   cookTime: number | null;
   servings: number | null;
@@ -12,7 +11,6 @@ interface BasicInfoSectionProps {
   onTitleChange: (v: string) => void;
   onSlugChange: (v: string) => void;
   onSlugEdit: () => void;
-  onDescriptionChange: (v: string) => void;
   onNoteChange: (v: string) => void;
   onCookTimeChange: (v: number | null) => void;
   onServingsChange: (v: number | null) => void;
@@ -46,8 +44,8 @@ function FieldTextarea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>)
 }
 
 export default function BasicInfoSection({
-  title, slug, description, note, cookTime, servings, isDrink = false,
-  onTitleChange, onSlugChange, onSlugEdit, onDescriptionChange, onNoteChange,
+  title, slug, note, cookTime, servings, isDrink = false,
+  onTitleChange, onSlugChange, onSlugEdit, onNoteChange,
   onCookTimeChange, onServingsChange,
 }: BasicInfoSectionProps) {
   return (
@@ -72,22 +70,9 @@ export default function BasicInfoSection({
       </div>
 
       <div>
-        <FieldLabel>Краткое описание</FieldLabel>
+        <FieldLabel>История</FieldLabel>
         <FieldTextarea
-          value={description}
-          onChange={(e) => onDescriptionChange(e.target.value)}
-          placeholder={
-            isDrink
-              ? "Бодрящий летний напиток: двойной эспрессо поверх ледяного тоника с долькой апельсина"
-              : "Нежный французский тарт с рикоттой, свежим инжиром и тимьяном"
-          }
-        />
-      </div>
-
-      <div>
-        <FieldLabel>История / заметка</FieldLabel>
-        <FieldTextarea
-          rows={4}
+          rows={5}
           value={note}
           onChange={(e) => onNoteChange(e.target.value)}
           placeholder={
@@ -97,7 +82,7 @@ export default function BasicInfoSection({
           }
         />
         <p className="mt-1 text-xs text-muted">
-          Отображается на странице рецепта в рукописном стиле
+          Главный текст рецепта — показывается сразу под заголовком в рукописном стиле
         </p>
       </div>
 

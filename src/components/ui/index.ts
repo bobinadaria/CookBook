@@ -8,6 +8,7 @@ export { default as Badge } from "./Badge";
 export type { BadgeProps, BadgeVariant } from "./Badge";
 
 export { default as Spinner } from "./Spinner";
+export { default as ConfirmDialog } from "./ConfirmDialog";
 
 // ─── Magazine-примитивы (editorial redesign 2026) ──────────────────────────
 export { default as Eyebrow } from "./Eyebrow";

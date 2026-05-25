@@ -95,8 +95,8 @@ export default function ActionsSection({
           {autoCalcNutrition ? "Считаю КБЖУ…" : saving ? "Сохраняем..." : recipeId ? "Сохранить изменения" : "Создать рецепт"}
         </button>
 
-        {/* Translate + generate cover — edit mode only */}
-        {recipeId && (
+        {/* Translate + generate cover — доступно и при создании (перевод «на лету») */}
+        {(
           <button
             type="button"
             onClick={onTranslateAndGenerate}
@@ -132,8 +132,8 @@ export default function ActionsSection({
           </button>
         )}
 
-        {/* Translate only — secondary */}
-        {recipeId && !combinedStep && (
+        {/* Translate only — secondary (доступно и при создании) */}
+        {!combinedStep && (
           <button
             type="button"
             onClick={onTranslate}

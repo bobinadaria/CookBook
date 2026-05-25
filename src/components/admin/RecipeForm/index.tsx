@@ -1,7 +1,9 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useLocale } from "next-intl";
 import { cn } from "@/lib/utils";
+import { ConfirmDialog } from "@/components/ui";
+import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
 import { useRecipeForm, type RecipeFormDefaults } from "./useRecipeForm";
 import BasicInfoSection from "./BasicInfoSection";
 import StepsSection from "./StepsSection";
@@ -17,89 +19,88 @@ interface RecipeFormProps {
 }
 
 export default function RecipeForm({ recipeId, defaultValues }: RecipeFormProps) {
-  const router = useRouter();
   const form = useRecipeForm(recipeId, defaultValues);
   const isDrink = form.recipeType === "drink";
-  const isEn = form.formLang === "en";
+  // Язык контента берём из переключателя в шапке (RU/EN, cookie NEXT_LOCALE),
+  // отдельного тумблера в форме больше нет.
+  const locale = useLocale();
+  const isEn = locale === "en";
+  // Предупреждение о несохранённом рецепте при уходе со страницы.
+  const guard = useUnsavedChangesGuard(form.isDirty);
 
   return (
-    <form onSubmit={form.handleSubmit} className="flex flex-col gap-10">
-      {/* ── Recipe type: еда / напиток ─────────────────────────────────── */}
-      <section>
-        <label className="block text-xs text-soft uppercase tracking-wider mb-2">
-          Тип рецепта
-        </label>
-        <div className="inline-flex gap-2">
-          {(["food", "drink"] as const).map((type) => (
-            <button
-              key={type}
-              type="button"
-              onClick={() => form.setRecipeType(type)}
-              className={cn(
-                "rounded-none border px-5 py-2.5 text-sm transition-colors",
-                form.recipeType === type
-                  ? "border-burg bg-burg text-paper"
-                  : "border-rule bg-crust text-soft hover:text-burg",
-              )}
-            >
-              {type === "food" ? "Еда" : "Напиток"}
-            </button>
-          ))}
-        </div>
-        {isDrink && (
-          <p className="mt-2 text-xs text-muted">
-            У напитков нет КБЖУ, времени приготовления и порций — только состав и шаги.
-          </p>
-        )}
-      </section>
+    <>
+    <form onSubmit={form.handleSubmit} className="flex flex-col gap-8">
+      {/* Верхний блок: тип + квадратная обложка слева, основные поля справа —
+          компактнее, без длинного скролла (как в пользовательской форме). */}
+      <div className="grid gap-8 md:grid-cols-[300px_1fr] md:items-start">
+        {/* Левая колонка: тип рецепта + обложка */}
+        <div className="flex flex-col gap-6">
+          <section>
+            <label className="block text-xs text-soft uppercase tracking-wider mb-2">
+              Тип рецепта
+            </label>
+            <div className="inline-flex gap-2">
+              {(["food", "drink"] as const).map((type) => (
+                <button
+                  key={type}
+                  type="button"
+                  onClick={() => form.setRecipeType(type)}
+                  className={cn(
+                    "rounded-none border px-5 py-2.5 text-sm transition-colors",
+                    form.recipeType === type
+                      ? "border-burg bg-burg text-paper"
+                      : "border-rule bg-crust text-soft hover:text-burg",
+                  )}
+                >
+                  {type === "food" ? "Еда" : "Напиток"}
+                </button>
+              ))}
+            </div>
+            {isDrink && (
+              <p className="mt-2 text-xs text-muted">
+                У напитков нет КБЖУ, времени приготовления и порций — только состав и шаги.
+              </p>
+            )}
+          </section>
 
-      {/* ── Язык контента: RU / EN ─────────────────────────────────────── */}
-      <section>
-        <label className="block text-xs text-soft uppercase tracking-wider mb-2">
-          Язык контента
-        </label>
-        <div className="inline-flex gap-2">
-          {(["ru", "en"] as const).map((lang) => (
-            <button
-              key={lang}
-              type="button"
-              onClick={() => form.setFormLang(lang)}
-              className={cn(
-                "rounded-none border px-5 py-2.5 text-sm uppercase tracking-wider transition-colors",
-                form.formLang === lang
-                  ? "border-burg bg-burg text-paper"
-                  : "border-rule bg-crust text-soft hover:text-burg",
-              )}
-            >
-              {lang === "ru" ? "RU" : "EN"}
-            </button>
-          ))}
+          <MediaSection
+            coverPreview={form.coverPreview}
+            generatingCover={form.generatingCover}
+            generateError={form.generateError}
+            combinedStep={form.combinedStep}
+            inputRef={form.coverInputRef}
+            onFileChange={form.handleCoverChange}
+            onGenerate={form.handleGenerateCover}
+          />
         </div>
-        {isEn && (
-          <p className="mt-2 text-xs text-muted">
-            Редактируешь английскую версию. Адрес страницы, время, порции, категории,
-            КБЖУ и обложка — общие для обоих языков. Кнопка «Перевести» внизу заполнит
-            эти поля автоматически.
-          </p>
-        )}
-      </section>
 
-      <BasicInfoSection
-        title={isEn ? form.titleEn : form.title}
-        slug={form.slug}
-        description={isEn ? form.descriptionEn : form.description}
-        note={isEn ? form.noteEn : form.note}
-        cookTime={form.cookTime}
-        servings={form.servings}
-        isDrink={isDrink}
-        onTitleChange={isEn ? form.setTitleEn : form.setTitle}
-        onSlugChange={form.setSlug}
-        onSlugEdit={() => form.setSlugEdited(true)}
-        onDescriptionChange={isEn ? form.setDescriptionEn : form.setDescription}
-        onNoteChange={isEn ? form.setNoteEn : form.setNote}
-        onCookTimeChange={form.setCookTime}
-        onServingsChange={form.setServings}
-      />
+        {/* Правая колонка: подсказка EN + основные поля */}
+        <div className="flex flex-col gap-5">
+          {isEn && (
+            <p className="text-xs text-muted">
+              Редактируешь английскую версию (язык выбран в шапке справа). Адрес страницы,
+              время, порции, категории, КБЖУ и обложка — общие для обоих языков. Кнопка
+              «Перевести» внизу заполнит эти поля автоматически.
+            </p>
+          )}
+
+          <BasicInfoSection
+            title={isEn ? form.titleEn : form.title}
+            slug={form.slug}
+            note={isEn ? form.noteEn : form.note}
+            cookTime={form.cookTime}
+            servings={form.servings}
+            isDrink={isDrink}
+            onTitleChange={isEn ? form.setTitleEn : form.setTitle}
+            onSlugChange={form.setSlug}
+            onSlugEdit={() => form.setSlugEdited(true)}
+            onNoteChange={isEn ? form.setNoteEn : form.setNote}
+            onCookTimeChange={form.setCookTime}
+            onServingsChange={form.setServings}
+          />
+        </div>
+      </div>
 
       {/* Ingredients */}
       <section>
@@ -146,22 +147,11 @@ export default function RecipeForm({ recipeId, defaultValues }: RecipeFormProps)
 
       <StepsSection
         steps={form.steps}
-        lang={form.formLang}
+        lang={isEn ? "en" : "ru"}
         onAdd={form.addStep}
         onUpdate={form.updateStep}
         onRemove={form.removeStep}
         onMove={form.moveStep}
-      />
-
-      <MediaSection
-        coverPreview={form.coverPreview}
-        recipeId={recipeId}
-        generatingCover={form.generatingCover}
-        generateError={form.generateError}
-        combinedStep={form.combinedStep}
-        inputRef={form.coverInputRef}
-        onFileChange={form.handleCoverChange}
-        onGenerate={form.handleGenerateCover}
       />
 
       <ActionsSection
@@ -178,8 +168,20 @@ export default function RecipeForm({ recipeId, defaultValues }: RecipeFormProps)
         onToggleFeatured={() => form.setFeatured((f) => !f)}
         onTranslate={form.handleTranslate}
         onTranslateAndGenerate={form.handleTranslateAndGenerate}
-        onCancel={() => router.back()}
+        onCancel={guard.guardedBack}
       />
     </form>
+
+    {guard.promptOpen && (
+      <ConfirmDialog
+        title="Несохранённые изменения"
+        message="Рецепт ещё не сохранён. Если уйти сейчас, изменения могут потеряться."
+        confirmLabel="Уйти без сохранения"
+        cancelLabel="Остаться"
+        onConfirm={guard.confirmLeave}
+        onCancel={guard.cancelLeave}
+      />
+    )}
+    </>
   );
 }

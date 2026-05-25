@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   createRecipe,
@@ -28,7 +28,10 @@ export function useRecipeForm(recipeId?: string, defaultValues?: RecipeFormDefau
   const [description, setDescription] = useState(defaultValues?.description ?? "");
   const [note, setNote] = useState(defaultValues?.note ?? "");
   const [ingredients, setIngredients] = useState(defaultValues?.ingredients ?? "");
-  const [published, setPublished] = useState(defaultValues?.published ?? false);
+  // Новый рецепт по умолчанию «Опубликован» (defaultValues нет → create mode).
+  // В режиме редактирования defaultValues.published всегда задан (true/false),
+  // поэтому реальное состояние существующего рецепта сохраняется.
+  const [published, setPublished] = useState(defaultValues?.published ?? true);
   const [featured, setFeatured] = useState(defaultValues?.featured ?? false);
   const [cookTime, setCookTime] = useState<number | null>(defaultValues?.cook_time ?? null);
   const [servings, setServings] = useState<number | null>(defaultValues?.servings ?? null);
@@ -124,9 +127,12 @@ export function useRecipeForm(recipeId?: string, defaultValues?: RecipeFormDefau
   const ingredientsDirty = ingredients.trim() !== initialIngredients.current.trim();
 
   // ── Draft restore (new recipes only) ──────────────────────────────────────
+  // Если название пришло из быстрого создания (defaultValues.title в режиме
+  // создания), не подменяем его старым автосохранённым черновиком — приоритет
+  // у того, что пользователь только что ввёл в модалке.
   const draftRestored = useRef(false);
   useEffect(() => {
-    if (recipeId || draftRestored.current) return;
+    if (recipeId || draftRestored.current || defaultValues?.title) return;
     draftRestored.current = true;
     try {
       const saved = localStorage.getItem(DRAFT_KEY);
@@ -142,13 +148,13 @@ export function useRecipeForm(recipeId?: string, defaultValues?: RecipeFormDefau
       if (d.description_en) setDescriptionEn(d.description_en);
       if (d.note_en) setNoteEn(d.note_en);
       if (d.ingredients_en) setIngredientsEn(d.ingredients_en);
-      if (d.published) setPublished(d.published);
+      if (typeof d.published === "boolean") setPublished(d.published);
       if (d.featured) setFeatured(d.featured);
       if (d.categoryIds) setSelectedCategoryIds(new Set(d.categoryIds));
       if (d.steps?.length)
         setSteps(d.steps.map((s: StepInput) => ({ ...s, photoFile: undefined })));
     } catch { /* ignore corrupt draft */ }
-  }, [recipeId]);
+  }, [recipeId, defaultValues?.title]);
 
   // ── Auto-save draft (new recipes only) ────────────────────────────────────
   useEffect(() => {
@@ -306,6 +312,19 @@ export function useRecipeForm(recipeId?: string, defaultValues?: RecipeFormDefau
     }
   };
 
+  // Контент для перевода «на лету» (рецепт ещё не в БД, режим создания).
+  const buildTranslateContent = () => ({
+    title: title.trim(),
+    description: description.trim() || null,
+    note: note.trim() || null,
+    ingredients: ingredients.trim() || null,
+    steps: steps.map((s) => ({
+      order: s.order,
+      title: s.title || null,
+      description: s.description,
+    })),
+  });
+
   // ── AI cover generation ────────────────────────────────────────────────────
   const handleGenerateCover = async () => {
     if (!title.trim()) { setGenerateError("Сначала введи название рецепта"); return; }
@@ -320,6 +339,7 @@ export function useRecipeForm(recipeId?: string, defaultValues?: RecipeFormDefau
           description: description.trim() || undefined,
           ingredients: ingredients.trim() || undefined,
           recipeId: recipeId || undefined,
+          recipeType,
         }),
       });
       const json = await res.json();
@@ -335,7 +355,10 @@ export function useRecipeForm(recipeId?: string, defaultValues?: RecipeFormDefau
 
   // ── Translation ────────────────────────────────────────────────────────────
   const handleTranslate = async () => {
-    if (!recipeId) return;
+    if (!recipeId && !title.trim()) {
+      setError("Сначала введи название рецепта");
+      return;
+    }
     setTranslating(true);
     setTranslateSuccess(false);
     setError(null);
@@ -343,7 +366,7 @@ export function useRecipeForm(recipeId?: string, defaultValues?: RecipeFormDefau
       const res = await fetch("/api/admin/translate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ recipeId }),
+        body: JSON.stringify(recipeId ? { recipeId } : { content: buildTranslateContent() }),
       });
       const text = await res.text();
       let json: { error?: string; translations?: { en: Parameters<typeof applyEnTranslations>[0] } } = {};
@@ -397,7 +420,10 @@ export function useRecipeForm(recipeId?: string, defaultValues?: RecipeFormDefau
 
   // ── Combined: translate → generate cover ──────────────────────────────────
   const handleTranslateAndGenerate = async () => {
-    if (!recipeId) return;
+    if (!recipeId && !title.trim()) {
+      setError("Сначала введи название рецепта");
+      return;
+    }
     setError(null);
     setGenerateError(null);
     try {
@@ -405,7 +431,7 @@ export function useRecipeForm(recipeId?: string, defaultValues?: RecipeFormDefau
       const translateRes = await fetch("/api/admin/translate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ recipeId }),
+        body: JSON.stringify(recipeId ? { recipeId } : { content: buildTranslateContent() }),
       });
       const text = await translateRes.text();
       let json: { error?: string; translations?: { en: Parameters<typeof applyEnTranslations>[0] } } = {};
@@ -421,7 +447,8 @@ export function useRecipeForm(recipeId?: string, defaultValues?: RecipeFormDefau
           title: title.trim(),
           description: description.trim() || undefined,
           ingredients: ingredients.trim() || undefined,
-          recipeId,
+          recipeId: recipeId || undefined,
+          recipeType,
         }),
       });
       const genJson = await genRes.json();
@@ -438,7 +465,37 @@ export function useRecipeForm(recipeId?: string, defaultValues?: RecipeFormDefau
     }
   };
 
+  // ── Несохранённые изменения (для предупреждения при уходе со страницы) ──────
+  const dirtySnapshot = useMemo(
+    () =>
+      JSON.stringify({
+        title, slug, description, note, ingredients, published, featured, recipeType,
+        titleEn, descriptionEn, noteEn, ingredientsEn, cookTime, servings,
+        cover: coverPreview,
+        coverFile: coverFile ? `${coverFile.name}:${coverFile.size}` : null,
+        cats: Array.from(selectedCategoryIds).sort(),
+        steps: steps.map((s) => ({
+          t: s.title, d: s.description, te: s.title_en ?? "", de: s.description_en ?? "",
+          p: s.photo_url, pf: s.photoFile ? `${s.photoFile.name}:${s.photoFile.size}` : null,
+        })),
+      }),
+    [title, slug, description, note, ingredients, published, featured, recipeType, titleEn, descriptionEn, noteEn, ingredientsEn, cookTime, servings, coverPreview, coverFile, selectedCategoryIds, steps],
+  );
+  const initialDirtyRef = useRef<string | null>(null);
+  if (initialDirtyRef.current === null) initialDirtyRef.current = dirtySnapshot;
+  // Есть ли осмысленное содержимое (включая название из модалки создания).
+  const hasContent = Boolean(
+    title.trim() || description.trim() || note.trim() || ingredients.trim() ||
+      titleEn.trim() || descriptionEn.trim() || noteEn.trim() || ingredientsEn.trim() ||
+      coverPreview || coverFile || selectedCategoryIds.size || steps.length ||
+      cookTime !== null || servings !== null,
+  );
+  // Создание: «грязно», если есть содержимое. Редактирование: если что-то изменилось.
+  // Во время сохранения — не мешаем редиректу.
+  const isDirty = !saving && (recipeId ? dirtySnapshot !== initialDirtyRef.current : hasContent);
+
   return {
+    isDirty,
     // Field values
     title, setTitle,
     slug, setSlug, setSlugEdited,
