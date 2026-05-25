@@ -29,7 +29,7 @@ function toRoman(n: number): string {
 
 interface RecipeCardProps {
   recipe: RecipeCardData;
-  /** Backward-compat: aspect ratio class for the image. Default 4/3. */
+  /** Aspect ratio class for the image. Default square (фото в рецептах квадратные). */
   aspectClass?: string;
   /** Backward-compat: fill parent height instead of using the aspect class. */
   fillHeight?: boolean;
@@ -44,7 +44,7 @@ interface RecipeCardProps {
 
 export default function RecipeCard({
   recipe,
-  aspectClass = "aspect-[4/3]",
+  aspectClass = "aspect-square",
   fillHeight = false,
   locale: localeProp,
   className,

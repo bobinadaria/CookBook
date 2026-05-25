@@ -140,8 +140,10 @@ export async function generateMetadata({ params }: RecipePageProps): Promise<Met
 
   const locale = (await getLocale()) as Locale;
   const title = localizedField(recipe, "title", locale) ?? recipe.title;
+  // Для мета/превью берём историю рецепта (note). Сенсорное «описание» —
+  // только запасной вариант для старых рецептов, где истории ещё нет.
   const rawDesc =
-    localizedField(recipe, "description", locale) ?? localizedField(recipe, "note", locale);
+    localizedField(recipe, "note", locale) ?? localizedField(recipe, "description", locale);
 
   const description = rawDesc
     ? rawDesc.length > 155
@@ -192,8 +194,13 @@ export default async function RecipePage({ params }: RecipePageProps) {
   const l = locale as Locale;
 
   const title = localizedField(recipe, "title", l) ?? recipe.title;
-  const description = localizedField(recipe, "description", l);
-  const note = localizedField(recipe, "note", l);
+  // История блюда (поле note) — единственный текстовый блок про рецепт, стоит
+  // сразу под заголовком. Старое сенсорное «описание» (description) на странице
+  // больше не показываем, но держим как запасной текст для SEO/мета у рецептов,
+  // у которых история ещё не написана.
+  const story = localizedField(recipe, "note", l);
+  const legacyDescription = localizedField(recipe, "description", l);
+  const seoText = story ?? legacyDescription;
 
   const ingredientsRaw = localizedField(recipe, "ingredients", l) ?? recipe.ingredients ?? null;
   const ingredientSections = ingredientsRaw ? parseIngredients(ingredientsRaw) : [];
@@ -240,59 +247,81 @@ export default async function RecipePage({ params }: RecipePageProps) {
         </div>
       </section>
 
-      {/* ── Title + metrics ─────────────────────────────────────────────── */}
+      {/* ── Hero: заголовок + метрики (слева) и фото (справа) ───────────── */}
       <section className="mx-auto max-w-[1320px] px-6 pb-10 pt-5 md:px-10 lg:px-14">
-        <div className="grid items-end gap-10 lg:grid-cols-[1.6fr_1fr] lg:gap-14">
+        <div
+          className={
+            recipe.cover_image
+              ? "grid items-center gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14"
+              : ""
+          }
+        >
+          {/* Левая колонка: рубрика + заголовок + описание + метрики */}
           <div>
             <Eyebrow color="text-ochre-dk">{categoryLabel ?? t("recipeFallback")}</Eyebrow>
             <h1 className="mt-3 font-display text-[clamp(2.5rem,7vw,96px)] font-normal leading-[0.92] tracking-[-0.03em] text-burg">
               {title}
             </h1>
-            {description && (
-              <p className="mt-6 max-w-[560px] font-body text-[16px] leading-[1.75] text-soft">
-                {renderTextWithLinks(description)}
-              </p>
+            {story && (
+              <div className="mt-7 max-w-[560px]">
+                <Eyebrow color="text-burg" className="mb-3">
+                  {t("dishStory")}
+                </Eyebrow>
+                <p className="font-display text-[20px] font-normal italic leading-[1.55] text-burg sm:text-[22px]">
+                  {/* Буквица — только для историй подлиннее: на коротких она
+                      «свисает» ниже текста и выглядит неаккуратно. */}
+                  {story.length > 120 ? (
+                    <>
+                      <DropCap>{story.charAt(0)}</DropCap>
+                      {renderTextWithLinks(story.slice(1))}
+                    </>
+                  ) : (
+                    renderTextWithLinks(story)
+                  )}
+                </p>
+                <div className="mt-3.5 font-body text-[11px] font-semibold uppercase tracking-[0.16em] text-soft">
+                  {t("authorSign")}
+                </div>
+              </div>
+            )}
+
+            {metrics.length > 0 && (
+              <div className="mt-8 grid grid-cols-2 gap-4 border-t-2 border-burg pt-5 sm:max-w-[460px]">
+                {metrics.map((m) => (
+                  <div key={m.label}>
+                    <Eyebrow color="text-soft" className="mb-1">
+                      {m.label}
+                    </Eyebrow>
+                    <span className="font-display text-[36px] font-normal leading-none text-burg">{m.value}</span>
+                    {m.unit && (
+                      <span className="ml-1.5 font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-soft">
+                        {m.unit}
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
             )}
           </div>
 
-          {metrics.length > 0 && (
-            <div className="grid grid-cols-2 gap-4 border-t-2 border-burg pt-5">
-              {metrics.map((m) => (
-                <div key={m.label}>
-                  <Eyebrow color="text-soft" className="mb-1">
-                    {m.label}
-                  </Eyebrow>
-                  <span className="font-display text-[36px] font-normal leading-none text-burg">{m.value}</span>
-                  {m.unit && (
-                    <span className="ml-1.5 font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-soft">
-                      {m.unit}
-                    </span>
-                  )}
-                </div>
-              ))}
+          {/* Правая колонка: фото — квадрат (1:1), единый формат для всех рецептов */}
+          {recipe.cover_image && (
+            <div className="relative aspect-square w-full overflow-hidden lg:max-w-[520px] lg:justify-self-end">
+              <Image
+                src={recipe.cover_image}
+                alt={title}
+                fill
+                priority
+                className="object-cover"
+                sizes="(max-width: 1024px) 100vw, 520px"
+              />
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/65 to-transparent px-8 pb-6 pt-24">
+                <Eyebrow color="text-paper/85">{t("figCaption")}</Eyebrow>
+              </div>
             </div>
           )}
         </div>
       </section>
-
-      {/* ── Hero photo ──────────────────────────────────────────────────── */}
-      {recipe.cover_image && (
-        <section className="mx-auto max-w-[1320px] px-6 md:px-10 lg:px-14">
-          <div className="relative h-[360px] overflow-hidden sm:h-[480px] lg:h-[580px]">
-            <Image
-              src={recipe.cover_image}
-              alt={title}
-              fill
-              priority
-              className="object-cover"
-              sizes="(max-width: 1320px) 100vw, 1320px"
-            />
-            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/65 to-transparent px-8 pb-6 pt-24">
-              <Eyebrow color="text-paper/85">{t("figCaption")}</Eyebrow>
-            </div>
-          </div>
-        </section>
-      )}
 
       {/* ── Ingredients + Steps ─────────────────────────────────────────── */}
       {(hasIngredients || hasSteps) && (
@@ -378,23 +407,8 @@ export default async function RecipePage({ params }: RecipePageProps) {
       {/* ── КБЖУ (только цифры; диагностика — в админке). Напитки — без КБЖУ. ── */}
       {!isDrink && <NutritionFacts nutrition={nutrition} />}
 
-      {/* ── Author note: история блюда ──────────────────────────────────── */}
-      {note && (
-        <section className="mx-auto max-w-[1320px] px-6 pb-20 md:px-10 lg:px-14">
-          <div className="lg:max-w-[760px]">
-            <div className="border-l-4 border-ochre bg-crust px-8 py-9">
-              <Eyebrow color="text-burg">{t("dishStory")}</Eyebrow>
-              <p className="mt-3.5 font-display text-[22px] font-normal italic leading-[1.45] text-burg sm:text-[24px]">
-                <DropCap>{note.charAt(0)}</DropCap>
-                {renderTextWithLinks(note.slice(1))}
-              </p>
-              <div className="mt-3.5 font-body text-[11px] font-semibold uppercase tracking-[0.16em] text-soft">
-                {t("authorSign")}
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
+      {/* История блюда теперь живёт сразу под заголовком (см. hero выше) —
+          отдельный нижний блок убран, чтобы не дублировать текст. */}
 
       {/* ── Related (streamed — не блокирует first paint) ───────────────── */}
       <Suspense fallback={<RelatedRecipesSkeleton />}>
@@ -412,7 +426,7 @@ export default async function RecipePage({ params }: RecipePageProps) {
             "@context": "https://schema.org",
             "@type": "Recipe",
             name: title,
-            description: description ?? undefined,
+            description: seoText ?? undefined,
             image: recipe.cover_image ? [recipe.cover_image] : undefined,
             author: { "@type": "Person", name: "Daria", url: SITE_URL },
             datePublished: recipe.created_at,

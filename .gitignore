@@ -41,3 +41,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .claude/settings.local.json
+
+# Черновики историй из scripts/draft-stories.mjs (локальный артефакт)
+story-drafts.json

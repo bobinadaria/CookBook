@@ -60,7 +60,7 @@ export function RelatedRecipesSkeleton() {
       <div className="grid grid-cols-1 gap-x-7 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
         {[0, 1, 2].map((i) => (
           <div key={i} className="space-y-4">
-            <div className="aspect-[4/3] animate-pulse bg-crust" />
+            <div className="aspect-square animate-pulse bg-crust" />
             <div className="h-5 w-3/4 animate-pulse bg-crust" />
           </div>
         ))}
