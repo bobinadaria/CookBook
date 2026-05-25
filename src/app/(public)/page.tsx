@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
 import RecipeCard from "@/components/recipe/RecipeCard";
 import RevealCard from "@/components/animations/RevealCard";
+import HomeMagicDemo from "@/components/home/HomeMagicDemo";
 import { DropCap, Eyebrow, EditorialButton, PullQuote } from "@/components/ui";
 import { fetchFeaturedRecipes } from "@/lib/supabase/server-queries";
 import type { LocaleCode } from "@/types";
@@ -84,6 +85,9 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ── Демо: от заметки к странице книги ─────────────────────────────── */}
+      <HomeMagicDemo />
 
       {/* ── Колонка редактора ─────────────────────────────────────────────── */}
       <section className="mx-auto max-w-[1320px] px-6 pb-14 pt-20 md:px-10 lg:px-14 lg:pt-[88px]">
