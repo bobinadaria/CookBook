@@ -82,6 +82,19 @@ export default async function NutritionFacts({
               </div>
             ))}
           </div>
+
+          {/* Честный значок: если юзер сознательно пропустил какие-то ингредиенты
+              (через ingredient_aliases is_skip=true), показываем их здесь, чтобы
+              цифра КБЖУ была честной — «рассчитано без X, Y». */}
+          {nutrition.skipped && nutrition.skipped.length > 0 && (
+            <p className="mt-5 border-t border-section-rule pt-4 font-body text-[11px] italic leading-[1.6] text-section-soft">
+              ※ {t("calculatedWithout", {
+                names: nutrition.skipped
+                  .map((s) => `${s.parsed_name} (${Math.round(s.quantity_g)} ${t("gram")})`)
+                  .join(", "),
+              })}
+            </p>
+          )}
         </div>
       </div>
     </section>

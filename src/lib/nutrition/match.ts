@@ -175,8 +175,10 @@ export function resolveAlias(
   if (!alias) return null;
   if (alias.is_skip) return { type: "skip" };
   if (!alias.canonical_id) return null;
-  // Найти ingredient row по id
-  for (const row of index.values()) {
+  // Найти ingredient row по id. Array.from вместо values() — совместимость с
+  // tsconfig target (без --downlevelIteration).
+  const rows = Array.from(index.values());
+  for (const row of rows) {
     if (row.id === alias.canonical_id) {
       return { type: "ingredient", row };
     }
