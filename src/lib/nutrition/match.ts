@@ -23,7 +23,7 @@ export interface IngredientRow {
 
 export interface MatchResult {
   row: IngredientRow;
-  match_type: "exact" | "fuzzy";
+  match_type: "exact" | "fuzzy" | "alias";
   similarity: number | null;
 }
 
@@ -102,7 +102,116 @@ export async function fuzzyMatch(
 }
 
 /**
- * Точка входа: exact → fuzzy → null.
+ * Запись из ingredient_aliases. canonical_id = NULL и is_skip = true означает
+ * «юзер явно сказал пропустить этот ингредиент из расчёта».
+ */
+export interface AliasRow {
+  alias_text: string;
+  canonical_id: string | null;
+  is_skip: boolean;
+}
+
+/**
+ * Resolved alias после поиска: либо ссылка на ingredients_base, либо
+ * «пропустить».
+ */
+export type AliasResolution =
+  | { type: "ingredient"; row: IngredientRow }
+  | { type: "skip" };
+
+/**
+ * Загружает алиасы пользователя + глобальные в Map по нормализованному ключу.
+ * При коллизии user-алиас побеждает глобальный (даём приоритет личному выбору).
+ *
+ * Если userId == null — грузим только глобальные (для админских пересчётов).
+ */
+export async function loadUserAliases(
+  supabase: SupabaseClient,
+  userId: string | null,
+): Promise<Map<string, AliasRow>> {
+  // 1. Глобальные алиасы
+  const map = new Map<string, AliasRow>();
+  const { data: globals, error: globalsError } = await supabase
+    .from("ingredient_aliases")
+    .select("alias_text, canonical_id, is_skip")
+    .is("user_id", null);
+  if (globalsError) {
+    // Таблицы может ещё не быть до миграции — не валим расчёт.
+    console.warn(`[loadUserAliases] globals: ${globalsError.message}`);
+    return map;
+  }
+  for (const row of globals ?? []) {
+    map.set(normalizeKey(row.alias_text as string), row as AliasRow);
+  }
+
+  // 2. Личные алиасы пользователя (приоритет — перезаписывают глобальные).
+  if (userId) {
+    const { data: own, error: ownError } = await supabase
+      .from("ingredient_aliases")
+      .select("alias_text, canonical_id, is_skip")
+      .eq("user_id", userId);
+    if (ownError) {
+      console.warn(`[loadUserAliases] own: ${ownError.message}`);
+    } else {
+      for (const row of own ?? []) {
+        map.set(normalizeKey(row.alias_text as string), row as AliasRow);
+      }
+    }
+  }
+
+  return map;
+}
+
+/**
+ * Резолвит alias по запросу. Возвращает либо ссылку на ingredient row,
+ * либо «skip», либо null (нет алиаса).
+ */
+export function resolveAlias(
+  query: string,
+  aliases: Map<string, AliasRow>,
+  index: Map<string, IngredientRow>,
+): AliasResolution | null {
+  const alias = aliases.get(normalizeKey(query));
+  if (!alias) return null;
+  if (alias.is_skip) return { type: "skip" };
+  if (!alias.canonical_id) return null;
+  // Найти ingredient row по id
+  for (const row of index.values()) {
+    if (row.id === alias.canonical_id) {
+      return { type: "ingredient", row };
+    }
+  }
+  return null; // canonical_id указывает на удалённый ингредиент — игнорируем
+}
+
+/**
+ * Top-N кандидатов по similarity. Используется для блока «не нашли в базе»
+ * на UI — показываем юзеру 0..3 возможных замен.
+ *
+ * Дефолтный threshold ниже, чем в fuzzyMatch — мы намеренно показываем более
+ * слабые варианты как подсказки (юзер сам решает, годится ли).
+ */
+export async function getTopSuggestions(
+  supabase: SupabaseClient,
+  query: string,
+  topN = 3,
+  threshold = 0.2,
+): Promise<Array<IngredientRow & { similarity: number }>> {
+  const { data, error } = await supabase.rpc("match_ingredient_top_n", {
+    query,
+    top_n: topN,
+    threshold,
+  });
+  if (error) {
+    console.warn(`[getTopSuggestions] ${error.message}`);
+    return [];
+  }
+  return (data ?? []) as Array<IngredientRow & { similarity: number }>;
+}
+
+/**
+ * Точка входа: exact → fuzzy → null. (Алиасы проверяются ОТДЕЛЬНО до этого
+ * вызова в calculate.ts — там есть доступ к userId и aliases-Map.)
  */
 export async function matchIngredient(
   supabase: SupabaseClient,

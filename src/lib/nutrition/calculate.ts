@@ -1,41 +1,78 @@
 /**
  * Оркестратор расчёта КБЖУ рецепта.
  *
- *   ingredients (text) → OpenAI parse → match against ingredients_base →
+ *   ingredients (text) → OpenAI parse →
+ *     per-line: alias → exact → fuzzy → unmatched (с suggestions) →
  *     sum kcal/protein/fat/carbs → divide by servings → NutritionData
  *
- * Используется в /api/admin/calculate-nutrition.
+ * Используется в /api/admin/calculate-nutrition и /api/recipes/calculate-nutrition.
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { NutritionData, NutritionMatch } from "@/types";
+import type {
+  NutritionData,
+  NutritionMatch,
+  UnmatchedIngredient,
+  SkippedIngredient,
+  IngredientSuggestion,
+} from "@/types";
 import { parseIngredients } from "./parse";
-import { loadAllIngredients, matchIngredient } from "./match";
+import {
+  loadAllIngredients,
+  loadUserAliases,
+  resolveAlias,
+  matchIngredient,
+  getTopSuggestions,
+} from "./match";
+import { estimateMacros, type EstimateResult } from "./estimate";
 import { ingredientsHash } from "./ingredients-hash.mjs";
 
 interface CalculateInput {
   ingredientsText: string;
   servings: number | null;
   supabase: SupabaseClient;
+  /**
+   * ID пользователя, для которого считаем — нужен чтобы подтянуть его
+   * personal-алиасы. Null = только глобальные алиасы (например, при
+   * пакетном recalc из админ-скрипта).
+   */
+  userId?: string | null;
+  /**
+   * Делать AI-оценку макросов для ненайденных ингредиентов (для UI-подсказки
+   * «±N%»). Дефолт true; в скриптах массового recalc можно отключить, чтобы
+   * не тратить OpenAI-запросы.
+   */
+  estimateUnmatched?: boolean;
 }
 
 export async function calculateNutrition({
   ingredientsText,
   servings,
   supabase,
+  userId = null,
+  estimateUnmatched = true,
 }: CalculateInput): Promise<NutritionData> {
   // 1. Парсим текст через OpenAI
   const { ingredients: parsed, model } = await parseIngredients(ingredientsText);
 
-  // 2. Загружаем ingredients_base один раз
-  const index = await loadAllIngredients(supabase);
+  // 2. Загружаем ingredients_base + алиасы пользователя один раз
+  const [index, aliases] = await Promise.all([
+    loadAllIngredients(supabase),
+    loadUserAliases(supabase, userId),
+  ]);
 
-  // 3. Для каждой строки — матчим и считаем вклад в total
+  // 3. Для каждой строки — алиас → exact → fuzzy → unmatched
   const totals = { kcal: 0, protein: 0, fat: 0, carbs: 0, weight_g: 0 };
-  const matched_weight_g = { value: 0 }; // только сматченные — для confidence
+  const matched_weight_g = { value: 0 };
   const matches: NutritionMatch[] = [];
+  const unmatchedRaw: Array<{
+    original_text: string;
+    parsed_name: string;
+    quantity_g: number;
+  }> = [];
+  const skipped: SkippedIngredient[] = [];
 
   for (const p of parsed) {
-    // Пропущенные строки (заголовки, «по вкусу») всё равно показываем в UI
+    // Пропущенные парсером строки (заголовки, «по вкусу») — как и раньше.
     if (p.skipped || !p.name || p.grams == null) {
       matches.push({
         input: p.input,
@@ -51,8 +88,52 @@ export async function calculateNutrition({
     const grams = p.grams;
     totals.weight_g += grams;
 
+    // 3a. Сначала — алиас (если юзер уже решил, как считать эту строку).
+    const alias = resolveAlias(p.name, aliases, index);
+    if (alias?.type === "skip") {
+      matches.push({
+        input: p.input,
+        matched: null,
+        grams,
+        kcal: null,
+        match_type: "skipped",
+        similarity: null,
+      });
+      skipped.push({
+        original_text: p.input,
+        parsed_name: p.name,
+        quantity_g: grams,
+      });
+      // Не суммируем — юзер явно сказал «не считать».
+      continue;
+    }
+    if (alias?.type === "ingredient") {
+      const row = alias.row;
+      const factor = grams / 100;
+      const kcal = Number(row.kcal_100g) * factor;
+      const protein = Number(row.protein_100g) * factor;
+      const fat = Number(row.fat_100g) * factor;
+      const carbs = Number(row.carbs_100g) * factor;
+      totals.kcal += kcal;
+      totals.protein += protein;
+      totals.fat += fat;
+      totals.carbs += carbs;
+      matched_weight_g.value += grams;
+      matches.push({
+        input: p.input,
+        matched: row.name_ru,
+        grams,
+        kcal: round(kcal),
+        match_type: "alias",
+        similarity: null,
+      });
+      continue;
+    }
+
+    // 3b. Алиаса нет — обычный exact → fuzzy.
     const m = await matchIngredient(supabase, p.name, index);
     if (!m) {
+      // 3c. Не сматчилось — это unmatched, собираем для суждений.
       matches.push({
         input: p.input,
         matched: null,
@@ -61,10 +142,15 @@ export async function calculateNutrition({
         match_type: "unknown",
         similarity: null,
       });
+      unmatchedRaw.push({
+        original_text: p.input,
+        parsed_name: p.name,
+        quantity_g: grams,
+      });
       continue;
     }
 
-    const factor = grams / 100; // values хранятся per-100g
+    const factor = grams / 100;
     const kcal = Number(m.row.kcal_100g) * factor;
     const protein = Number(m.row.protein_100g) * factor;
     const fat = Number(m.row.fat_100g) * factor;
@@ -86,12 +172,63 @@ export async function calculateNutrition({
     });
   }
 
-  // 4. Confidence = доля сматченных грамм от всего рецепта.
-  //    Если рецепт состоит из одних «по вкусу» (totals.weight_g == 0) — 0.
-  const confidence =
-    totals.weight_g > 0 ? matched_weight_g.value / totals.weight_g : 0;
+  // 4. Для unmatched — собираем top-3 кандидата и (опционально) AI-оценку макросов.
+  const unmatched: UnmatchedIngredient[] = [];
+  if (unmatchedRaw.length > 0) {
+    // 4a. Top-3 кандидата для каждого имени (через одну RPC на каждое).
+    const suggestionsForName = new Map<string, IngredientSuggestion[]>();
+    for (const u of unmatchedRaw) {
+      const candidates = await getTopSuggestions(supabase, u.parsed_name, 3, 0.2);
+      suggestionsForName.set(
+        u.parsed_name,
+        candidates.map((c) => ({
+          ingredient_id: c.id,
+          name_ru: c.name_ru,
+          name_en: c.name_en,
+          category: c.category,
+          similarity: c.similarity,
+          kcal_100g: Number(c.kcal_100g),
+          protein_100g: Number(c.protein_100g),
+          fat_100g: Number(c.fat_100g),
+          carbs_100g: Number(c.carbs_100g),
+        })),
+      );
+    }
 
-  // 5. Делим на servings, если есть. Иначе per_serving == total.
+    // 4b. AI-оценка макросов всех ненайденных одним батчем — только для UI «±N%».
+    const estimates: Map<string, EstimateResult> = estimateUnmatched
+      ? await estimateMacros(unmatchedRaw.map((u) => u.parsed_name))
+      : new Map();
+
+    for (const u of unmatchedRaw) {
+      const est = estimates.get(u.parsed_name);
+      unmatched.push({
+        original_text: u.original_text,
+        parsed_name: u.parsed_name,
+        quantity_g: u.quantity_g,
+        suggestions: suggestionsForName.get(u.parsed_name) ?? [],
+        estimate: est
+          ? {
+              kcal_100g: est.kcal_100g,
+              protein_100g: est.protein_100g,
+              fat_100g: est.fat_100g,
+              carbs_100g: est.carbs_100g,
+              source: "ai",
+            }
+          : undefined,
+      });
+    }
+  }
+
+  // 5. Confidence = доля сматченных грамм от всего рецепта.
+  //    skipped тоже учитывается «как сматченное» — юзер сознательно решил.
+  const totalAccounted =
+    matched_weight_g.value +
+    skipped.reduce((acc, s) => acc + s.quantity_g, 0);
+  const confidence =
+    totals.weight_g > 0 ? totalAccounted / totals.weight_g : 0;
+
+  // 6. Делим на servings.
   const portions = servings && servings > 0 ? servings : 1;
   const per_serving = {
     kcal: round(totals.kcal / portions),
@@ -100,8 +237,8 @@ export async function calculateNutrition({
     carbs: round(totals.carbs / portions),
   };
 
-  // 6. Warnings для UI
-  const warnings = buildWarnings(matches, confidence, servings);
+  // 7. Warnings — старые для админ-UI + новый шорткат «осталось N ненайденных»
+  const warnings = buildWarnings(matches, unmatched.length, confidence, servings);
 
   return {
     per_serving,
@@ -116,6 +253,8 @@ export async function calculateNutrition({
     confidence: round(confidence, 2),
     warnings,
     ingredients: matches,
+    unmatched: unmatched.length > 0 ? unmatched : undefined,
+    skipped: skipped.length > 0 ? skipped : undefined,
     calculated_at: new Date().toISOString(),
     model,
     ingredients_hash: ingredientsHash(ingredientsText),
@@ -129,17 +268,22 @@ function round(n: number, digits = 1): number {
 
 function buildWarnings(
   matches: NutritionMatch[],
+  unmatchedCount: number,
   confidence: number,
   servings: number | null,
 ): string[] {
   const w: string[] = [];
 
-  const unknown = matches
-    .filter((m) => m.match_type === "unknown" && m.grams > 0)
-    .map((m) => m.input);
-  if (unknown.length > 0) {
+  if (unmatchedCount > 0) {
+    const samples = matches
+      .filter((m) => m.match_type === "unknown" && m.grams > 0)
+      .map((m) => m.input)
+      .slice(0, 3)
+      .join("; ");
     w.push(
-      `Не найдено в ingredients_base (${unknown.length}): ${unknown.join("; ")}`,
+      `Не найдено в ingredients_base (${unmatchedCount}): ${samples}${
+        unmatchedCount > 3 ? "…" : ""
+      }`,
     );
   }
 

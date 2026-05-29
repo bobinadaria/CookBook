@@ -90,12 +90,14 @@ export async function POST(req: NextRequest) {
 
   // 5. Парс → матч → расчёт (тот же движок, что и в админке). service-role нужен
   //    для чтения справочника ingredients_base внутри calculateNutrition.
+  //    userId — чтобы подтянуть алиасы текущего юзера (стрэчателла → моцарелла и т.п.).
   const supabase = createServiceRoleClient();
   try {
     const nutrition = await calculateNutrition({
       ingredientsText: ingredients,
       servings: servings ?? null,
       supabase,
+      userId: user.id,
     });
     return NextResponse.json({ nutrition });
   } catch (err) {

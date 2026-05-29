@@ -73,13 +73,15 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  // 4. Парс → матч → расчёт
+  // 4. Парс → матч → расчёт. Передаём userId, чтобы подтянуть личные алиасы
+  //    админа (если он сам пометил «стрэчателла → моцарелла» — сработает и здесь).
   let nutrition;
   try {
     nutrition = await calculateNutrition({
       ingredientsText: recipe.ingredients,
       servings: recipe.servings,
       supabase,
+      userId: auth.userId,
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);

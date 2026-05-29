@@ -55,10 +55,70 @@ export interface NutritionMatch {
   grams: number;
   /** Калории этого ингредиента в этой порции (для дебага). Null если не сматчен. */
   kcal: number | null;
-  /** Тип матча: точный, fuzzy через pg_trgm, или не нашёлся. */
-  match_type: "exact" | "fuzzy" | "unknown";
-  /** Similarity score для fuzzy-матча (0..1). Null для exact и unknown. */
+  /** Тип матча: точный, fuzzy через pg_trgm, алиас юзера, или не нашёлся. */
+  match_type: "exact" | "fuzzy" | "alias" | "skipped" | "unknown";
+  /** Similarity score для fuzzy-матча (0..1). Null для exact / alias / unknown. */
   similarity: number | null;
+}
+
+/**
+ * Один кандидат-подсказка для ненайденного ингредиента.
+ * Показывается пользователю в форме рецепта: «не нашли стрэчателлу — считать как
+ * моцарелла?». Поля достаточны, чтобы отрисовать карточку выбора.
+ */
+export interface IngredientSuggestion {
+  ingredient_id: string;
+  name_ru: string;
+  name_en: string | null;
+  category: string | null;
+  similarity: number;
+  kcal_100g: number;
+  protein_100g: number;
+  fat_100g: number;
+  carbs_100g: number;
+}
+
+/**
+ * AI-оценка макросов неизвестного ингредиента — только для показа дельты «±N%»
+ * на UI. НЕ используется в самом расчёте КБЖУ. Может отсутствовать, если
+ * AI-вызов не дал ответа.
+ */
+export interface IngredientEstimate {
+  kcal_100g: number;
+  protein_100g: number;
+  fat_100g: number;
+  carbs_100g: number;
+  /** Источник: 'ai' = gpt-4o-mini угадал по training data. */
+  source: "ai";
+}
+
+/**
+ * Ненайденный ингредиент рецепта — для блока «не нашли в базе» на UI.
+ */
+export interface UnmatchedIngredient {
+  /** Сырая строка из рецепта, как написал пользователь. */
+  original_text: string;
+  /** Имя, которое OpenAI-парсер выделил из строки. */
+  parsed_name: string;
+  /** Сколько грамм OpenAI оценил. */
+  quantity_g: number;
+  /** Top-3 кандидата из ingredients_base по similarity (или пусто, если совсем мимо). */
+  suggestions: IngredientSuggestion[];
+  /** Опциональная AI-оценка макросов — для показа «±N%» рядом с suggestion. */
+  estimate?: IngredientEstimate;
+}
+
+/**
+ * Ингредиент, который юзер ранее пометил «пропустить из расчёта» (через алиас
+ * is_skip=true). Показывается в публичном NutritionFacts: «рассчитано без: ...».
+ */
+export interface SkippedIngredient {
+  /** Сырая строка ингредиента, как в рецепте. */
+  original_text: string;
+  /** Имя, которое парсер выделил. */
+  parsed_name: string;
+  /** Граммовка. */
+  quantity_g: number;
 }
 
 /**
@@ -89,6 +149,18 @@ export interface NutritionData {
   warnings: string[];
   /** Детальный разбор по ингредиентам — для отладки и UI «как считалось». */
   ingredients: NutritionMatch[];
+  /**
+   * Ненайденные ингредиенты со списком кандидатов на замену. Используется
+   * блоком «не нашли в базе» в форме рецепта. Сохраняется в БД для
+   * стабильности UI между перезагрузками страницы.
+   */
+  unmatched?: UnmatchedIngredient[];
+  /**
+   * Ингредиенты, которые юзер ранее явно пометил «пропустить» (через алиас
+   * is_skip=true). Показываются в публичном NutritionFacts как
+   * «рассчитано без: ...».
+   */
+  skipped?: SkippedIngredient[];
   /** ISO-timestamp момента расчёта. */
   calculated_at: string;
   /** Модель OpenAI, которая парсила. Полезно если решим поменять. */
