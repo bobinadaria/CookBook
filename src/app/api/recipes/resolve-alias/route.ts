@@ -42,7 +42,7 @@ const BodySchema = z
 
 export async function POST(req: NextRequest) {
   // 1. Auth.
-  const supabaseAuth = createClient();
+  const supabaseAuth = await createClient();
   const {
     data: { user },
   } = await supabaseAuth.auth.getUser();

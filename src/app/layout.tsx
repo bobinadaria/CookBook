@@ -104,7 +104,7 @@ export default async function RootLayout({
       className={`${playfair.variable} ${body.variable} ${reader.variable}`}
       suppressHydrationWarning
     >
-      <body className="antialiased">
+      <body className="antialiased" suppressHydrationWarning>
         <ThemeProvider>
           <NextIntlClientProvider messages={messages}>
             <CursorGlow />

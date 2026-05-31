@@ -6,7 +6,7 @@ import type { Category, CategoryType } from "@/types";
 
 /** Fetch all categories ordered by type then name. */
 export async function fetchAllCategories(): Promise<Category[]> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("categories")
     .select("*")
@@ -19,7 +19,7 @@ export async function fetchAllCategories(): Promise<Category[]> {
 
 /** Fetch categories filtered by type. */
 export async function fetchCategoriesByType(type: CategoryType): Promise<Category[]> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("categories")
     .select("*")

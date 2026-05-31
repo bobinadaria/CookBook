@@ -29,7 +29,7 @@ function toCardData(row: Record<string, unknown>): RecipeCardData {
 
 /** Fetch featured published recipes for the home page hero. */
 export async function fetchFeaturedRecipes(): Promise<RecipeCardData[]> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("recipes")
     .select(CARD_SELECT)
@@ -45,7 +45,7 @@ export async function fetchFeaturedRecipes(): Promise<RecipeCardData[]> {
 
 /** Fetch all published recipes for the catalog page. */
 export async function fetchPublishedRecipes(): Promise<RecipeCardData[]> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("recipes")
     .select("id, title, title_en, slug, cover_image, description, note, created_at, updated_at, recipe_categories(category_id)")
@@ -59,7 +59,7 @@ export async function fetchPublishedRecipes(): Promise<RecipeCardData[]> {
 
 /** Fetch a single published recipe by slug (with steps and categories). */
 export async function fetchRecipeBySlug(slug: string): Promise<Recipe | null> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("recipes")
     .select(`
@@ -98,7 +98,7 @@ export async function fetchRelatedRecipes(
 ): Promise<RecipeCardData[]> {
   if (categoryIds.length === 0) return [];
 
-  const supabase = createClient();
+  const supabase = await createClient();
 
   // Step 1 — find all recipe_ids that share at least one category.
   const { data: matches, error } = await supabase
@@ -143,7 +143,7 @@ export async function fetchRelatedRecipes(
 
 /** Fetch all recipes for the admin list (published + drafts). */
 export async function fetchAdminRecipeList(): Promise<AdminRecipeListItem[]> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("recipes")
     .select("id, title, slug, published, created_at, cover_image")
@@ -155,7 +155,7 @@ export async function fetchAdminRecipeList(): Promise<AdminRecipeListItem[]> {
 
 /** Fetch a single recipe by ID for the admin edit form (all fields + steps). */
 export async function fetchRecipeById(id: string): Promise<Recipe | null> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from("recipes")
     .select(`*, steps(*), recipe_categories(category_id)`)

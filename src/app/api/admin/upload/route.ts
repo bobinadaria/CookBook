@@ -8,7 +8,7 @@ import { NextRequest, NextResponse } from "next/server";
  */
 export async function POST(req: NextRequest) {
   // 1. Verify the caller is authenticated
-  const supabaseAuth = createClient();
+  const supabaseAuth = await createClient();
   const {
     data: { user },
   } = await supabaseAuth.auth.getUser();

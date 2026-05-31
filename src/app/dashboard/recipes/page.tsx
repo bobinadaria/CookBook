@@ -11,7 +11,7 @@ import CreateRecipeButton from "@/components/dashboard/CreateRecipeButton";
 export const dynamic = "force-dynamic";
 
 export default async function MyBookPage() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

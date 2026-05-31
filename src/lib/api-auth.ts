@@ -25,7 +25,7 @@ type AuthResult = AuthSuccess | NextResponse;
  * the route handler should return immediately.
  */
 export async function requireAdmin(): Promise<AuthResult> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

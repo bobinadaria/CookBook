@@ -81,13 +81,13 @@ function renderTextWithLinks(text: string): React.ReactNode {
 }
 
 interface RecipePageProps {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }
 
 // cache() ensures the DB query runs only once per request even though both
 // generateMetadata and the page component call this function.
 const getRecipe = cache(async function getRecipe(slug: string) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data } = await supabase
     .from("recipes")
     .select(`
@@ -133,7 +133,7 @@ function parseIngredients(raw: string) {
 }
 
 export async function generateMetadata({ params }: RecipePageProps): Promise<Metadata> {
-  const slug = decodeURIComponent(params.slug);
+  const slug = decodeURIComponent((await params).slug);
   const recipe = await getRecipe(slug);
 
   if (!recipe) return { title: "Recipe not found — The Slow Table" };
@@ -187,7 +187,7 @@ function toIsoDuration(minutes: number): string {
 }
 
 export default async function RecipePage({ params }: RecipePageProps) {
-  const recipe = await getRecipe(decodeURIComponent(params.slug));
+  const recipe = await getRecipe(decodeURIComponent((await params).slug));
   if (!recipe) notFound();
 
   const [t, locale] = await Promise.all([getTranslations("recipe"), getLocale()]);
