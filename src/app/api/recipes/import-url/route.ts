@@ -45,7 +45,7 @@ function isRateLimited(userId: string): boolean {
 
 export async function POST(req: NextRequest) {
   // 1. Требуется аутентифицированная сессия.
-  const supabaseAuth = createClient();
+  const supabaseAuth = await createClient();
   const {
     data: { user },
   } = await supabaseAuth.auth.getUser();

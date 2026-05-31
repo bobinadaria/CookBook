@@ -81,6 +81,39 @@ function parseIsoDurationToMinutes(value: unknown): number | null {
   return total > 0 ? total : null;
 }
 
+/**
+ * «Человеческое» время в минуты: «2 ч 30 мин», «1 час», «90 минут»,
+ * «1 hour 30 minutes», «45 min». Фолбэк, когда totalTime/cookTime — не ISO, а
+ * обычный текст (часть сайтов кладёт именно так — иначе время молча теряется).
+ * (\b после кириллицы в JS-regex не работает, поэтому единицы матчим стемами.)
+ */
+function parseHumanDurationToMinutes(value: unknown): number | null {
+  if (typeof value !== "string") return null;
+  const s = value.toLowerCase();
+  let total = 0;
+  let found = false;
+  // Часы: «ч / час / часа / часов / h / hour(s) / hr».
+  const hourMatch = s.match(/(\d+(?:[.,]\d+)?)\s*(?:час[а-я]*|ч|hours?|hrs?|h)/);
+  if (hourMatch) {
+    total += parseFloat(hourMatch[1].replace(",", ".")) * 60;
+    found = true;
+  }
+  // Минуты: «мин / минут / м / min / minute(s) / m».
+  const minMatch = s.match(/(\d+)\s*(?:мин[а-я]*|м|minutes?|mins?|m)/);
+  if (minMatch) {
+    total += parseInt(minMatch[1], 10);
+    found = true;
+  }
+  if (!found) return null;
+  total = Math.round(total);
+  return total > 0 ? total : null;
+}
+
+/** ISO → человеческий текст. Любой из totalTime/cookTime/prepTime. */
+function parseDurationToMinutes(value: unknown): number | null {
+  return parseIsoDurationToMinutes(value) ?? parseHumanDurationToMinutes(value);
+}
+
 /** recipeYield → число порций (берём первое целое). */
 function parseYield(value: unknown): number | null {
   const candidates = Array.isArray(value) ? value : [value];
@@ -163,8 +196,11 @@ function detectRecipeType(obj: JsonLdNode): "food" | "drink" {
     .filter((x) => typeof x === "string")
     .join(" ")
     .toLowerCase();
+  // Только высоконадёжные «напиточные» стемы: ложное срабатывание стоит дорого
+  // (у напитков сознательно нет КБЖУ — еду нельзя по ошибке записать в напитки).
+  // Поэтому без коллизионных «сок/чай/морс» (морс⊂морской и т.п.).
   const drinkWords =
-    /(коктейл|напит|drink|cocktail|smoothie|смузи|лимонад|lemonade|beverage|латте|latte|глинтвейн|mocktail)/;
+    /(коктейл|напит|drink|cocktail|smoothie|смузи|лимонад|lemonade|beverage|латте|latte|глинтвейн|mulled wine|mocktail|компот|кисел|узвар|сбитень|пунш|punch|сидр|cider|какао|cocoa|глёг|gl(o|ö)gg)/;
   if (drinkWords.test(haystack)) return "drink";
   return "food";
 }
@@ -190,9 +226,9 @@ export function extractRecipeFromJsonLd(html: string): ImportedRecipe | null {
   if (!title || (ingredients.length === 0 && steps.length === 0)) return null;
 
   const cookTime =
-    parseIsoDurationToMinutes(node.totalTime) ??
-    parseIsoDurationToMinutes(node.cookTime) ??
-    parseIsoDurationToMinutes(node.prepTime);
+    parseDurationToMinutes(node.totalTime) ??
+    parseDurationToMinutes(node.cookTime) ??
+    parseDurationToMinutes(node.prepTime);
 
   return {
     title,

@@ -15,6 +15,7 @@ import { safeFetchHtml } from "./fetch-page";
 import { extractRecipeFromJsonLd } from "./jsonld";
 import { htmlToReadableText } from "./html-text";
 import { extractRecipeWithLlm } from "./llm";
+import { ingredientsLookBare, mergeStructuredWithAi } from "./enrich";
 
 export type { ImportedRecipe, ImportSource } from "./types";
 export { RecipeImportError } from "./types";
@@ -36,6 +37,29 @@ function assertReadable(html: string): void {
   }
 }
 
+/**
+ * Догон количеств для «голого» состава из микроразметки: прогоняет видимый
+ * текст страницы через AI и сливает результат со «скелетом» разметки.
+ * Возвращает null (а не бросает), если добор не удался — вызывающий код тогда
+ * оставит надёжный «скелет» с именами без количеств.
+ */
+async function tryEnrichIngredients(
+  structured: ImportedRecipe,
+  html: string,
+): Promise<ImportedRecipe | null> {
+  const text = htmlToReadableText(html);
+  if (!text || text.length < 40) return null;
+  try {
+    const ai = await extractRecipeWithLlm(text);
+    // Берём состав от AI только если он реально добыл количества — иначе смысла
+    // в подмене нет (и не выдаём source="ai" зря).
+    if (ingredientsLookBare(ai.ingredients)) return null;
+    return mergeStructuredWithAi(structured, ai);
+  } catch {
+    return null;
+  }
+}
+
 export async function importRecipeFromUrl(url: string): Promise<ImportResult> {
   const html = await safeFetchHtml(url);
 
@@ -47,6 +71,14 @@ export async function importRecipeFromUrl(url: string): Promise<ImportResult> {
   // 1. Бесплатный путь — микроразметка.
   const structured = extractRecipeFromJsonLd(html);
   if (structured) {
+    // Слепое пятно: часть сайтов (gastronom.ru и др.) кладёт в JSON-LD только
+    // НАЗВАНИЯ ингредиентов, без количеств. Тогда добираем граммовку из видимого
+    // текста через AI и сливаем со «скелетом» разметки. Если AI недоступен или
+    // тоже не нашёл количеств — деградируем к именам (лучше частично, чем ошибка).
+    if (ingredientsLookBare(structured.ingredients)) {
+      const enriched = await tryEnrichIngredients(structured, html);
+      if (enriched) return { recipe: enriched, source: "ai" };
+    }
     return { recipe: structured, source: "structured" };
   }
 
