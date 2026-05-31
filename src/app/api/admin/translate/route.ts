@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "recipeId is required" }, { status: 400 });
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
 
   // 4. Fetch recipe with steps (also fetch slug for cache revalidation)
   const { data: recipe, error: fetchError } = await supabase
