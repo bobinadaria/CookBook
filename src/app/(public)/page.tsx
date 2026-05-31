@@ -27,11 +27,11 @@ export default async function HomePage() {
       {/* ── Hero spread ───────────────────────────────────────────────────── */}
       <section className="flex flex-col-reverse border-b border-rule lg:grid lg:grid-cols-[1fr_1.1fr] lg:min-h-[760px]">
         {/* Left — chapter header + headline + lede + meta */}
-        <div className="flex flex-col justify-between gap-10 px-6 py-14 md:px-10 lg:px-14 lg:py-16">
+        <div className="flex flex-col justify-between gap-8 px-6 py-10 md:px-10 lg:gap-10 lg:px-14 lg:py-16">
           <Eyebrow color="text-ochre-dk">{t("heroEyebrow")}</Eyebrow>
 
           <div>
-            <h1 className="font-display text-[clamp(3.25rem,8vw,120px)] font-normal leading-[0.88] tracking-[-0.03em] text-burg">
+            <h1 className="font-display text-[clamp(2.5rem,9vw,120px)] font-normal leading-[0.9] tracking-[-0.03em] text-burg lg:leading-[0.88]">
               {t("heroTitle1")}
               <br />
               <em className="italic text-ochre">{t("heroTitle2")}</em>
@@ -59,7 +59,7 @@ export default async function HomePage() {
         </div>
 
         {/* Right — full-bleed photo + magazine plate + caption */}
-        <div className="relative aspect-[4/3] bg-crust lg:aspect-auto lg:min-h-[760px]">
+        <div className="relative aspect-[16/10] bg-crust sm:aspect-[4/3] lg:aspect-auto lg:min-h-[760px]">
           <Image
             src={HERO_PHOTO}
             alt={t("heroAlt")}

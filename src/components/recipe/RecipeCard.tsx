@@ -40,6 +40,12 @@ interface RecipeCardProps {
   index?: number;
   /** Show the footer meta row (cook time · Читать →). Default true. */
   showMeta?: boolean;
+  /**
+   * Плотный режим для мобильного 2-колоночного каталога: на узких экранах
+   * прячем крупную римскую цифру и «Читать →», уменьшаем заголовок и режем его
+   * до 2 строк. На lg (десктоп, 3 колонки) карточка выглядит как раньше.
+   */
+  compact?: boolean;
 }
 
 export default function RecipeCard({
@@ -50,6 +56,7 @@ export default function RecipeCard({
   className,
   index,
   showMeta = true,
+  compact = false,
 }: RecipeCardProps) {
   const hookLocale = useLocale() as LocaleCode;
   const locale = localeProp ?? hookLocale;
@@ -75,6 +82,11 @@ export default function RecipeCard({
   const roman = hasNumber ? toRoman(index as number) : null;
   const pageNo = hasNumber ? String((index as number) * 6 + 2).padStart(3, "0") : null;
 
+  // В compact мобильное фото занимает ~половину ширины (2 колонки), а не всю.
+  const imgSizes = compact
+    ? "(max-width: 1024px) 50vw, 33vw"
+    : "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw";
+
   return (
     <Link
       href={`/recipes/${recipe.slug}`}
@@ -97,7 +109,7 @@ export default function RecipeCard({
             alt={title}
             fill
             className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]"
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            sizes={imgSizes}
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-crust">
@@ -117,19 +129,40 @@ export default function RecipeCard({
       </div>
 
       {/* ── Title block ── */}
-      <div className={cn("mt-4 flex items-baseline gap-4", fillHeight && "flex-shrink-0")}>
+      <div
+        className={cn(
+          "flex items-baseline gap-4",
+          compact ? "mt-3 lg:mt-4" : "mt-4",
+          fillHeight && "flex-shrink-0",
+        )}
+      >
         {roman && (
-          <span className="font-display text-[44px] font-normal italic leading-[0.9] text-ochre sm:text-[52px]">
+          <span
+            className={cn(
+              "font-display font-normal italic leading-[0.9] text-ochre",
+              compact ? "hidden lg:block lg:text-[52px]" : "text-[44px] sm:text-[52px]",
+            )}
+          >
             {roman}
           </span>
         )}
-        <div className="flex-1">
+        <div className="min-w-0 flex-1">
           {eyebrowLabel && (
-            <div className="mb-1.5 font-body text-[11px] font-semibold uppercase tracking-[0.2em] text-ochre-dk">
+            <div
+              className={cn(
+                "font-body font-semibold uppercase tracking-[0.2em] text-ochre-dk",
+                compact ? "mb-1 text-[10px] lg:mb-1.5 lg:text-[11px]" : "mb-1.5 text-[11px]",
+              )}
+            >
               {eyebrowLabel}
             </div>
           )}
-          <h3 className="font-display text-[20px] font-normal leading-[1.15] text-ink transition-colors group-hover:text-burg sm:text-[24px]">
+          <h3
+            className={cn(
+              "font-display font-normal leading-[1.15] text-ink transition-colors group-hover:text-burg",
+              compact ? "line-clamp-2 text-[15px] lg:text-[24px]" : "text-[20px] sm:text-[24px]",
+            )}
+          >
             {title}
           </h3>
         </div>
@@ -137,9 +170,16 @@ export default function RecipeCard({
 
       {/* ── Footer meta ── */}
       {showMeta && (
-        <div className="mt-3.5 flex items-center justify-between border-t border-rule pt-3 font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-soft">
+        <div
+          className={cn(
+            "flex items-center justify-between border-t border-rule font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-soft",
+            compact ? "mt-3 pt-2.5" : "mt-3.5 pt-3",
+          )}
+        >
           <span>{recipe.cook_time ? `${recipe.cook_time} ${t("min")}` : " "}</span>
-          <span className="transition-colors group-hover:text-burg">{t("readMore")}</span>
+          <span className={cn("transition-colors group-hover:text-burg", compact && "hidden lg:inline")}>
+            {t("readMore")}
+          </span>
         </div>
       )}
     </Link>

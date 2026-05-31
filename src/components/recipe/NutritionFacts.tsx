@@ -61,7 +61,7 @@ export default async function NutritionFacts({
             </span>
           </div>
 
-          <div className="mt-6 grid grid-cols-3 gap-5 sm:gap-6">
+          <div className="mt-6 grid grid-cols-3 gap-3 sm:gap-6">
             {macros.map((m) => (
               <div key={m.label}>
                 <Eyebrow color="text-section-fg/65">{m.label}</Eyebrow>

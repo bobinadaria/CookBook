@@ -72,6 +72,14 @@ export default function Header() {
     setMobileOpen(false);
   }, [pathname]);
 
+  // Блокируем прокрутку фона, пока открыта боковая панель меню
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
+  }, [mobileOpen]);
+
   const handleSignOut = async () => {
     setSigningOut(true);
     setMobileOpen(false);
@@ -219,8 +227,46 @@ export default function Header() {
           </div>
         </div>
 
-        {mobileOpen && (
-          <div id="mobile-menu" className="flex flex-col border-t border-rule px-6 py-2">
+      </div>
+
+      {/* ─── Mobile nav drawer (<md) — выезжает справа, затемняет фон ─────── */}
+      <div
+        className={cn(
+          "fixed inset-0 z-[60] md:hidden",
+          mobileOpen ? "pointer-events-auto" : "pointer-events-none",
+        )}
+        aria-hidden={!mobileOpen}
+      >
+        {/* Затемнение фона — клик закрывает */}
+        <div
+          onClick={() => setMobileOpen(false)}
+          className={cn(
+            "absolute inset-0 bg-ink/40 transition-opacity duration-300",
+            mobileOpen ? "opacity-100" : "opacity-0",
+          )}
+        />
+
+        {/* Панель */}
+        <aside
+          id="mobile-menu"
+          className={cn(
+            "absolute right-0 top-0 flex h-full w-[82%] max-w-[320px] flex-col border-l border-rule bg-paper pt-safe",
+            "shadow-[-8px_0_24px_rgba(21,17,13,0.12)] transition-transform duration-300 ease-out",
+            mobileOpen ? "translate-x-0" : "translate-x-full",
+          )}
+        >
+          <div className="flex h-14 items-center justify-between border-b border-rule px-6">
+            <span className="font-display text-[18px] italic leading-none text-burg">The Slow Table</span>
+            <button
+              onClick={() => setMobileOpen(false)}
+              aria-label="Закрыть меню"
+              className="-mr-1 flex h-10 w-10 items-center justify-center text-lg text-soft transition-colors hover:text-burg"
+            >
+              ✕
+            </button>
+          </div>
+
+          <nav className="flex flex-1 flex-col overflow-y-auto px-6 py-2">
             {navItems.map((it) => (
               <Link
                 key={it.href}
@@ -264,8 +310,8 @@ export default function Header() {
             )}
 
             <div className="pb-safe" />
-          </div>
-        )}
+          </nav>
+        </aside>
       </div>
     </header>
   );
