@@ -11,9 +11,10 @@ export const dynamic = "force-dynamic";
 export default async function NewUserRecipePage({
   searchParams,
 }: {
-  searchParams?: { title?: string; type?: string };
+  searchParams?: Promise<{ title?: string; type?: string }>;
 }) {
-  const supabase = createClient();
+  const sp = (await searchParams) ?? {};
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -36,8 +37,8 @@ export default async function NewUserRecipePage({
   ]);
 
   // Название и тип приходят из модалки создания (?title=…&type=food|drink).
-  const presetTitle = searchParams?.title?.trim();
-  const presetType = searchParams?.type === "drink" ? "drink" : "food";
+  const presetTitle = sp.title?.trim();
+  const presetType = sp.type === "drink" ? "drink" : "food";
 
   return (
     <main className="mx-auto min-h-dvh max-w-3xl px-6 pb-24">

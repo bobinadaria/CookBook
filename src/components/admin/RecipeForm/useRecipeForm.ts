@@ -9,6 +9,7 @@ import {
   toSlug,
 } from "@/lib/supabase/recipes";
 import type { Category, StepInput, RecipeInput, NutritionData } from "@/types";
+import type { ImportedRecipe, ImportSource } from "@/lib/recipe-import";
 
 const DRAFT_KEY = "cookbook-recipe-draft";
 
@@ -58,30 +59,6 @@ export function useRecipeForm(recipeId?: string, defaultValues?: RecipeFormDefau
   const [noteEn, setNoteEn] = useState(defaultValues?.note_en ?? "");
   const [ingredientsEn, setIngredientsEn] = useState(defaultValues?.ingredients_en ?? "");
 
-  /** Заполняет английские поля результатом авто-перевода (Gemini). */
-  const applyEnTranslations = (en: {
-    title?: string | null;
-    description?: string | null;
-    note?: string | null;
-    ingredients?: string | null;
-    steps?: { order: number; title?: string | null; description?: string | null }[];
-  }) => {
-    setTitleEn(en.title ?? "");
-    setDescriptionEn(en.description ?? "");
-    setNoteEn(en.note ?? "");
-    setIngredientsEn(en.ingredients ?? "");
-    if (en.steps?.length) {
-      setSteps((prev) =>
-        prev.map((s) => {
-          const match = en.steps!.find((es) => es.order === s.order);
-          return match
-            ? { ...s, title_en: match.title ?? "", description_en: match.description ?? "" }
-            : s;
-        }),
-      );
-    }
-  };
-
   // ── Cover ──────────────────────────────────────────────────────────────────
   const [coverFile, setCoverFile] = useState<File | undefined>();
   const [coverPreview, setCoverPreview] = useState<string | null>(
@@ -101,16 +78,98 @@ export function useRecipeForm(recipeId?: string, defaultValues?: RecipeFormDefau
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // ── Translation state ──────────────────────────────────────────────────────
-  const [translating, setTranslating] = useState(false);
-  const [translateSuccess, setTranslateSuccess] = useState(false);
-
   // ── AI cover generation state ──────────────────────────────────────────────
   const [generatingCover, setGeneratingCover] = useState(false);
   const [generateError, setGenerateError] = useState<string | null>(null);
 
-  // ── Combined translate + generate state ────────────────────────────────────
-  const [combinedStep, setCombinedStep] = useState<null | "translating" | "generating">(null);
+  // ── Импорт рецепта по ссылке (только при создании) ─────────────────────────
+  // Поле URL + статус. Применяется ТОЛЬКО к RU-полям (title/description/
+  // ingredients/steps/cook_time/servings/recipe_type). Обложка и фото шагов
+  // не импортируются сознательно (next/image домены + копирайт). EN-перевод —
+  // по кнопке «Перевести» уже после импорта.
+  const [importUrl, setImportUrl] = useState("");
+  const [importing, setImporting] = useState(false);
+  const [importError, setImportError] = useState<string | null>(null);
+  const [importNotice, setImportNotice] = useState<string | null>(null);
+
+  /** Машиночитаемый код ошибки импорта → понятное сообщение для админки (RU). */
+  const importErrorMessage = (code?: string): string => {
+    switch (code) {
+      case "bad_url":
+        return "Некорректная ссылка. Проверь, что URL начинается с https://";
+      case "blocked":
+        return "Этот адрес заблокирован (приватная сеть или внутренний хост).";
+      case "timeout":
+        return "Сайт слишком долго отвечает. Попробуй ещё раз или другую ссылку.";
+      case "unreachable":
+        return "Не удалось открыть страницу. Проверь ссылку и попробуй снова.";
+      case "not_recipe":
+        return "На странице не получилось найти рецепт.";
+      default:
+        return "Не удалось импортировать. Попробуй другую ссылку.";
+    }
+  };
+
+  const handleImportFromUrl = async () => {
+    const url = importUrl.trim();
+    if (!url || importing) return;
+    setImporting(true);
+    setImportError(null);
+    setImportNotice(null);
+    try {
+      const res = await fetch("/api/admin/import-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url }),
+      });
+      const json = (await res.json().catch(() => ({}))) as {
+        recipe?: ImportedRecipe;
+        source?: ImportSource;
+        code?: string;
+        error?: string;
+      };
+      if (!res.ok || !json.recipe) {
+        setImportError(json.error || importErrorMessage(json.code));
+        return;
+      }
+
+      const r = json.recipe;
+      // Тип ставим первым: для «напитка» обнуляются время/порции.
+      const nextType: "food" | "drink" = r.recipe_type === "drink" ? "drink" : "food";
+      changeRecipeType(nextType);
+
+      if (r.title) setTitle(r.title);
+      setDescription(r.description ?? "");
+      // Состав — по одному ингредиенту на строку (формат админ-формы).
+      setIngredients((r.ingredients ?? []).join("\n"));
+      setSteps(
+        (r.steps ?? []).map((s, i) => ({
+          order: i + 1,
+          title: s.title ?? "",
+          description: s.description ?? "",
+          photo_url: null,
+        })),
+      );
+      if (nextType !== "drink") {
+        setCookTime(typeof r.cook_time === "number" ? r.cook_time : null);
+        setServings(typeof r.servings === "number" ? r.servings : null);
+      }
+      // КБЖУ пересчитаем по новому составу — старый расчёт не тащим.
+      setFreshNutrition(null);
+
+      setImportNotice(
+        json.source === "structured"
+          ? "Импортировано из микроразметки страницы — данные точные."
+          : "AI разобрал страницу — проверь поля перед сохранением.",
+      );
+      // Не очищаем поле URL: иногда нужно повторить импорт после правок,
+      // или скопировать ссылку в заметку.
+    } catch {
+      setImportError("Не удалось импортировать. Проверь интернет и попробуй ещё раз.");
+    } finally {
+      setImporting(false);
+    }
+  };
 
   // ── Nutrition (КБЖУ) state ─────────────────────────────────────────────────
   const [currentNutrition] = useState<NutritionData | null>(
@@ -119,12 +178,6 @@ export function useRecipeForm(recipeId?: string, defaultValues?: RecipeFormDefau
   const [freshNutrition, setFreshNutrition] = useState<NutritionData | null>(null);
   const [calculatingNutrition, setCalculatingNutrition] = useState(false);
   const [nutritionError, setNutritionError] = useState<string | null>(null);
-  // True во время авто-расчёта КБЖУ при сохранении (для текста кнопки «Сохранить»).
-  const [autoCalcNutrition, setAutoCalcNutrition] = useState(false);
-  // Сравнение текста ingredients с сохранённым в БД — если изменилось,
-  // расчёт по recipeId возьмёт устаревший текст (мы не пересохраняем перед расчётом).
-  const initialIngredients = useRef(defaultValues?.ingredients ?? "");
-  const ingredientsDirty = ingredients.trim() !== initialIngredients.current.trim();
 
   // ── Draft restore (new recipes only) ──────────────────────────────────────
   // Если название пришло из быстрого создания (defaultValues.title в режиме
@@ -259,6 +312,9 @@ export function useRecipeForm(recipeId?: string, defaultValues?: RecipeFormDefau
       steps,
       coverFile,
       cover_image: coverPreview && !coverFile ? coverPreview : undefined,
+      // КБЖУ считается прямо в форме (как в пользовательской) и сохраняется вместе
+      // с рецептом — без отдельного шага «сначала сохрани». Напитки — без КБЖУ.
+      nutrition: recipeType === "drink" ? null : (freshNutrition ?? currentNutrition ?? null),
     };
 
     try {
@@ -270,24 +326,18 @@ export function useRecipeForm(recipeId?: string, defaultValues?: RecipeFormDefau
         localStorage.removeItem(DRAFT_KEY);
       }
 
-      // Авто-расчёт КБЖУ: только когда есть смысл — новый рецепт, изменился состав,
-      // или КБЖУ ещё ни разу не считали. Если менялся только заголовок/тег — не дёргаем.
-      // Кеш на сервере (по хешу состава) подстрахует от лишнего вызова OpenAI.
-      // Напитки не считают КБЖУ — пропускаем авто-расчёт целиком.
-      const needsNutrition =
-        recipeType !== "drink" &&
-        !!input.ingredients && !!savedId && (!recipeId || ingredientsDirty || !currentNutrition);
-      if (needsNutrition) {
-        setAutoCalcNutrition(true);
+      // Английская версия для двуязычного сайта создаётся молча, если её ещё нет.
+      // Автор пишет по-русски и про перевод не думает (как в пользовательской форме).
+      // Не критично для сохранения — на ошибке просто молчим, можно обновить позже.
+      if (savedId && !titleEn.trim()) {
         try {
-          await fetch("/api/admin/calculate-nutrition", {
+          await fetch("/api/admin/translate", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ recipeId: savedId }), // без force → уважает кеш
+            body: JSON.stringify({ recipeId: savedId }),
           });
         } catch {
-          // Расчёт не критичен для сохранения: рецепт уже сохранён, КБЖУ можно
-          // пересчитать кнопкой позже. Не блокируем редирект.
+          /* перевод не критичен — EN можно обновить позже */
         }
       }
 
@@ -308,28 +358,17 @@ export function useRecipeForm(recipeId?: string, defaultValues?: RecipeFormDefau
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Не удалось сохранить рецепт");
       setSaving(false);
-      setAutoCalcNutrition(false);
     }
   };
 
-  // Контент для перевода «на лету» (рецепт ещё не в БД, режим создания).
-  const buildTranslateContent = () => ({
-    title: title.trim(),
-    description: description.trim() || null,
-    note: note.trim() || null,
-    ingredients: ingredients.trim() || null,
-    steps: steps.map((s) => ({
-      order: s.order,
-      title: s.title || null,
-      description: s.description,
-    })),
-  });
-
   // ── AI cover generation ────────────────────────────────────────────────────
+  // Одна кнопка, один шаг — как в пользовательской форме. Перевод НЕ показываем:
+  // если у рецепта уже есть EN в БД (режим редактирования), роут сам подставит
+  // английский для более точной картинки; в остальном автор про это не думает.
   const handleGenerateCover = async () => {
     if (!title.trim()) { setGenerateError("Сначала введи название рецепта"); return; }
-    setGeneratingCover(true);
     setGenerateError(null);
+    setGeneratingCover(true);
     try {
       const res = await fetch("/api/admin/generate-image", {
         method: "POST",
@@ -353,56 +392,25 @@ export function useRecipeForm(recipeId?: string, defaultValues?: RecipeFormDefau
     }
   };
 
-  // ── Translation ────────────────────────────────────────────────────────────
-  const handleTranslate = async () => {
-    if (!recipeId && !title.trim()) {
-      setError("Сначала введи название рецепта");
-      return;
-    }
-    setTranslating(true);
-    setTranslateSuccess(false);
-    setError(null);
-    try {
-      const res = await fetch("/api/admin/translate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(recipeId ? { recipeId } : { content: buildTranslateContent() }),
-      });
-      const text = await res.text();
-      let json: { error?: string; translations?: { en: Parameters<typeof applyEnTranslations>[0] } } = {};
-      try { json = JSON.parse(text); } catch { /* non-JSON */ }
-      if (!res.ok) throw new Error(json.error || `Ошибка ${res.status}`);
-      // Подтягиваем свежий перевод в форму, чтобы вкладка EN сразу показывала
-      // результат, а сохранение не перезатёрло его старыми значениями.
-      if (json.translations?.en) applyEnTranslations(json.translations.en);
-      setTranslateSuccess(true);
-      setTimeout(() => setTranslateSuccess(false), 4000);
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Ошибка перевода");
-    } finally {
-      setTranslating(false);
-    }
-  };
-
   // ── Calculate nutrition (КБЖУ) ─────────────────────────────────────────────
+  // Считаем ПО ТЕКСТУ состава, без сохранения (как в пользовательской форме).
+  // Результат кладём в freshNutrition и сохраняем вместе с рецептом — никакого
+  // «сначала сохрани рецепт».
   const handleCalculateNutrition = async () => {
-    if (!recipeId) {
-      setNutritionError("Сначала сохрани рецепт");
-      return;
-    }
+    const text = ingredients.trim();
+    if (!text) { setNutritionError("Заполни состав — нечего считать"); return; }
     setCalculatingNutrition(true);
     setNutritionError(null);
     try {
       const res = await fetch("/api/admin/calculate-nutrition", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // Кнопка «Пересчитать» форсит расчёт игнорируя кеш (вдруг база ингредиентов обновилась)
-        body: JSON.stringify({ recipeId, force: true }),
+        body: JSON.stringify({ ingredients: text, servings }),
       });
-      const text = await res.text();
+      const body = await res.text();
       let json: { nutrition?: NutritionData; error?: string } = {};
       try {
-        json = JSON.parse(text);
+        json = JSON.parse(body);
       } catch {
         /* non-JSON */
       }
@@ -415,53 +423,6 @@ export function useRecipeForm(recipeId?: string, defaultValues?: RecipeFormDefau
       );
     } finally {
       setCalculatingNutrition(false);
-    }
-  };
-
-  // ── Combined: translate → generate cover ──────────────────────────────────
-  const handleTranslateAndGenerate = async () => {
-    if (!recipeId && !title.trim()) {
-      setError("Сначала введи название рецепта");
-      return;
-    }
-    setError(null);
-    setGenerateError(null);
-    try {
-      setCombinedStep("translating");
-      const translateRes = await fetch("/api/admin/translate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(recipeId ? { recipeId } : { content: buildTranslateContent() }),
-      });
-      const text = await translateRes.text();
-      let json: { error?: string; translations?: { en: Parameters<typeof applyEnTranslations>[0] } } = {};
-      try { json = JSON.parse(text); } catch { /* non-JSON */ }
-      if (!translateRes.ok) throw new Error(json.error || `Ошибка перевода ${translateRes.status}`);
-      if (json.translations?.en) applyEnTranslations(json.translations.en);
-
-      setCombinedStep("generating");
-      const genRes = await fetch("/api/admin/generate-image", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: title.trim(),
-          description: description.trim() || undefined,
-          ingredients: ingredients.trim() || undefined,
-          recipeId: recipeId || undefined,
-          recipeType,
-        }),
-      });
-      const genJson = await genRes.json();
-      if (!genRes.ok) throw new Error(genJson.error || `Ошибка генерации ${genRes.status}`);
-      setCoverPreview(genJson.url);
-      setCoverFile(undefined);
-
-      setTranslateSuccess(true);
-      setTimeout(() => setTranslateSuccess(false), 4000);
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Ошибка");
-    } finally {
-      setCombinedStep(null);
     }
   };
 
@@ -526,23 +487,26 @@ export function useRecipeForm(recipeId?: string, defaultValues?: RecipeFormDefau
     addStep, updateStep, removeStep, moveStep,
     // Submit
     saving, error,
-    autoCalcNutrition,
     handleSubmit,
-    // AI
+    // AI cover
     generatingCover, generateError,
     handleGenerateCover,
-    // Translation
-    translating, translateSuccess,
-    handleTranslate,
-    // Combined
-    combinedStep,
-    handleTranslateAndGenerate,
     // Nutrition
     currentNutrition,
     freshNutrition,
+    /**
+     * Открытый сеттер — нужен после resolve-alias, чтобы блок UnmatchedIngredients
+     * подсунул в форму новую посчитанную nutrition без повторного OpenAI-вызова.
+     */
+    setFreshNutrition,
     calculatingNutrition,
     nutritionError,
-    ingredientsDirty,
     handleCalculateNutrition,
+    // Import by URL (create mode only)
+    importUrl, setImportUrl,
+    importing,
+    importError,
+    importNotice,
+    handleImportFromUrl,
   };
 }

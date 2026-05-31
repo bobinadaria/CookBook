@@ -299,4 +299,7 @@ export interface RecipeInput {
   coverFile?: File;
   /** Existing cover URL (kept when no new file is selected). */
   cover_image?: string;
+  /** КБЖУ, посчитанное в форме (как в пользовательской форме) и сохраняемое
+   *  вместе с рецептом. null для напитков. undefined → поле не трогаем. */
+  nutrition?: NutritionData | null;
 }

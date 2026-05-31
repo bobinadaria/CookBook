@@ -12,9 +12,10 @@ export const dynamic = "force-dynamic";
 export default async function EditUserRecipePage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const supabase = createClient();
+  const { id } = await params;
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -28,7 +29,7 @@ export default async function EditUserRecipePage({
       .from("recipes")
       .select("*, steps(*), recipe_categories(category_id)")
       // Scoped to the owner here AND by RLS — a user can't edit others' recipes.
-      .eq("id", params.id)
+      .eq("id", id)
       .eq("owner_id", user.id)
       .maybeSingle(),
   ]);
@@ -69,7 +70,7 @@ export default async function EditUserRecipePage({
     <main className="mx-auto min-h-dvh max-w-3xl px-6 pb-24">
       <div className="pb-8 pt-10">
         <Link
-          href={`/dashboard/recipes/${params.id}`}
+          href={`/dashboard/recipes/${id}`}
           className="font-body text-[11px] font-semibold uppercase tracking-[0.16em] text-soft transition-colors hover:text-burg"
         >
           {t("back")}
@@ -80,7 +81,7 @@ export default async function EditUserRecipePage({
       </div>
       <UserRecipeForm
         categories={categories}
-        recipeId={params.id}
+        recipeId={id}
         defaultValues={defaultValues}
         aiEnabled={ent.aiEnabled}
       />

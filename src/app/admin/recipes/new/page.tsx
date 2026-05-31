@@ -2,16 +2,17 @@ import RecipeForm from "@/components/admin/RecipeForm";
 
 // Название и тип приходят из быстрого создания (модалка «Новый») через
 // ?title=…&type=food|drink.
-export default function NewRecipePage({
+export default async function NewRecipePage({
   searchParams,
 }: {
-  searchParams?: { title?: string; type?: string };
+  searchParams?: Promise<{ title?: string; type?: string }>;
 }) {
-  const presetTitle = searchParams?.title?.trim();
-  const presetType = searchParams?.type === "drink" ? "drink" : "food";
+  const sp = (await searchParams) ?? {};
+  const presetTitle = sp.title?.trim();
+  const presetType = sp.type === "drink" ? "drink" : "food";
 
   const defaults =
-    presetTitle || searchParams?.type
+    presetTitle || sp.type
       ? { ...(presetTitle ? { title: presetTitle } : {}), recipe_type: presetType as "food" | "drink" }
       : undefined;
 

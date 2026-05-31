@@ -75,12 +75,22 @@ export const GenerateImageRequestSchema = z.object({
   recipeId: uuid.optional(),
 });
 
-/** Body expected by POST /api/admin/calculate-nutrition */
-export const CalculateNutritionRequestSchema = z.object({
-  recipeId: uuid,
-  /** Игнорировать кеш по хешу состава и пересчитать принудительно (кнопка «Пересчитать»). */
-  force: z.boolean().optional().default(false),
-});
+/** Body expected by POST /api/admin/calculate-nutrition.
+ *  Два режима (как в пользовательской форме):
+ *   - { recipeId } — посчитать сохранённый рецепт и записать nutrition в БД (+кеш по хешу);
+ *   - { ingredients, servings } — посчитать ПО ТЕКСТУ состава, без сохранения,
+ *     вернуть результат форме (она сохранит вместе с рецептом). */
+export const CalculateNutritionRequestSchema = z
+  .object({
+    recipeId: uuid.optional(),
+    /** Игнорировать кеш по хешу состава и пересчитать принудительно (режим recipeId). */
+    force: z.boolean().optional().default(false),
+    ingredients: z.string().max(5000).optional(),
+    servings: z.number().int().positive().nullable().optional().default(null),
+  })
+  .refine((d) => !!d.recipeId || !!d.ingredients?.trim(), {
+    message: "Either recipeId or ingredients is required",
+  });
 
 /** Body expected by POST /api/recipes/calculate-nutrition (расчёт по тексту состава, без сохранения). */
 export const UserNutritionCalcSchema = z.object({

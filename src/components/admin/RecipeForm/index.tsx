@@ -11,6 +11,7 @@ import CategoriesSection from "./CategoriesSection";
 import MediaSection from "./MediaSection";
 import NutritionSection from "./NutritionSection";
 import ActionsSection from "./ActionsSection";
+import UnmatchedIngredients from "@/components/recipe/UnmatchedIngredients";
 
 interface RecipeFormProps {
   /** Present → edit mode; absent → create mode. */
@@ -31,6 +32,71 @@ export default function RecipeForm({ recipeId, defaultValues }: RecipeFormProps)
   return (
     <>
     <form onSubmit={form.handleSubmit} className="flex flex-col gap-8">
+      {/* Импорт по ссылке — только при создании нового рецепта. Подтягивает
+          title/description/ingredients/steps/cook_time/servings/recipe_type из
+          страницы (JSON-LD без AI или фолбэк через gpt-4o-mini). Обложка и фото
+          шагов не импортируются. После импорта поля можно сразу править. */}
+      {!recipeId && (
+        <section className="bg-crust border border-rule rounded-none p-5">
+          <div className="flex items-center justify-between gap-3 mb-3">
+            <div>
+              <label
+                htmlFor="admin-import-url"
+                className="block text-xs text-soft uppercase tracking-wider"
+              >
+                Импорт по ссылке
+              </label>
+              <p className="mt-1 text-xs text-muted">
+                Вставь URL страницы с рецептом — заполним название, состав, шаги
+                и время. Обложку и фото шагов всё равно нужно добавить вручную.
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <input
+              id="admin-import-url"
+              type="url"
+              inputMode="url"
+              autoComplete="off"
+              spellCheck={false}
+              value={form.importUrl}
+              onChange={(e) => form.setImportUrl(e.target.value)}
+              placeholder="https://example.com/recipe"
+              className="flex-1 bg-paper border border-rule rounded-none px-4 py-2.5 text-sm text-ink placeholder:text-muted outline-none focus:ring-2 focus:ring-burg/30 transition"
+              disabled={form.importing}
+              onKeyDown={(e) => {
+                // Enter в поле URL — импортируем, не сабмитим всю форму.
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  if (!form.importing && form.importUrl.trim()) {
+                    form.handleImportFromUrl();
+                  }
+                }
+              }}
+            />
+            <button
+              type="button"
+              onClick={form.handleImportFromUrl}
+              disabled={form.importing || !form.importUrl.trim()}
+              className={cn(
+                "rounded-none border px-5 py-2.5 text-sm transition-colors",
+                form.importing || !form.importUrl.trim()
+                  ? "border-rule bg-crust text-muted cursor-not-allowed"
+                  : "border-burg bg-burg text-paper hover:bg-burg-dk",
+              )}
+            >
+              {form.importing ? "Импортирую…" : "Заполнить из ссылки"}
+            </button>
+          </div>
+          {form.importError && (
+            <p className="mt-3 text-xs text-burg">{form.importError}</p>
+          )}
+          {form.importNotice && !form.importError && (
+            <p className="mt-3 text-xs text-olive">{form.importNotice}</p>
+          )}
+        </section>
+      )}
+
       {/* Верхний блок: тип + квадратная обложка слева, основные поля справа —
           компактнее, без длинного скролла (как в пользовательской форме). */}
       <div className="grid gap-8 md:grid-cols-[300px_1fr] md:items-start">
@@ -68,7 +134,6 @@ export default function RecipeForm({ recipeId, defaultValues }: RecipeFormProps)
             coverPreview={form.coverPreview}
             generatingCover={form.generatingCover}
             generateError={form.generateError}
-            combinedStep={form.combinedStep}
             inputRef={form.coverInputRef}
             onFileChange={form.handleCoverChange}
             onGenerate={form.handleGenerateCover}
@@ -80,8 +145,8 @@ export default function RecipeForm({ recipeId, defaultValues }: RecipeFormProps)
           {isEn && (
             <p className="text-xs text-muted">
               Редактируешь английскую версию (язык выбран в шапке справа). Адрес страницы,
-              время, порции, категории, КБЖУ и обложка — общие для обоих языков. Кнопка
-              «Перевести» внизу заполнит эти поля автоматически.
+              время, порции, категории, КБЖУ и обложка — общие для обоих языков. Английский
+              перевод создаётся автоматически при сохранении; здесь его можно поправить вручную.
             </p>
           )}
 
@@ -126,16 +191,28 @@ export default function RecipeForm({ recipeId, defaultValues }: RecipeFormProps)
       </section>
 
       {!isDrink && (
-        <NutritionSection
-          current={form.currentNutrition}
-          fresh={form.freshNutrition}
-          recipeId={recipeId}
-          ingredientsEmpty={form.ingredients.trim().length === 0}
-          ingredientsDirty={form.ingredientsDirty}
-          calculating={form.calculatingNutrition}
-          error={form.nutritionError}
-          onCalculate={form.handleCalculateNutrition}
-        />
+        <>
+          <NutritionSection
+            current={form.currentNutrition}
+            fresh={form.freshNutrition}
+            ingredientsEmpty={form.ingredients.trim().length === 0}
+            calculating={form.calculatingNutrition}
+            error={form.nutritionError}
+            onCalculate={form.handleCalculateNutrition}
+          />
+          {(() => {
+            const n = form.freshNutrition ?? form.currentNutrition;
+            if (!n?.unmatched || n.unmatched.length === 0) return null;
+            return (
+              <UnmatchedIngredients
+                unmatched={n.unmatched}
+                ingredientsText={form.ingredients}
+                servings={form.servings}
+                onResolved={(nutrition) => form.setFreshNutrition(nutrition)}
+              />
+            );
+          })()}
+        </>
       )}
 
       <CategoriesSection
@@ -159,15 +236,9 @@ export default function RecipeForm({ recipeId, defaultValues }: RecipeFormProps)
         published={form.published}
         featured={form.featured}
         saving={form.saving}
-        autoCalcNutrition={form.autoCalcNutrition}
-        translating={form.translating}
-        translateSuccess={form.translateSuccess}
-        combinedStep={form.combinedStep}
         error={form.error}
         onTogglePublished={() => form.setPublished((p) => !p)}
         onToggleFeatured={() => form.setFeatured((f) => !f)}
-        onTranslate={form.handleTranslate}
-        onTranslateAndGenerate={form.handleTranslateAndGenerate}
         onCancel={guard.guardedBack}
       />
     </form>

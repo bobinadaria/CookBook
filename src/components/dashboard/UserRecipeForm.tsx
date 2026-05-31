@@ -4,10 +4,13 @@
  * Bilingual (RU/EN) recipe form for the user's private "My cookbook".
  *
  * A lighter sibling of the admin RecipeForm: no publish/featured toggles and no
- * AI controls (translate / cover generation / KБЖУ). Cover and step photos are
- * uploaded via the auth-only /api/upload route, then the resulting URLs are sent
- * to the createUserRecipe / updateUserRecipe server actions (which force
- * owner_id / visibility='private' / published=false and enforce the plan limit).
+ * EN-translation control. Premium/Lifetime users (passed via `aiEnabled`) get
+ * AI controls visible inline: КБЖУ calculation and AI cover generation
+ * (`/api/recipes/generate-image`, the user-facing parallel of the admin route).
+ * Cover and step photos are uploaded via the auth-only /api/upload route, then
+ * the resulting URLs are sent to the createUserRecipe / updateUserRecipe server
+ * actions (which force owner_id / visibility='private' / published=false and
+ * enforce the plan limit).
  *
  * Защита от потери данных: пока в форме есть несохранённые правки, уход со
  * страницы (ссылки, «Отмена», закрытие вкладки) спрашивает подтверждение
@@ -27,6 +30,7 @@ import type { Category, LocaleCode, NutritionData } from "@/types";
 import { createUserRecipe, updateUserRecipe } from "@/app/dashboard/recipes/actions";
 import type { UserRecipeResult } from "@/app/dashboard/recipes/types";
 import type { ImportedRecipe, ImportSource } from "@/lib/recipe-import/types";
+import UnmatchedIngredients from "@/components/recipe/UnmatchedIngredients";
 
 interface StepState {
   id?: string;
@@ -110,6 +114,14 @@ export default function UserRecipeForm({
   const [coverPreview, setCoverPreview] = useState<string | null>(
     defaultValues?.cover_image ?? null,
   );
+
+  // ── AI-обложка (premium) ──────────────────────────────────────────────────
+  // Стейт держится локально, как и КБЖУ-блок. После генерации сразу подменяем
+  // превью и обнуляем coverFile, чтобы при сабмите ушёл сгенерированный URL,
+  // а не залитый раньше файл (если был).
+  const [coverGenLoading, setCoverGenLoading] = useState(false);
+  const [coverGenError, setCoverGenError] = useState<string | null>(null);
+  const [coverGenDone, setCoverGenDone] = useState(false);
 
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<Set<string>>(
     new Set(defaultValues?.categoryIds ?? []),
@@ -316,6 +328,45 @@ export default function UserRecipeForm({
     updateStep(index, { photoFile: file, photo_url: URL.createObjectURL(file) });
   };
 
+  // ── AI-генерация обложки (premium) ────────────────────────────────────────
+  // Шлёт title/description/ingredients/recipeType в /api/recipes/generate-image
+  // (роут гейтит по aiEnabled — premium/lifetime). Возвращённым URL заменяем
+  // превью и сбрасываем coverFile, чтобы сабмит отправил именно сгенерированный.
+  const handleGenerateCover = async () => {
+    if (!title.trim()) {
+      setCoverGenError(t("coverAiNeedTitle"));
+      return;
+    }
+    if (coverGenLoading) return;
+    setCoverGenLoading(true);
+    setCoverGenError(null);
+    setCoverGenDone(false);
+    try {
+      const res = await fetch("/api/recipes/generate-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: title.trim(),
+          description: description.trim() || undefined,
+          ingredients: ingredients.trim() || undefined,
+          recipeType,
+        }),
+      });
+      const json = (await res.json().catch(() => ({}))) as { url?: string; error?: string };
+      if (!res.ok || !json.url) {
+        setCoverGenError(json.error || t("coverAiError"));
+        return;
+      }
+      setCoverPreview(json.url);
+      setCoverFile(undefined);
+      setCoverGenDone(true);
+    } catch {
+      setCoverGenError(t("coverAiError"));
+    } finally {
+      setCoverGenLoading(false);
+    }
+  };
+
   const handleCalcNutrition = async () => {
     if (!ingredients.trim() || calcLoading) return;
     setCalcLoading(true);
@@ -479,7 +530,7 @@ export default function UserRecipeForm({
         {/* Верхний блок: квадратная обложка слева + основные поля справа.
             Компактнее, чем вертикальная простыня на всю ширину. */}
         <div className="grid gap-6 md:grid-cols-[220px_1fr] md:items-start">
-          {/* Cover (square) */}
+          {/* Cover (square) + AI-генерация (premium) */}
           <section>
             <label className="mb-2 block text-xs uppercase tracking-wider text-soft">
               {t("fieldCover")}
@@ -522,6 +573,49 @@ export default function UserRecipeForm({
               className="hidden"
               onChange={handleCoverChange}
             />
+
+            {/* AI-генерация обложки — только для premium/lifetime (aiEnabled).
+                Делаем заметную плашку прямо под фото, чтобы premium-юзер сразу
+                видел: эта возможность входит в его план. Кнопка неактивна, пока
+                нет названия. Сгенерированное превью заменяет coverPreview выше. */}
+            {aiEnabled && (
+              <div className="mt-3 border border-ochre/40 bg-ochre/[0.06] p-3">
+                <div className="mb-1 flex items-center justify-between gap-2">
+                  <span className="font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-burg">
+                    {t("coverAiTitle")}
+                  </span>
+                  <span className="rounded-none bg-ochre-dk px-1.5 py-0.5 font-body text-[9px] font-semibold uppercase tracking-[0.1em] text-paper">
+                    {t("coverAiBadge")}
+                  </span>
+                </div>
+                <p className="mb-3 text-[11px] leading-snug text-soft">{t("coverAiHint")}</p>
+                <button
+                  type="button"
+                  onClick={handleGenerateCover}
+                  disabled={coverGenLoading || !title.trim()}
+                  className={cn(
+                    "w-full rounded-none border px-3 py-2 text-xs font-medium uppercase tracking-wider transition-colors",
+                    "border-burg bg-burg text-paper hover:bg-burg-dk",
+                    "disabled:cursor-not-allowed disabled:border-rule disabled:bg-transparent disabled:text-muted",
+                  )}
+                >
+                  {coverGenLoading
+                    ? t("coverAiGenerating")
+                    : coverPreview
+                      ? t("coverAiRegenerate")
+                      : t("coverAiButton")}
+                </button>
+                {!title.trim() && (
+                  <p className="mt-2 text-[11px] text-muted">{t("coverAiNeedTitle")}</p>
+                )}
+                {coverGenError && (
+                  <p className="mt-2 text-[11px] text-red-500">{coverGenError}</p>
+                )}
+                {coverGenDone && !coverGenError && (
+                  <p className="mt-2 text-[11px] text-olive">{t("coverAiDone")}</p>
+                )}
+              </div>
+            )}
           </section>
 
           {/* Правая колонка: название, описание, время/порции */}
@@ -648,6 +742,18 @@ export default function UserRecipeForm({
               </div>
             )}
           </section>
+        )}
+
+        {/* Блок «не нашли в базе» — после расчёта КБЖУ. Юзер выбирает: считать
+            как X / выбрать другой / пропустить из расчёта. Решение запоминается
+            как алиас, рецепт пересчитывается, новый nutrition приходит в onResolved. */}
+        {aiEnabled && !isDrink && nutrition?.unmatched && nutrition.unmatched.length > 0 && (
+          <UnmatchedIngredients
+            unmatched={nutrition.unmatched}
+            ingredientsText={ingredients}
+            servings={servings}
+            onResolved={(n) => setNutrition(n)}
+          />
         )}
 
         {/* Categories */}

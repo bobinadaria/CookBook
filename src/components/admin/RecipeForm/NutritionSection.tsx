@@ -10,10 +10,7 @@ interface NutritionSectionProps {
   current: NutritionData | null;
   /** Свежий результат после нажатия кнопки. Перетирает current до сохранения. */
   fresh: NutritionData | null;
-  recipeId?: string;
   ingredientsEmpty: boolean;
-  /** Текущий текст ingredients ≠ сохранённый → предупреждение. */
-  ingredientsDirty: boolean;
   calculating: boolean;
   error: string | null;
   onCalculate: () => void;
@@ -51,9 +48,7 @@ function StatBox({
 export default function NutritionSection({
   current,
   fresh,
-  recipeId,
   ingredientsEmpty,
-  ingredientsDirty,
   calculating,
   error,
   onCalculate,
@@ -61,7 +56,7 @@ export default function NutritionSection({
   const [showDetails, setShowDetails] = useState(false);
 
   const display = fresh ?? current;
-  const disabled = !recipeId || ingredientsEmpty || calculating;
+  const disabled = ingredientsEmpty || calculating;
   const isFresh = fresh !== null;
 
   return (
@@ -118,7 +113,7 @@ export default function NutritionSection({
 
           {isFresh && (
             <p className="mt-3 text-xs text-olive">
-              ✓ Сохранено в БД. Это свежий результат.
+              ✓ Посчитано. Сохранится вместе с рецептом.
             </p>
           )}
 
@@ -170,11 +165,13 @@ export default function NutritionSection({
         </div>
       ) : (
         <p className="text-sm text-soft mb-3">
-          Пока не рассчитано. Нажми кнопку ниже — gpt-4o-mini распарсит ингредиенты и сматчит с базой.
+          Пока не рассчитано. Нажми кнопку ниже — посчитаем КБЖУ по составу.
         </p>
       )}
 
       {/* ── Action button + hints ───────────────────────────────────────── */}
+      {/* Считается прямо по тексту состава, без сохранения (как в пользовательской
+          форме): результат сохранится вместе с рецептом. */}
       <div className="flex items-center gap-3 flex-wrap">
         <button
           type="button"
@@ -210,19 +207,9 @@ export default function NutritionSection({
           )}
         </button>
 
-        {!recipeId && (
-          <span className="text-xs text-soft">
-            Сначала сохрани рецепт — без id нечего считать
-          </span>
-        )}
-        {recipeId && ingredientsEmpty && (
+        {ingredientsEmpty && (
           <span className="text-xs text-soft">
             Заполни поле «Состав / Ингредиенты»
-          </span>
-        )}
-        {recipeId && !ingredientsEmpty && ingredientsDirty && (
-          <span className="text-xs text-ochre-dk">
-            ⚠ Несохранённые изменения в составе не будут учтены — сохрани сначала
           </span>
         )}
       </div>

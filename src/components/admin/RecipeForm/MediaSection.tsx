@@ -7,7 +7,6 @@ interface MediaSectionProps {
   coverPreview: string | null;
   generatingCover: boolean;
   generateError: string | null;
-  combinedStep: null | "translating" | "generating";
   inputRef: React.RefObject<HTMLInputElement>;
   onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onGenerate: () => void;
@@ -17,7 +16,6 @@ export default function MediaSection({
   coverPreview,
   generatingCover,
   generateError,
-  combinedStep,
   inputRef,
   onFileChange,
   onGenerate,
@@ -64,13 +62,13 @@ export default function MediaSection({
         <button
           type="button"
           onClick={onGenerate}
-          disabled={generatingCover || !!combinedStep}
+          disabled={generatingCover}
           className="flex items-center gap-1.5 text-xs text-soft hover:text-ochre-dk transition-colors disabled:opacity-40"
         >
           {generatingCover ? (
             <>
               <Spinner size="sm" className="w-3.5 h-3.5 text-current" />
-              Генерирую…
+              Рисую обложку…
             </>
           ) : (
             <>
@@ -85,6 +83,9 @@ export default function MediaSection({
         </button>
         {generateError && <span className="text-xs text-red-500">{generateError}</span>}
       </div>
+      <p className="mt-1.5 text-xs text-muted">
+        Лучшая обложка выходит, когда рецепт заполнен — по названию, составу и шагам ИИ точнее понимает блюдо.
+      </p>
     </section>
   );
 }

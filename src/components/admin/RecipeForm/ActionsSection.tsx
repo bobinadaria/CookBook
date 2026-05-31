@@ -1,22 +1,15 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { Spinner } from "@/components/ui";
 
 interface ActionsSectionProps {
   recipeId?: string;
   published: boolean;
   featured: boolean;
   saving: boolean;
-  autoCalcNutrition: boolean;
-  translating: boolean;
-  translateSuccess: boolean;
-  combinedStep: null | "translating" | "generating";
   error: string | null;
   onTogglePublished: () => void;
   onToggleFeatured: () => void;
-  onTranslate: () => void;
-  onTranslateAndGenerate: () => void;
   onCancel: () => void;
 }
 
@@ -59,13 +52,9 @@ function Toggle({
 }
 
 export default function ActionsSection({
-  recipeId, published, featured, saving, autoCalcNutrition, translating,
-  translateSuccess, combinedStep, error,
-  onTogglePublished, onToggleFeatured,
-  onTranslate, onTranslateAndGenerate, onCancel,
+  recipeId, published, featured, saving, error,
+  onTogglePublished, onToggleFeatured, onCancel,
 }: ActionsSectionProps) {
-  const isBusy = saving || translating || !!combinedStep;
-
   return (
     <section className="flex flex-col gap-4 pb-10">
       {error && (
@@ -86,63 +75,15 @@ export default function ActionsSection({
       />
 
       <div className="flex flex-wrap gap-3">
-        {/* Primary save */}
+        {/* Главное действие. КБЖУ уже посчитано в форме и уйдёт в сохранение;
+            английская версия (для двуязычного сайта) создаётся молча. */}
         <button
           type="submit"
-          disabled={isBusy}
+          disabled={saving}
           className="bg-burg text-paper px-8 py-3.5 rounded-none text-sm font-medium hover:bg-burg-dk transition-colors disabled:opacity-50"
         >
-          {autoCalcNutrition ? "Считаю КБЖУ…" : saving ? "Сохраняем..." : recipeId ? "Сохранить изменения" : "Создать рецепт"}
+          {saving ? "Сохраняем..." : recipeId ? "Сохранить изменения" : "Создать рецепт"}
         </button>
-
-        {/* Translate + generate cover — доступно и при создании (перевод «на лету») */}
-        {(
-          <button
-            type="button"
-            onClick={onTranslateAndGenerate}
-            disabled={isBusy}
-            className={cn(
-              "inline-flex items-center gap-2 px-6 py-3.5 rounded-none text-sm font-medium transition-all disabled:opacity-50",
-              translateSuccess && !combinedStep
-                ? "bg-olive text-paper"
-                : "bg-ochre/10 text-ochre-dk hover:bg-ochre/20 border border-ochre/30"
-            )}
-          >
-            {combinedStep === "translating" ? (
-              <><SpinIcon />Переводим…</>
-            ) : combinedStep === "generating" ? (
-              <><SpinIcon />Генерируем обложку…</>
-            ) : translateSuccess ? (
-              <>
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
-                Готово
-              </>
-            ) : (
-              <>
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                  <path strokeLinecap="round" strokeLinejoin="round"
-                    d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"
-                  />
-                </svg>
-                ✦ Перевести и создать обложку
-              </>
-            )}
-          </button>
-        )}
-
-        {/* Translate only — secondary (доступно и при создании) */}
-        {!combinedStep && (
-          <button
-            type="button"
-            onClick={onTranslate}
-            disabled={translating || isBusy}
-            className="px-4 py-3.5 rounded-none text-sm text-soft hover:text-burg transition-colors disabled:opacity-50"
-          >
-            {translating ? "Переводим…" : "Только перевести"}
-          </button>
-        )}
 
         <button
           type="button"
@@ -154,8 +95,4 @@ export default function ActionsSection({
       </div>
     </section>
   );
-}
-
-function SpinIcon() {
-  return <Spinner size="sm" className="text-current" />;
 }

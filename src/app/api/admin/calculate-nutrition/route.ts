@@ -39,10 +39,33 @@ export async function POST(req: NextRequest) {
       { status: 400 },
     );
   }
-  const { recipeId, force } = parsed.data;
+  const { recipeId, force, ingredients: bodyIngredients, servings: bodyServings } = parsed.data;
 
-  // 3. Fetch recipe. Используем service-role чтобы обойти RLS на ingredients_base.
+  // 3. Используем service-role чтобы обойти RLS на ingredients_base.
   const supabase = createServiceRoleClient();
+
+  // ── Stateless-режим: посчитать ПО ТЕКСТУ состава, без recipeId и без записи в
+  //    БД (как /api/recipes/calculate-nutrition). Форма сохранит результат вместе
+  //    с рецептом — так расчёт работает прямо в форме, в т.ч. до первого сохранения. */
+  if (!recipeId) {
+    const text = (bodyIngredients ?? "").trim();
+    if (!text) {
+      return NextResponse.json({ error: "Пустой состав — нечего считать" }, { status: 422 });
+    }
+    try {
+      const nutrition = await calculateNutrition({
+        ingredientsText: text,
+        servings: bodyServings ?? null,
+        supabase,
+        userId: auth.userId,
+      });
+      return NextResponse.json({ nutrition, cached: false });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error("[calculate-nutrition stateless] failed:", msg);
+      return NextResponse.json({ error: msg }, { status: 500 });
+    }
+  }
   const { data: recipe, error: fetchError } = await supabase
     .from("recipes")
     .select("slug, title, ingredients, servings, nutrition")

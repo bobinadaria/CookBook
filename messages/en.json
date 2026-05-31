@@ -393,7 +393,9 @@
     "resetFilters": "Reset filters",
     "loadMore": "Load more",
     "recipeCount": "{count, plural, one {# recipe} other {# recipes}}",
-    "drinksFilter": "Drinks"
+    "drinksFilter": "Drinks",
+    "filtersButton": "Filters",
+    "showResults": "{count, plural, one {Show # recipe} other {Show # recipes}}"
   },
   "recipe": {
     "backToAll": "← All recipes",
@@ -430,7 +432,27 @@
       "fat": "fat",
       "carbs": "carbs",
       "gram": "g",
-      "approximate": "Approximate values, calculated automatically"
+      "approximate": "Approximate values, calculated automatically",
+      "calculatedWithout": "Calculated without: {names}"
+    },
+    "unmatched": {
+      "title": "Not found in our database ({count, plural, one {# ingredient} other {# ingredients}})",
+      "subtitle": "These ingredients weren't included in the calculation. Tell us what to do — your choice will be remembered for future recipes.",
+      "similar": "Similar in our database",
+      "noSuggestions": "No similar products found. Pick one manually or skip from the calculation.",
+      "countAs": "Count as «{name}»",
+      "chooseOther": "Pick another",
+      "chooseManually": "Pick manually",
+      "skip": "Skip from calculation",
+      "diff": "{sign}{pct}% vs AI estimate",
+      "kcalUnit": "kcal/100 g",
+      "error": "Failed to save your choice. Please try again.",
+      "modal": {
+        "title": "Pick an ingredient for «{name}»",
+        "search": "Search ingredients",
+        "noResults": "Nothing found",
+        "close": "Close"
+      }
     }
   },
   "filters": {
@@ -659,6 +681,15 @@
     "typeDrink": "Drink",
     "modalContinue": "Continue →",
     "drinkNoNutrition": "Drinks have no nutrition, time or servings — just ingredients and steps.",
+    "coverAiTitle": "AI cover",
+    "coverAiHint": "We'll generate a photo in the book's style — natural light, warm tones, nothing fancy. Works best once the recipe is filled in: the name, ingredients and steps make the image more accurate.",
+    "coverAiBadge": "Premium · included",
+    "coverAiButton": "Generate cover",
+    "coverAiRegenerate": "Generate another",
+    "coverAiGenerating": "Painting the cover…",
+    "coverAiNeedTitle": "Add a title to generate",
+    "coverAiError": "Couldn't generate. Please try again.",
+    "coverAiDone": "Done — you can replace it with a real photo or generate another.",
     "leaveTitle": "Save before you go?",
     "leaveMessage": "You've started something but haven't saved it yet. You can stay and finish — or leave, and the draft won't be saved.",
     "leaveConfirm": "Leave without saving",

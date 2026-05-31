@@ -161,6 +161,9 @@ export async function createRecipe(input: RecipeInput): Promise<string> {
       recipe_type: input.recipe_type ?? "food",
       cook_time: input.cook_time ?? null,
       servings: input.servings ?? null,
+      // КБЖУ считается в форме и сохраняется вместе с рецептом (как в
+      // пользовательской форме) — без отдельного «сначала сохрани» шага.
+      nutrition: input.nutrition ?? null,
     })
     .select("id")
     .single();
@@ -233,6 +236,8 @@ export async function updateRecipe(recipeId: string, input: RecipeInput): Promis
       recipe_type: input.recipe_type ?? "food",
       cook_time: input.cook_time ?? null,
       servings: input.servings ?? null,
+      // КБЖУ из формы (см. createRecipe). undefined → не трогаем существующее.
+      ...(input.nutrition !== undefined ? { nutrition: input.nutrition } : {}),
       updated_at: new Date().toISOString(),
     })
     .eq("id", recipeId);

@@ -44,7 +44,7 @@ type RelError = { message: string } | null;
 
 /** Insert categories for a recipe (no-op when empty). Returns an error if any. */
 async function insertCategories(
-  supabase: ReturnType<typeof createClient>,
+  supabase: Awaited<ReturnType<typeof createClient>>,
   recipeId: string,
   categoryIds: string[],
 ): Promise<RelError> {
@@ -57,7 +57,7 @@ async function insertCategories(
 
 /** Insert all steps fresh (used on create). Returns an error if any. */
 async function insertSteps(
-  supabase: ReturnType<typeof createClient>,
+  supabase: Awaited<ReturnType<typeof createClient>>,
   recipeId: string,
   steps: UserRecipeStepInput[],
 ): Promise<RelError> {
@@ -79,7 +79,7 @@ async function insertSteps(
 export async function createUserRecipe(
   input: UserRecipeInput,
 ): Promise<UserRecipeResult> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -147,7 +147,7 @@ export async function updateUserRecipe(
   recipeId: string,
   input: UserRecipeInput,
 ): Promise<UserRecipeResult> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -231,7 +231,7 @@ export async function updateUserRecipe(
 // ── Delete ───────────────────────────────────────────────────────────────────
 
 export async function deleteUserRecipe(recipeId: string): Promise<UserRecipeResult> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
