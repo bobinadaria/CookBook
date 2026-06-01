@@ -322,6 +322,8 @@ export async function fetchAdminRecipes() {
   const { data, error } = await supabase
     .from("recipes")
     .select("id, title, slug, published, created_at, cover_image")
+    .is("owner_id", null)
+    .eq("visibility", "public")
     .order("created_at", { ascending: false });
   if (error) throw error;
   return data ?? [];

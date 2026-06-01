@@ -27,17 +27,30 @@ import { z } from "zod";
 
 export const maxDuration = 60;
 
+const AiEstimateSchema = z.object({
+  kcal_100g: z.number().nonnegative(),
+  protein_100g: z.number().nonnegative(),
+  fat_100g: z.number().nonnegative(),
+  carbs_100g: z.number().nonnegative(),
+});
+
 const BodySchema = z
   .object({
     alias_text: z.string().min(1).max(200).trim(),
     canonical_ingredient_id: z.string().uuid().optional(),
     is_skip: z.boolean().optional(),
+    /** AI-оценка макросов — альтернатива canonical_ingredient_id для случая
+     *  «ингредиент не в базе, но AI оценил приблизительно». */
+    ai_estimate: AiEstimateSchema.optional(),
     ingredients_text: z.string().max(20000).optional(),
     servings: z.number().int().positive().nullable().optional(),
   })
   .refine(
-    (b) => (b.is_skip === true) !== !!b.canonical_ingredient_id,
-    "Нужно либо canonical_ingredient_id, либо is_skip=true (но не оба).",
+    (b) => {
+      const options = [!!b.canonical_ingredient_id, b.is_skip === true, !!b.ai_estimate];
+      return options.filter(Boolean).length === 1;
+    },
+    "Нужно ровно одно из: canonical_ingredient_id, is_skip=true, ai_estimate.",
   );
 
 export async function POST(req: NextRequest) {
@@ -63,6 +76,7 @@ export async function POST(req: NextRequest) {
     alias_text,
     canonical_ingredient_id,
     is_skip,
+    ai_estimate,
     ingredients_text,
     servings,
   } = parsed.data;
@@ -91,6 +105,7 @@ export async function POST(req: NextRequest) {
     user_id: user.id,
     canonical_id: canonical_ingredient_id ?? null,
     is_skip: !!is_skip,
+    ai_estimate: ai_estimate ?? null,
   };
   const { data: alias, error: upsertError } = await admin
     .from("ingredient_aliases")

@@ -102,22 +102,31 @@ export async function fuzzyMatch(
 }
 
 /**
- * Запись из ingredient_aliases. canonical_id = NULL и is_skip = true означает
- * «юзер явно сказал пропустить этот ингредиент из расчёта».
+ * Запись из ingredient_aliases. Три варианта:
+ *   - canonical_id задан → обычная замена на запись в ingredients_base
+ *   - is_skip=true → пользователь явно сказал «не считать»
+ *   - ai_estimate задан → AI-оценка макросов (приблизительно, без USDA)
  */
 export interface AliasRow {
   alias_text: string;
   canonical_id: string | null;
   is_skip: boolean;
+  ai_estimate?: {
+    kcal_100g: number;
+    protein_100g: number;
+    fat_100g: number;
+    carbs_100g: number;
+  } | null;
 }
 
 /**
- * Resolved alias после поиска: либо ссылка на ingredients_base, либо
- * «пропустить».
+ * Resolved alias после поиска: либо ссылка на ingredients_base,
+ * либо «пропустить», либо AI-оценка макросов.
  */
 export type AliasResolution =
   | { type: "ingredient"; row: IngredientRow }
-  | { type: "skip" };
+  | { type: "skip" }
+  | { type: "ai_estimate"; macros: { kcal_100g: number; protein_100g: number; fat_100g: number; carbs_100g: number }; name: string };
 
 /**
  * Загружает алиасы пользователя + глобальные в Map по нормализованному ключу.
@@ -133,7 +142,7 @@ export async function loadUserAliases(
   const map = new Map<string, AliasRow>();
   const { data: globals, error: globalsError } = await supabase
     .from("ingredient_aliases")
-    .select("alias_text, canonical_id, is_skip")
+    .select("alias_text, canonical_id, is_skip, ai_estimate")
     .is("user_id", null);
   if (globalsError) {
     // Таблицы может ещё не быть до миграции — не валим расчёт.
@@ -148,7 +157,7 @@ export async function loadUserAliases(
   if (userId) {
     const { data: own, error: ownError } = await supabase
       .from("ingredient_aliases")
-      .select("alias_text, canonical_id, is_skip")
+      .select("alias_text, canonical_id, is_skip, ai_estimate")
       .eq("user_id", userId);
     if (ownError) {
       console.warn(`[loadUserAliases] own: ${ownError.message}`);
@@ -174,6 +183,16 @@ export function resolveAlias(
   const alias = aliases.get(normalizeKey(query));
   if (!alias) return null;
   if (alias.is_skip) return { type: "skip" };
+
+  // AI-оценка: canonical_id отсутствует, но есть ai_estimate с макросами.
+  if (!alias.canonical_id && alias.ai_estimate) {
+    return {
+      type: "ai_estimate",
+      name: alias.alias_text,
+      macros: alias.ai_estimate,
+    };
+  }
+
   if (!alias.canonical_id) return null;
   // Найти ingredient row по id. Array.from вместо values() — совместимость с
   // tsconfig target (без --downlevelIteration).

@@ -444,6 +444,9 @@
       "chooseOther": "Pick another",
       "chooseManually": "Pick manually",
       "skip": "Skip from calculation",
+      "useAiEstimate": "Use AI estimate (~{kcal} kcal/100g)",
+      "requestAdd": "Request addition to database",
+      "requestSent": "✓ Request sent",
       "diff": "{sign}{pct}% vs AI estimate",
       "kcalUnit": "kcal/100 g",
       "error": "Failed to save your choice. Please try again.",
@@ -451,6 +454,25 @@
         "title": "Pick an ingredient for «{name}»",
         "search": "Search ingredients",
         "noResults": "Nothing found",
+        "close": "Close"
+      }
+    },
+    "fuzzy": {
+      "title": "{count, plural, one {# substitution — please review} other {# substitutions — please review}}",
+      "subtitle": "AI matched similar products from our database. Confirm or swap — we'll remember your choice for future recipes.",
+      "progress": "{done} of {total} done",
+      "allDone": "All substitutions confirmed — thank you! Figures updated.",
+      "similarity": "{pct}% match",
+      "kcalUnit": "kcal/100 g",
+      "confirm": "Yes, «{name}»",
+      "replace": "Choose different",
+      "error": "Failed to save. Please try again.",
+      "modal": {
+        "title": "Replace ingredient for «{name}»",
+        "currentMatch": "Currently counted as: «{name}»",
+        "search": "Search database",
+        "noResults": "Nothing found",
+        "kcalUnit": "kcal/100 g",
         "close": "Close"
       }
     }

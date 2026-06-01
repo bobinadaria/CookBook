@@ -41,27 +41,33 @@ export default function UnmatchedIngredients({
 }: Props) {
   const t = useTranslations("recipe.unmatched");
   const [resolvingFor, setResolvingFor] = useState<string | null>(null);
+  const [requestedFor, setRequestedFor] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
   const [pickingFor, setPickingFor] = useState<UnmatchedIngredient | null>(null);
 
   async function resolve(
     aliasText: string,
-    canonicalIngredientId: string | null,
-    isSkip: boolean,
+    opts:
+      | { type: "canonical"; id: string }
+      | { type: "skip" }
+      | { type: "ai_estimate"; macros: { kcal_100g: number; protein_100g: number; fat_100g: number; carbs_100g: number } },
   ) {
     setResolvingFor(aliasText);
     setError(null);
     try {
+      const body: Record<string, unknown> = {
+        alias_text: aliasText,
+        ingredients_text: ingredientsText,
+        servings,
+      };
+      if (opts.type === "canonical") body.canonical_ingredient_id = opts.id;
+      else if (opts.type === "skip") body.is_skip = true;
+      else if (opts.type === "ai_estimate") body.ai_estimate = opts.macros;
+
       const res = await fetch("/api/recipes/resolve-alias", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          alias_text: aliasText,
-          canonical_ingredient_id: canonicalIngredientId ?? undefined,
-          is_skip: isSkip,
-          ingredients_text: ingredientsText,
-          servings,
-        }),
+        body: JSON.stringify(body),
       });
       const json = await res.json();
       if (!res.ok) {
@@ -75,6 +81,22 @@ export default function UnmatchedIngredients({
       setError(e instanceof Error ? e.message : String(e));
     } finally {
       setResolvingFor(null);
+    }
+  }
+
+  async function requestIngredient(u: UnmatchedIngredient) {
+    try {
+      await fetch("/api/recipes/request-ingredient", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          original_text: u.original_text,
+          parsed_name: u.parsed_name,
+        }),
+      });
+      setRequestedFor((prev) => new Set([...prev, u.parsed_name]));
+    } catch {
+      // Молча игнорируем — запрос некритичен
     }
   }
 
@@ -93,9 +115,12 @@ export default function UnmatchedIngredients({
             key={u.parsed_name + u.quantity_g}
             u={u}
             resolving={resolvingFor === u.parsed_name}
-            onCountAs={(id) => resolve(u.parsed_name, id, false)}
-            onSkip={() => resolve(u.parsed_name, null, true)}
+            requested={requestedFor.has(u.parsed_name)}
+            onCountAs={(id) => resolve(u.parsed_name, { type: "canonical", id })}
+            onSkip={() => resolve(u.parsed_name, { type: "skip" })}
             onPickOther={() => setPickingFor(u)}
+            onUseAiEstimate={(macros) => resolve(u.parsed_name, { type: "ai_estimate", macros })}
+            onRequest={() => requestIngredient(u)}
           />
         ))}
       </div>
@@ -110,7 +135,7 @@ export default function UnmatchedIngredients({
           onPick={(id) => {
             const target = pickingFor;
             setPickingFor(null);
-            resolve(target.parsed_name, id, false);
+            resolve(target.parsed_name, { type: "canonical", id });
           }}
           onClose={() => setPickingFor(null)}
         />
@@ -124,19 +149,26 @@ export default function UnmatchedIngredients({
 function UnmatchedRow({
   u,
   resolving,
+  requested,
   onCountAs,
   onSkip,
   onPickOther,
+  onUseAiEstimate,
+  onRequest,
 }: {
   u: UnmatchedIngredient;
   resolving: boolean;
+  requested: boolean;
   onCountAs: (id: string) => void;
   onSkip: () => void;
   onPickOther: () => void;
+  onUseAiEstimate: (macros: { kcal_100g: number; protein_100g: number; fat_100g: number; carbs_100g: number }) => void;
+  onRequest: () => void;
 }) {
   const t = useTranslations("recipe.unmatched");
   const topSuggestion = u.suggestions[0] ?? null;
   const hasGoodSuggestion = topSuggestion && topSuggestion.similarity >= 0.3;
+  const hasEstimate = !!u.estimate && u.estimate.kcal_100g > 0;
 
   return (
     <div className="border-t border-ochre/30 pt-3 first:border-t-0 first:pt-0">
@@ -184,6 +216,22 @@ function UnmatchedRow({
           {hasGoodSuggestion ? t("chooseOther") : t("chooseManually")}
         </button>
 
+        {/* AI-оценка: кнопка есть, если парсер вернул estimate по этому ингредиенту */}
+        {hasEstimate && (
+          <button
+            type="button"
+            onClick={() => onUseAiEstimate(u.estimate!)}
+            disabled={resolving}
+            className={cn(
+              "rounded-none border px-3 py-1.5 text-xs transition-colors",
+              "border-ochre/60 bg-ochre/5 text-ochre-dk hover:bg-ochre/15",
+              "disabled:opacity-50 disabled:cursor-not-allowed",
+            )}
+          >
+            {t("useAiEstimate", { kcal: Math.round(u.estimate!.kcal_100g) })}
+          </button>
+        )}
+
         <button
           type="button"
           onClick={onSkip}
@@ -196,6 +244,24 @@ function UnmatchedRow({
         >
           {t("skip")}
         </button>
+
+        {/* Кнопка запроса — всегда видна, один раз */}
+        {!requested ? (
+          <button
+            type="button"
+            onClick={onRequest}
+            disabled={resolving}
+            className={cn(
+              "rounded-none border px-3 py-1.5 text-xs transition-colors",
+              "border-rule bg-paper text-muted hover:text-soft",
+              "disabled:opacity-50 disabled:cursor-not-allowed",
+            )}
+          >
+            {t("requestAdd")}
+          </button>
+        ) : (
+          <span className="text-xs text-olive">{t("requestSent")}</span>
+        )}
       </div>
     </div>
   );

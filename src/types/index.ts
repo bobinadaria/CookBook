@@ -55,10 +55,19 @@ export interface NutritionMatch {
   grams: number;
   /** Калории этого ингредиента в этой порции (для дебага). Null если не сматчен. */
   kcal: number | null;
-  /** Тип матча: точный, fuzzy через pg_trgm, алиас юзера, или не нашёлся. */
-  match_type: "exact" | "fuzzy" | "alias" | "skipped" | "unknown";
+  /**
+   * Тип матча: точный, fuzzy через pg_trgm, алиас юзера, AI-оценка (≈),
+   * явно пропущен юзером, или не нашёлся.
+   */
+  match_type: "exact" | "fuzzy" | "alias" | "ai_estimate" | "skipped" | "unknown";
   /** Similarity score для fuzzy-матча (0..1). Null для exact / alias / unknown. */
   similarity: number | null;
+  /**
+   * ID строки в ingredients_base, на которую сматчился ингредиент.
+   * Заполнен для exact / fuzzy / alias. Null для unknown / skipped.
+   * Нужен компоненту FuzzyMatchReview для сохранения алиаса через resolve-alias.
+   */
+  matched_id?: string | null;
 }
 
 /**

@@ -12,6 +12,7 @@ import MediaSection from "./MediaSection";
 import NutritionSection from "./NutritionSection";
 import ActionsSection from "./ActionsSection";
 import UnmatchedIngredients from "@/components/recipe/UnmatchedIngredients";
+import FuzzyMatchReview from "@/components/recipe/FuzzyMatchReview";
 
 interface RecipeFormProps {
   /** Present → edit mode; absent → create mode. */
@@ -200,6 +201,18 @@ export default function RecipeForm({ recipeId, defaultValues }: RecipeFormProps)
             error={form.nutritionError}
             onCalculate={form.handleCalculateNutrition}
           />
+          {(() => {
+            const n = form.freshNutrition ?? form.currentNutrition;
+            if (!n?.ingredients) return null;
+            return (
+              <FuzzyMatchReview
+                ingredients={n.ingredients}
+                ingredientsText={form.ingredients}
+                servings={form.servings}
+                onResolved={(nutrition) => form.setFreshNutrition(nutrition)}
+              />
+            );
+          })()}
           {(() => {
             const n = form.freshNutrition ?? form.currentNutrition;
             if (!n?.unmatched || n.unmatched.length === 0) return null;

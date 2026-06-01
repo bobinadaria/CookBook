@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Spinner } from "@/components/ui";
 import type { NutritionData } from "@/types";
@@ -53,8 +52,6 @@ export default function NutritionSection({
   error,
   onCalculate,
 }: NutritionSectionProps) {
-  const [showDetails, setShowDetails] = useState(false);
-
   const display = fresh ?? current;
   const disabled = ingredientsEmpty || calculating;
   const isFresh = fresh !== null;
@@ -98,9 +95,10 @@ export default function NutritionSection({
             </span>
           </div>
 
-          {display.warnings.length > 0 && (
+          {/* Только «не найдено в базе» — остальные warnings технические */}
+          {display.warnings.filter(w => w.startsWith("Не найдено")).length > 0 && (
             <div className="mt-3 space-y-1.5">
-              {display.warnings.map((w, i) => (
+              {display.warnings.filter(w => w.startsWith("Не найдено")).map((w, i) => (
                 <p
                   key={i}
                   className="text-xs text-ochre-dk bg-ochre/10 rounded-none px-3 py-2"
@@ -115,52 +113,6 @@ export default function NutritionSection({
             <p className="mt-3 text-xs text-olive">
               ✓ Посчитано. Сохранится вместе с рецептом.
             </p>
-          )}
-
-          <button
-            type="button"
-            onClick={() => setShowDetails((s) => !s)}
-            className="mt-3 text-xs text-soft hover:text-burg transition-colors"
-          >
-            {showDetails ? "Скрыть разбор по ингредиентам" : "Показать разбор по ингредиентам"}
-          </button>
-
-          {showDetails && (
-            <div className="mt-3 text-xs font-mono space-y-1 max-h-72 overflow-y-auto">
-              {display.ingredients.map((m, i) => {
-                const tag =
-                  m.match_type === "exact"
-                    ? "✓"
-                    : m.match_type === "fuzzy"
-                    ? `~${m.similarity?.toFixed(2)}`
-                    : "✗";
-                const right = m.matched
-                  ? `${m.grams}г → ${m.matched} = ${m.kcal} ккал`
-                  : m.grams > 0
-                  ? `${m.grams}г → не найдено`
-                  : "пропущено";
-                return (
-                  <div key={i} className="flex gap-3 text-soft">
-                    <span
-                      className={cn(
-                        "shrink-0 w-12",
-                        m.match_type === "unknown" && m.grams > 0
-                          ? "text-red-500"
-                          : m.match_type === "fuzzy"
-                          ? "text-ochre-dk"
-                          : "text-olive",
-                      )}
-                    >
-                      {tag}
-                    </span>
-                    <span className="flex-1 truncate" title={m.input}>
-                      {m.input}
-                    </span>
-                    <span className="text-soft shrink-0">{right}</span>
-                  </div>
-                );
-              })}
-            </div>
           )}
         </div>
       ) : (

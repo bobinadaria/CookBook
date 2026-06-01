@@ -122,9 +122,35 @@ export async function calculateNutrition({
       matches.push({
         input: p.input,
         matched: row.name_ru,
+        matched_id: row.id,
         grams,
         kcal: round(kcal),
         match_type: "alias",
+        similarity: null,
+      });
+      continue;
+    }
+
+    // AI-оценка: используем приблизительные макросы без USDA.
+    // Помечаем match_type="ai_estimate" — для отображения «~» в UI.
+    if (alias?.type === "ai_estimate") {
+      const m = alias.macros;
+      const factor = grams / 100;
+      const kcal = m.kcal_100g * factor;
+      const protein = m.protein_100g * factor;
+      const fat = m.fat_100g * factor;
+      const carbs = m.carbs_100g * factor;
+      totals.kcal += kcal;
+      totals.protein += protein;
+      totals.fat += fat;
+      totals.carbs += carbs;
+      matched_weight_g.value += grams;
+      matches.push({
+        input: p.input,
+        matched: alias.name,
+        grams,
+        kcal: round(kcal),
+        match_type: "ai_estimate",
         similarity: null,
       });
       continue;
@@ -165,6 +191,7 @@ export async function calculateNutrition({
     matches.push({
       input: p.input,
       matched: m.row.name_ru,
+      matched_id: m.row.id,
       grams,
       kcal: round(kcal),
       match_type: m.match_type,

@@ -54,6 +54,12 @@ export default function AdminPage() {
         >
           Все рецепты →
         </Link>
+        <Link
+          href="/admin/ingredient-requests"
+          className="text-sm text-soft hover:text-ochre-dk transition-colors"
+        >
+          Запросы ингредиентов →
+        </Link>
       </div>
     </div>
   );

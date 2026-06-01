@@ -31,6 +31,7 @@ import { createUserRecipe, updateUserRecipe } from "@/app/dashboard/recipes/acti
 import type { UserRecipeResult } from "@/app/dashboard/recipes/types";
 import type { ImportedRecipe, ImportSource } from "@/lib/recipe-import/types";
 import UnmatchedIngredients from "@/components/recipe/UnmatchedIngredients";
+import FuzzyMatchReview from "@/components/recipe/FuzzyMatchReview";
 
 interface StepState {
   id?: string;
@@ -742,6 +743,18 @@ export default function UserRecipeForm({
               </div>
             )}
           </section>
+        )}
+
+        {/* Fuzzy-матчи — AI нашёл похожие, но не точные совпадения.
+            Показываем карточки «вы написали → мы засчитали» с кнопками «Подходит / Заменить».
+            Только для матчей с similarity < 0.85 — высококонфидентные принимаем молча. */}
+        {aiEnabled && !isDrink && nutrition?.ingredients && (
+          <FuzzyMatchReview
+            ingredients={nutrition.ingredients}
+            ingredientsText={ingredients}
+            servings={servings}
+            onResolved={(n) => setNutrition(n)}
+          />
         )}
 
         {/* Блок «не нашли в базе» — после расчёта КБЖУ. Юзер выбирает: считать
