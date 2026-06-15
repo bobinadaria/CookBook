@@ -76,9 +76,9 @@ const recipeData = {
     "Duck fillets with a crisp skin, slowly baked under foil with garlic, prunes and halves of green apples. Tender meat, a warm aroma and a sweet-and-sour balance; served with lingonberry sauce.",
   // История — главный текст под заголовком на странице рецепта.
   note:
-    "Этот рецепт — от мамы Димы. Она готовит утку так по субботним вечерам, не спеша, для себя и мужа, а ещё — по праздникам, когда хочется, чтобы дом пах чем-то тёплым и особенным. Уточка томится в духовке не один час: чеснока кладётся много, чернослив сначала чуть распаривается, а половинки зелёных яблок отдают мясу свою кислинку. Запах стоит такой, что в ожидании можно успеть и задремать — мама, кажется, однажды так и сделала, и ничего, всё получилось. А подавать всё это нужно обязательно с ягодным соусом — у нас был брусничный. Тёплый, домашний, субботний рецепт, который теперь живёт и в нашей книге.",
+    "Этот рецепт — от мамы Димы. Она готовит утку так по субботним вечерам, для себя и мужа, и по праздникам. Уточка томится в духовке не один час: чеснока кладётся много, чернослив чуть распаривается, а зелёные яблоки отдают мясу свою кислинку. Подавать обязательно с ягодным соусом — у нас был брусничный.",
   note_en:
-    "This recipe comes from Dima's mum. She makes duck like this on Saturday evenings — unhurried, for herself and her husband — and on holidays, when she wants the house to smell of something warm and special. The duck takes its time in the oven, hours of it: plenty of garlic goes in, the prunes are steamed a little first, and halves of green apples lend the meat their tartness. The smell is so good you could doze off while you wait — Mum, I think, once did exactly that, and it all turned out fine anyway. And it simply must be served with a berry sauce — ours was lingonberry. A warm, homey, Saturday-evening recipe that now lives in our book too.",
+    "This recipe comes from Dima's mum. She makes duck like this on Saturday evenings, for herself and her husband, and on holidays. The duck takes its time in the oven for hours: plenty of garlic, prunes steamed a little, and green apples lending the meat their tartness. Serve it always with a berry sauce — ours was lingonberry.",
   ingredients: ingredientsRu,
   ingredients_en: ingredientsEn,
   cover_image: null, // обложку поставим отдельно через gen-cover.mjs
@@ -135,9 +135,9 @@ const steps = [
     title: "Запекать под фольгой 2,5–3 часа",
     title_en: "Bake under foil for 2.5–3 hours",
     description:
-      "Прикрыла всё сверху ещё одним слоем фольги и отправила в духовку при 150 °C на 2,5–3 часа. Утка томится так долго и спокойно, что за это время можно и задремать — мама однажды так и уснула, и ничего, всё получилось.",
+      "Прикрыла всё сверху ещё одним слоем фольги и отправила в духовку при 150 °C на 2,5–3 часа. Утка томится так долго и спокойно, что за это время можно и задремать.",
     description_en:
-      "Cover everything with another layer of foil and put it in the oven at 150 °C for 2.5–3 hours. The duck braises so slowly and calmly that you could nap in the meantime — Mum once fell asleep just like that, and it all turned out fine.",
+      "Cover everything with another layer of foil and put it in the oven at 150 °C for 2.5–3 hours. The duck braises so slowly and calmly that you could doze off while you wait.",
   },
   {
     order: 6,

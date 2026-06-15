@@ -55,6 +55,30 @@ async function loadIndex() {
   return map;
 }
 
+// Глобальные алиасы (user_id IS NULL) — подмены парсерного имени на запись
+// ingredients_base. Зеркалит loadUserAliases/resolveAlias из calculate.ts, но
+// без личных алиасов (расчёт каталожный). Нужно, например, для «свинина ребра»
+// → «свиные рёбра» (парсер обобщает рёбра до постной свинины).
+async function loadGlobalAliases() {
+  const map = new Map();
+  const { data, error } = await supabase
+    .from("ingredient_aliases")
+    .select("alias_text, canonical_id, is_skip")
+    .is("user_id", null);
+  if (error) { console.warn(`[aliases] ${error.message}`); return map; }
+  for (const r of data ?? []) map.set(normalizeKey(r.alias_text), r);
+  return map;
+}
+
+function resolveAlias(name, aliases, index) {
+  const a = aliases.get(normalizeKey(name));
+  if (!a) return null;
+  if (a.is_skip) return { type: "skip" };
+  if (!a.canonical_id) return null;
+  for (const row of index.values()) if (row.id === a.canonical_id) return { type: "ingredient", row };
+  return null;
+}
+
 async function fuzzyMatch(query) {
   const { data, error } = await supabase.rpc("match_ingredient", { query, threshold: 0.3 });
   if (error) throw new Error(`match_ingredient RPC: ${error.message}`);
@@ -71,7 +95,7 @@ async function matchIngredient(query, index) {
 
 async function calculate(text, servings) {
   const parsed = await parseIngredients(text);
-  const index = await loadIndex();
+  const [index, aliases] = await Promise.all([loadIndex(), loadGlobalAliases()]);
   const totals = { kcal: 0, protein: 0, fat: 0, carbs: 0, weight_g: 0 };
   let matchedWeight = 0;
   const matches = [];
@@ -81,6 +105,25 @@ async function calculate(text, servings) {
       continue;
     }
     totals.weight_g += p.grams;
+
+    // Алиас (глобальный) — приоритет перед exact/fuzzy, как в calculate.ts.
+    const alias = resolveAlias(p.name, aliases, index);
+    if (alias?.type === "skip") {
+      matches.push({ input: p.input, matched: null, grams: p.grams, kcal: null, match_type: "skipped", similarity: null });
+      continue;
+    }
+    if (alias?.type === "ingredient") {
+      const fa = p.grams / 100;
+      const kcalA = +alias.row.kcal_100g * fa;
+      totals.kcal += kcalA;
+      totals.protein += +alias.row.protein_100g * fa;
+      totals.fat += +alias.row.fat_100g * fa;
+      totals.carbs += +alias.row.carbs_100g * fa;
+      matchedWeight += p.grams;
+      matches.push({ input: p.input, matched: alias.row.name_ru, grams: p.grams, kcal: round(kcalA), match_type: "alias", similarity: null });
+      continue;
+    }
+
     const m = await matchIngredient(p.name, index);
     if (!m) {
       matches.push({ input: p.input, matched: null, grams: p.grams, kcal: null, match_type: "unknown", similarity: null });
@@ -139,7 +182,7 @@ console.log(`confidence:  ${Math.round(n.confidence * 100)}%`);
 
 console.log("\n── разбор ингредиентов ──");
 for (const m of n.ingredients) {
-  const flag = m.match_type === "exact" ? "✓" : m.match_type === "fuzzy" ? "~" : "✗";
+  const flag = m.match_type === "exact" ? "✓" : m.match_type === "alias" ? "≈" : m.match_type === "fuzzy" ? "~" : "✗";
   const sim = m.similarity != null ? ` (sim ${m.similarity})` : "";
   console.log(`  ${flag} ${(m.input || "").padEnd(48)} → ${m.matched ?? "—"}${sim}  ${m.grams}г`);
 }
