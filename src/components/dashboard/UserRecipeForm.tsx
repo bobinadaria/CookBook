@@ -590,6 +590,20 @@ export default function UserRecipeForm({
                   </span>
                 </div>
                 <p className="mb-3 text-[11px] leading-snug text-soft">{t("coverAiHint")}</p>
+                {/* Счётчик обложек + докупить. На бете лимита нет (тестеры
+                    генерируют свободно), кнопка «Докупить» — каркас под будущую
+                    монетизацию, поэтому disabled. */}
+                <div className="mb-3 flex items-center justify-between gap-2 border-t border-ochre/30 pt-2">
+                  <span className="font-body text-[11px] text-soft">{t("coverAiCounter")}</span>
+                  <button
+                    type="button"
+                    disabled
+                    title={t("coverAiBadge")}
+                    className="cursor-not-allowed rounded-none border border-rule px-2 py-1 font-body text-[10px] font-semibold uppercase tracking-[0.1em] text-muted"
+                  >
+                    {t("coverAiBuy")}
+                  </button>
+                </div>
                 <button
                   type="button"
                   onClick={handleGenerateCover}

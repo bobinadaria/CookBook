@@ -9,9 +9,9 @@ import LanguageSwitcher from "@/components/layout/LanguageSwitcher";
 import ThemeToggle from "@/components/layout/ThemeToggle";
 
 const navLinks = [
-  { href: "/admin", label: "Обзор", exact: true },
   { href: "/admin/recipes", label: "Рецепты" },
   { href: "/admin/categories", label: "Категории" },
+  { href: "/admin/ingredient-requests", label: "Запросы" },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -55,20 +55,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <div className="min-h-screen bg-paper flex flex-col">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-paper/90 backdrop-blur-sm border-b border-rule">
-        <div className="px-8 h-16 flex items-center justify-between">
+      <header className="sticky top-0 z-50 bg-paper/90 backdrop-blur-sm border-b border-rule">
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3 md:h-16 md:px-8 md:py-0">
           {/* Logo */}
           <Link
             href="/"
-            className="font-display italic text-2xl text-ink hover:text-ochre-dk transition-colors"
+            className="shrink-0 whitespace-nowrap font-display italic text-xl text-ink transition-colors hover:text-ochre-dk md:text-2xl"
           >
             The Slow Table
           </Link>
 
-          {/* Admin nav */}
-          <nav className="flex items-center gap-8">
-            {navLinks.map(({ href, label, exact }) => {
-              const active = exact ? pathname === href : pathname.startsWith(href);
+          {/* Admin nav — на мобиле уходит на отдельную строку */}
+          <nav className="order-last flex w-full items-center gap-5 md:order-none md:w-auto md:gap-8">
+            {navLinks.map(({ href, label }) => {
+              const active = pathname.startsWith(href);
               return (
                 <Link
                   key={href}
@@ -85,12 +85,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </nav>
 
           {/* Right side */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 md:gap-3">
             <ThemeToggle />
             <LanguageSwitcher />
             <Link
               href="/"
-              className="text-sm font-medium text-soft hover:text-burg transition-colors"
+              className="hidden text-sm font-medium text-soft transition-colors hover:text-burg sm:inline-block"
             >
               ← На сайт
             </Link>
@@ -106,7 +106,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </header>
 
       {/* Main content */}
-      <main className="flex-1 pt-16 p-10 max-w-4xl w-full mx-auto">
+      <main className="mx-auto w-full max-w-4xl flex-1 p-6 md:p-10">
         {children}
       </main>
     </div>

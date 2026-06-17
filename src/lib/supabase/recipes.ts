@@ -316,12 +316,26 @@ export async function deleteRecipe(recipeId: string): Promise<void> {
   if (error) throw error;
 }
 
+// ── Toggle «featured» (показ в блоке «Шесть рецептов» на главной) ─────────────
+export async function setRecipeFeatured(recipeId: string, featured: boolean): Promise<void> {
+  const supabase = createClient();
+  const { error } = await supabase.from("recipes").update({ featured }).eq("id", recipeId);
+  if (error) throw error;
+}
+
+// ── Toggle «published» (опубликован / черновик) ───────────────────────────────
+export async function setRecipePublished(recipeId: string, published: boolean): Promise<void> {
+  const supabase = createClient();
+  const { error } = await supabase.from("recipes").update({ published }).eq("id", recipeId);
+  if (error) throw error;
+}
+
 // ── Fetch all recipes (admin) ────────────────────────────────────────────────
 export async function fetchAdminRecipes() {
   const supabase = createClient();
   const { data, error } = await supabase
     .from("recipes")
-    .select("id, title, slug, published, created_at, cover_image")
+    .select("id, title, slug, published, featured, created_at, cover_image")
     .is("owner_id", null)
     .eq("visibility", "public")
     .order("created_at", { ascending: false });
