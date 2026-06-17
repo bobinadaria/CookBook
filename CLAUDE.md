@@ -3,17 +3,18 @@
 > **Бренд.** Название продукта — **The Slow Table** · by Daria (домен `bydaria.kitchen`).
 > Слоган: «Твоя кухня. Твоя книга. Твой AI-нутрициолог.» Дескриптор: «Создавай свою книгу
 > красивых рецептов — уют дома, идеи на каждый день и точное КБЖУ от AI.» Рабочее имя
-> репозитория осталось «Cookbook». Полные детали бренда — `BRAND_PLAN.md`.
+> репозитория осталось «Cookbook». Полные детали бренда — `docs/BRAND_PLAN.md`.
 >
 > **Что это.** Личная кулинарная книга-журнал русскоязычного автора (Дарья, Прага) с
 > AI-нутрициологом. Эстетика editorial-magazine, точный КБЖУ через USDA, двуязычие RU/EN.
 > Не «очередной сборник рецептов» — личный продукт-объект.
 >
 > **Этот файл** — главный контекст для ИИ-ассистента: актуальное состояние, следующие шаги,
-> правила работы. Держи его в синхроне с кодом. Длинные тексты — в `PRODUCT_STRATEGY.md`
-> (бизнес) и `AI_ARCHITECTURE.md` (AI-слой).
+> правила работы. Держи его в синхроне с кодом. Длинные тексты — в `docs/PRODUCT_STRATEGY.md`
+> (бизнес) и `docs/AI_ARCHITECTURE.md` (AI-слой). Все остальные планы и стратегии — в папке `docs/`
+> (карта — §11).
 >
-> **Обновлено:** 2026-05-22.
+> **Обновлено:** 2026-06-17.
 
 ---
 
@@ -28,18 +29,22 @@
 - **Публичный сайт** (editorial-редизайн полностью внедрён):
   - Главная — hero-разворот, колонка редактора, pull-quote, «Содержание выпуска» (featured),
     «Кухня в цифрах», тизер подписки.
-  - Каталог `/recipes` — поиск + фильтры (4 типа категорий), magazine-карточки.
-  - Рецепт `/recipes/[slug]` — заголовок+метрики, состав, шаги, КБЖУ-блок, заметка автора +
-    личная заметка, related; ISR-кэш + JSON-LD.
+  - Каталог `/recipes` — поиск + фильтры (4 типа категорий), magazine-карточки. На мобиле —
+    drawer-фильтры.
+  - Рецепт `/recipes/[slug]` — заголовок+метрики, состав, шаги, КБЖУ-блок, история/заметка автора +
+    личная заметка, related; ISR-кэш + JSON-LD. Тип `food`/`drink` (у напитков нет КБЖУ — сознательно).
   - Подписка `/pricing` — 3 тарифа, AI-кредиты, FAQ, CTA (лендинг, без реальной оплаты).
-- **Личный кабинет** `/dashboard` — хаб, избранное, заметки (`user_notes`), профиль с display_name,
-  PlanBanner (каркас под монетизацию, без реальных счётчиков).
-- **Админка** `/admin` — CRUD рецептов, шаги с фото, категории, AI-секции (см. ниже). RU-only.
-- **AI-слой** (рантайм — OpenAI, не Claude):
-  - КБЖУ: парсинг ингредиентов `gpt-4o-mini` → матчинг в `ingredients_base` (USDA + рус-справочники,
+- **Личный кабинет** `/dashboard` — «Моя книга» (свои приватные рецепты `/dashboard/recipes`
+  с созданием/редактированием + избранное) и «Аккаунт» (профиль с display_name, PlanBanner —
+  каркас под монетизацию, без реальных счётчиков). Premium-фичи юзера под флагом `aiEnabled`.
+- **Админка** `/admin` — CRUD рецептов, шаги с фото, категории, двуязычное редактирование,
+  AI-секции (см. ниже), раздел запросов ингредиентов (FuzzyMatchReview). RU-only.
+- **AI-слой** (рантайм — смешанный: OpenAI + Google, не Claude):
+  - КБЖУ: парсинг ингредиентов `gpt-4o-mini` (OpenAI) → матчинг в `ingredients_base` (USDA + рус-справочники,
     pg_trgm fuzzy) → детерминированный расчёт. Авто-расчёт при сохранении + кеш по hash состава.
-  - Обложки: генерация через `gpt-image-1` / `dall-e-3` (см. `scripts/gen-cover.mjs`), сжатие `sharp`.
-  - Автоперевод RU→EN полей рецепта (`gpt-4o-mini`).
+  - Обложки: основная модель — **Imagen 4 Ultra (Google)**, фолбэк `gpt-image-1` (OpenAI);
+    см. `lib/cover-image.ts` / `scripts/gen-cover.mjs`, сжатие `sharp`. (`dall-e-3` не используется.)
+  - Автоперевод RU→EN полей рецепта: основной путь — **Gemini 2.5 Flash (Google)**, фолбэк `gpt-4o-mini` (OpenAI).
 - **i18n** — next-intl, RU (default) + EN, переключение по cookie без URL-префикса. Весь лендинг
   и UI вынесены в `messages/`. Контент рецептов — двуязычный в БД (`*_en` поля).
 - **Тёмная тема** — токены для dark есть, контраст текста-на-охре починен (токен `seal`).
@@ -48,15 +53,21 @@
   (`bg-section` / `text-section-fg` / `text-section-soft` / `border-section-rule`; объявлено в
   `globals.css :root`, без override в `.dark`) — эти блоки остаются тёмными в обеих темах.
   Заголовки, кнопки и бейджи по-прежнему инвертируются (светлая «пилюля» на тёмном) — это норма.
+- **Своя книга рецептов** — приватные юзер-рецепты (`owner_id`/`visibility`), создание и
+  редактирование из кабинета, AI-КБЖУ и AI-обложка на них под флагом `aiEnabled` (`lib/entitlements.ts`).
+- **Импорт рецепта по ссылке** (Premium, под `aiEnabled`) — гибрид JSON-LD + AI-обогащение состава
+  (`gpt-4o-mini`) для «голых» списков. Роуты `api/admin/import-url` и `api/recipes/import-url`.
+- **Запросы ингредиентов** — если ингредиент не нашёлся в `ingredients_base`: UX-замены, алиасы,
+  AI-оценка, ручной review в админке (`api/recipes/request-ingredient`, `resolve-alias`).
 - **Перф** — ISR-кэш страниц рецептов, статическая прегенерация, сжатие обложек.
 
 **НЕ сделано (намеренно отложено или в бэклоге):**
 
-- Реальные платежи (Paddle), enforcement кредитов, гейтинг Premium-фич — **не по календарю, а по
-  гейту**: код можно строить под флагом хоть сейчас (часы стройки), но *включать* оплату — только
-  когда есть аудитория (промо + доказанный retention, гейт Фазы 1). Старое «~месяц 10» снято —
-  см. `PRODUCT_STRATEGY` §7 / `MONETIZATION_PLAN` §8. Сейчас `/pricing` и PlanBanner — только каркас.
-- Premium-фичи: импорт рецепта по URL, экспорт в PDF, меню недели + список покупок.
+- Реальные платежи (Paddle), enforcement кредитов, реальное включение гейтинга — **не по календарю,
+  а по гейту**: каркас (`lib/entitlements.ts`, флаг `MONETIZATION_ENABLED`, PlanBanner) уже есть, но
+  *включать* оплату — только когда есть аудитория (промо + доказанный retention, гейт Фазы 1). Старое
+  «~месяц 10» снято — см. `docs/PRODUCT_STRATEGY.md` §7 / `docs/MONETIZATION_PLAN.md` §8.
+- Premium-фичи в бэклоге: экспорт в PDF, меню недели + список покупок (импорт по URL — уже построен).
 - AI-генерация рецептов для пользователя («сделай рецепт с 30 г белка»).
 - B2B-тариф (после того как заработает основной B2C-поток — Фаза 4).
 
@@ -64,19 +75,20 @@
 
 ## 2. Следующие шаги (приоритезированный бэклог)
 
-✅ **Закрыто (релиз 2026-05-21…22):**
-1. ~~Деплой ветки (редизайн + EN) на Vercel~~ — выложено в прод, прод проверен (live).
-2. ~~Тёмная тема~~ — тёмные секции остаются тёмными (токены `section`), проверено на телефоне.
-3. ~~Вычитка EN-копирайта~~ — имя в футере локализовано (`footer.author`: Daria Bobina),
-   `base→database` в FAQ, `Yearly:→В год:` в RU. Опциональные хвосты (на вкус автора):
-   единый US/UK-спеллинг (`flavour`↔`flavor`), «№»→«No.» в EN, «lifts the ceilings».
+✅ **Закрыто (релизы май–июнь 2026):**
+1. ~~Деплой редизайна + EN на Vercel, тёмная тема, вычитка EN~~ — в проде, live.
+2. ~~AI-КБЖУ~~ — парсинг + матчинг + расчёт, `ingredients_base` расширен до ~300 ингредиентов,
+   авто-расчёт и кеш по hash состава.
+3. ~~Своя книга рецептов~~ — приватные юзер-рецепты + вкладки кабинета; AI-фичи под `aiEnabled`.
+4. ~~Импорт по ссылке, напитки, история-вместо-описания, запросы ингредиентов~~ — закоммичены в main.
+5. ~~Next.js 14 → 15~~ — миграция на async-API, закрыты high-уязвимости.
+6. ~~Мобильный UX~~ — drawer-фильтры, hero, КБЖУ-блок (план — `docs/MOBILE_PLAN.md`).
 
 **Активный бэклог (следующее):**
-4. **Подготовка к монетизации** — *построить* можно под флагом заранее (Paddle, таблицы/логика
-   кредитов, гейтинг фич, рабочий PlanBanner); *включать* — по гейту (ценность + аудитория), не
-   по дате. Старое «~месяц 10» снято. См. `MONETIZATION_PLAN` §8.
-5. **Premium-фичи** по одной (импорт URL → PDF-экспорт → меню недели).
-6. **Контент** — наполнить книгу рецептами (лендинг заявляет «42 рецепта», в каталоге пока мало).
+7. **Подготовка к монетизации** — каркас (`lib/entitlements.ts`, флаг, PlanBanner) есть; достроить
+   Paddle/кредиты под флагом, *включать* — по гейту (ценность + аудитория). См. `docs/MONETIZATION_PLAN.md` §8.
+8. **Premium-фичи** по одной: PDF-экспорт → меню недели (импорт URL уже готов).
+9. **Контент** — наполнять книгу рецептами (лендинг заявляет «42 рецепта»; в каталоге растёт).
 
 > Правило: при закрытии шага — обнови §1 и §2, чтобы здесь не было устаревших данных.
 
@@ -84,7 +96,7 @@
 
 ## 3. Стек и команды
 
-- **Framework:** Next.js 14 (App Router) · **TypeScript** (strict) · **Tailwind CSS**
+- **Framework:** Next.js 15 (App Router, async-API: `await cookies()/params`) · **TypeScript** (strict) · **Tailwind CSS**
 - **Backend:** Supabase (Postgres + Auth + Storage) · RLS на уровне БД
 - **AI:** OpenAI (`openai`), вспомогательно `@google/generative-ai`
 - **Анимации:** GSAP (ScrollTrigger) · **Темы:** next-themes · **i18n:** next-intl
@@ -115,10 +127,12 @@ src/
 ├── app/
 │   ├── (public)/            # layout + Header/Footer; home, recipes, recipes/[slug], pricing
 │   ├── (auth)/              # login, register, forgot-password, reset-password
-│   ├── dashboard/           # hub, favorites, notes (+ DashboardNav, PlanBanner)
-│   ├── admin/               # dashboard, recipes (list/new/[id]/edit), categories
+│   ├── dashboard/           # «Моя книга»: recipes (new/[id] — свои рецепты) + избранное; «Аккаунт» (PlanBanner)
+│   ├── admin/               # dashboard, recipes (list/new/[id]/edit), categories, запросы ингредиентов
 │   ├── api/admin/           # calculate-nutrition, generate-image, translate, recipes,
-│   │                        #   revalidate-recipe, upload  (все защищены api-auth)
+│   │                        #   import-url, revalidate-recipe, upload  (все защищены api-auth)
+│   ├── api/recipes/         # calculate-nutrition, generate-image, import-url, request-ingredient,
+│   │                        #   resolve-alias  (юзер-фичи, под aiEnabled)
 │   ├── auth/callback/        # OAuth callback
 │   ├── layout.tsx · globals.css
 │   └── design-system, presentation  # внутренние dev-страницы (noindex, на старых классах)
@@ -147,25 +161,28 @@ messages/ru.json · messages/en.json   # все UI/лендинг-строки (
 
 ## 5. Модель данных (Supabase / Postgres)
 
-Таблицы (через RLS): `profiles` (id, email, **display_name**, role 'user'|'admin', created_at),
+Таблицы (через RLS): `profiles` (id, email, **display_name**, role 'user'|'admin', **plan**, created_at),
 `categories` (id, name, **name_en**, slug, type), `recipes`, `steps`, `recipe_categories` (M2M),
-`favorites` (по **recipe_slug**, не id), `user_notes`, `ingredients_base` (USDA-справочник для КБЖУ).
+`favorites` (по **recipe_slug**, не id), `user_notes`, `ingredients_base` (USDA-справочник для КБЖУ),
+`ingredient_requests` (запросы/алиасы ненайденных ингредиентов).
 
 `recipes` — ключевые поля: `title/description/note/ingredients` (+ `*_en` переводы),
-`cover_image`, `published`, `featured`, `cook_time` (мин), `servings`, `nutrition` (jsonb, см.
-`NutritionData` в `types/index.ts`), `created_at/updated_at`.
+`cover_image`, `published`, `featured`, `cook_time` (мин), `servings`, `recipe_type` (`food`/`drink`),
+`owner_id`/`visibility` (юзер-рецепты), `nutrition` (jsonb, см. `NutritionData` в `types/index.ts`),
+`created_at/updated_at`.
 `steps` — `order`, `title`, `description` (+ `*_en`), `photo_url`.
 
 **Категории — типы фильтров** (источник истины: `src/lib/category-types.ts`):
 `meal_type`, `country`, `season`, `ingredient`. Legacy-типы `meal_time`/`category` выведены.
 
 **Storage buckets** (public): `recipe-covers`, `step-photos`.
-**Миграции в коде:** `scripts/migration-display-name.sql`, `migration-user-notes.sql`,
-`migration-nutrition-fuzzy-match.sql`, `archive/migration-cook-time-servings.sql`.
+**Миграции в коде** — все `scripts/migration-*.sql` (display-name, user-notes, nutrition-fuzzy-match,
+recipe-en-fields, recipe-type, user-recipes, ingredient-aliases, ingredient-requests; архивные —
+`scripts/archive/`). Применять вручную в Supabase SQL Editor.
 
 ---
 
-## 6. AI-слой (кратко; детали — `AI_ARCHITECTURE.md`)
+## 6. AI-слой (кратко; детали — `docs/AI_ARCHITECTURE.md`)
 
 **Аксиома:** LLM не считает числа. Все числа (ккал, граммы) — из детерминированного источника.
 
@@ -175,11 +192,17 @@ messages/ru.json · messages/en.json   # все UI/лендинг-строки (
   (`ingredients-hash.mjs`) — не пересчитываем, если состав не менялся. Авто-расчёт при сохранении.
   Публичный блок (`NutritionFacts`) показывает только цифры; диагностика (confidence/warnings) —
   только в админке.
-- **Обложки:** `api/admin/generate-image` (+ `scripts/gen-cover.mjs`) — `gpt-image-1` / `dall-e-3`,
-  единый стиль (см. скилл `recipe-photo-prompts`), потом `sharp`-сжатие.
-- **Перевод:** `api/admin/translate` (`gpt-4o-mini`) — RU→EN поля рецепта в `*_en`.
+- **Обложки:** `api/admin/generate-image` (+ `lib/cover-image.ts`, `scripts/gen-cover.mjs`) — основная
+  модель **Imagen 4 Ultra (Google)**, фолбэк `gpt-image-1` (OpenAI); квадрат 1:1, `sampleCount: 1`
+  (одна картинка на запрос, без скрытого множителя). Единый стиль (см. скилл `recipe-photo-prompts`),
+  потом `sharp`-сжатие. `dall-e-3` не используется.
+- **Перевод:** `api/admin/translate` (`lib/translate.ts`) — основной путь **Gemini 2.5 Flash (Google)**,
+  фолбэк `gpt-4o-mini` (OpenAI); RU→EN поля рецепта в `*_en`.
 
-> Историческая заметка: `AI_ARCHITECTURE.md` планировал Claude Haiku; по факту рантайм на OpenAI.
+> Историческая заметка: `docs/AI_ARCHITECTURE.md` планировал Claude Haiku; по факту КБЖУ-парсинг
+> на OpenAI (`gpt-4o-mini`), а обложки и перевод — на Google (Imagen 4 Ultra / Gemini 2.5 Flash) с
+> OpenAI-фолбэками. ⚠️ Оба сервиса висят на одном Google-проекте: его spend-cap (429 RESOURCE_EXHAUSTED)
+> глушит и обложки, и перевод разом — расход смотреть в **Google Cloud Billing**, не в OpenAI Usage.
 
 ---
 
@@ -237,7 +260,7 @@ messages/ru.json · messages/en.json   # все UI/лендинг-строки (
 - Не переводить админку на EN — она внутренняя, RU-only.
 - Не возвращать legacy дизайн-токены и скруглённые карточки.
 - Не хардкодить числа КБЖУ/калорий — только из `ingredients_base`/детерминированного расчёта.
-- Не трогать без необходимости: `AI_ARCHITECTURE.md`, `PRODUCT_STRATEGY.md` (бизнес-логика),
+- Не трогать без необходимости: `docs/AI_ARCHITECTURE.md`, `docs/PRODUCT_STRATEGY.md` (бизнес-логика),
   схему RLS (расширять, не ломать).
 - Dev-страницы `src/app/design-system` и `presentation` — внутренние, на старых классах;
   можно удалить/обновить позже, на прод не влияют.
@@ -246,11 +269,16 @@ messages/ru.json · messages/en.json   # все UI/лендинг-строки (
 
 ## 11. Карта документации
 
-- **`CLAUDE.md`** (этот файл) — операционный контекст, статус, правила. Обновлять при изменениях.
-- **`PRODUCT_STRATEGY.md`** — ЦА, монетизация, цены, риски, этапы. Бизнес-источник истины.
-- **`MONETIZATION_PLAN.md`** — дизайн этапа 4: гейтинг, кредиты, схема БД, чек-лист Paddle, фазировка.
-- **`BRAND_PLAN.md`** — бренд: имя (The Slow Table), слоган, голос, нейминг-процесс.
-- **`AI_ARCHITECTURE.md`** — детали AI-слоя (КБЖУ, генерация, перевод).
+Операционный контекст (`CLAUDE.md`) и `README.md` — в корне; остальные планы и стратегии — в папке `docs/`.
+
+- **`CLAUDE.md`** (этот файл, в корне) — операционный контекст, статус, правила. Обновлять при изменениях.
+- **`README.md`** (в корне) — быстрый старт для человека (setup, команды, деплой).
+- **`docs/PRODUCT_STRATEGY.md`** — ЦА, монетизация, цены, риски, этапы. Бизнес-источник истины.
+- **`docs/MONETIZATION_PLAN.md`** — дизайн монетизации: гейтинг, кредиты, схема БД, чек-лист Paddle, фазировка.
+- **`docs/BRAND_PLAN.md`** — бренд: имя (The Slow Table), слоган, голос, нейминг-процесс.
+- **`docs/AI_ARCHITECTURE.md`** — детали AI-слоя (КБЖУ, генерация, перевод, фолбэки).
+- **`docs/FEATURE_USER_RECIPES.md`** — фича «Своя книга рецептов»: приватные юзер-рецепты, кабинет.
+- **`docs/LAUNCH_PLAN.md`** — план запуска и закрытой беты.
+- **`docs/MOBILE_PLAN.md`** — аудит и план мобильного UX.
 - **`design_handoff_editorial_redesign/README.md`** — хендофф редизайна (исторический, миграция завершена).
 - **`.claude/skills/`** — кастомные скиллы (генерация фото-промптов).
-- **`README.md`** — быстрый старт для человека (setup, команды, деплой).

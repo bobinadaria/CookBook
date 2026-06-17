@@ -1,16 +1,20 @@
 # Cookbook — AI Architecture
 
-**Версия:** 0.2 · **Обновлено:** 2026-05-20
+**Версия:** 0.3 · **Обновлено:** 2026-06-17
 **Контекст:** технический companion к `PRODUCT_STRATEGY.md`. Детали реализации AI-слоя.
-**Живой статус проекта:** см. `CLAUDE.md` §1.
+**Живой статус проекта:** см. `../CLAUDE.md` §1.
 
 > ## ⓘ Статус: реализовано vs. план (2026-05-20)
 >
 > Разделы ниже — исходный замысел (черновик 0.1 от 2026-05-16). По факту реализовано так:
 >
-> - **Рантайм на OpenAI, не на Claude.** Парсинг состава и перевод — `gpt-4o-mini`
->   (планировался Claude Haiku). Генерация обложек — `dall-e-3` / `gpt-image-1`. Anthropic
->   SDK в зависимостях нет; есть вспомогательный `@google/generative-ai`.
+> - **Рантайм смешанный (OpenAI + Google), не Claude.** Парсинг состава КБЖУ — `gpt-4o-mini`
+>   (OpenAI; планировался Claude Haiku). Генерация обложек — основная модель **Imagen 4 Ultra
+>   (Google)**, фолбэк `gpt-image-1` (OpenAI); `dall-e-3` НЕ используется. Перевод RU→EN —
+>   основной путь **Gemini 2.5 Flash (Google)**, фолбэк `gpt-4o-mini` (OpenAI). Anthropic SDK в
+>   зависимостях нет; Google идёт через `@google/generative-ai` и REST (`generativelanguage`).
+>   ⚠️ Обложки и перевод висят на одном Google-проекте — его spend-cap (429 RESOURCE_EXHAUSTED)
+>   глушит оба разом; реальный расход смотреть в **Google Cloud Billing**, не в OpenAI Usage.
 > - **КБЖУ-калькулятор реализован и в проде.** Поток: `gpt-4o-mini` парсит свободный текст
 >   состава → матчинг в `ingredients_base` (USDA + рус-справочники) → детерминированный расчёт.
 >   Код: `src/lib/nutrition/{parse,match,calculate}.ts`, API `src/app/api/admin/calculate-nutrition`.
@@ -19,8 +23,9 @@
 >   только в админке.
 > - **Матчинг — pg_trgm, а не embedding-search.** Ингредиенты матчатся через триграммы Postgres
 >   (точный + fuzzy), без векторных эмбеддингов — проще и дешевле на текущем объёме справочника.
->   Миграция: `scripts/migration-nutrition-fuzzy-match.sql`; сид: `scripts/seed-ingredients.mjs`.
-> - **Перевод RU→EN** полей рецепта — `gpt-4o-mini`, API `translate`, результат в поля `*_en`.
+>   Миграция: `../scripts/migration-nutrition-fuzzy-match.sql`; сид: `../scripts/seed-ingredients.mjs`.
+> - **Перевод RU→EN** полей рецепта — **Gemini 2.5 Flash (Google)**, фолбэк `gpt-4o-mini` (OpenAI),
+>   API `translate` (`src/lib/translate.ts`), результат в поля `*_en`.
 > - **НЕ реализовано:** AI-генерация рецептов для пользователя; кредитная экономика/лимиты;
 >   интерактивные уточняющие диалоги при низком confidence (пока низкий confidence просто
 >   помечается в админке).

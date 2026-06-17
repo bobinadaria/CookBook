@@ -102,7 +102,7 @@
 
 ## 8. Чек-лист реализации (порядок)
 
-1. ✅ **Миграция SQL** (`scripts/migration-user-recipes.sql`): `recipes` +`owner_id`/`visibility`/индекс;
+1. ✅ **Миграция SQL** (`../scripts/migration-user-recipes.sql`): `recipes` +`owner_id`/`visibility`/индекс;
    `profiles` +`plan`; RLS для `recipes` / `steps` / `recipe_categories`. **Применено в Supabase 2026-05-22**
    (4 блоками из-за обрезки при вставке). Проверено: публичный сайт и шаги рецептов работают.
 2. ✅ **Типы:** `Recipe` +`owner_id`/`visibility`; `Profile` +`plan`. tsc прошёл.
@@ -138,5 +138,5 @@
 
 ---
 
-*Источники: `MONETIZATION_PLAN.md`, `CLAUDE.md` §§5/9, код `lib/supabase/recipes.ts`,
-`RecipeForm/useRecipeForm.ts`, `scripts/migration-user-notes.sql`.*
+*Источники: `MONETIZATION_PLAN.md`, `../CLAUDE.md` §§5/9, код `lib/supabase/recipes.ts`,
+`RecipeForm/useRecipeForm.ts`, `../scripts/migration-user-notes.sql`.*
