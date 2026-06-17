@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { Eyebrow, EditorialButton, PullQuote } from "@/components/ui";
@@ -21,22 +22,43 @@ interface Tier {
   price: string;
   cadence: string;
   lede: string;
-  features: [string, FeatureValue][];
+  inherits: string;
+  highlights: string[];
   cta: string;
   noteTop: string;
   noteBottom: string;
 }
 
+interface CompareGroup {
+  title: string;
+  rows: [string, FeatureValue, FeatureValue, FeatureValue][];
+}
+
 /** Visual styling per tier (presentation only — not localized). */
 const TIER_STYLE: Record<string, { dark: boolean; bg: string; ctaVariant: "ghost" | "solid" | "ochre" }> = {
+  // Premium is the hero → gold CTA, visible on the dark card. Free + Lifetime share
+  // the same secondary (ghost/outline) style so they read as a matched pair.
   free: { dark: false, bg: "bg-paper", ctaVariant: "ghost" },
-  premium: { dark: true, bg: "bg-section", ctaVariant: "solid" },
-  lifetime: { dark: false, bg: "bg-crust", ctaVariant: "ochre" },
+  premium: { dark: true, bg: "bg-section", ctaVariant: "ochre" },
+  lifetime: { dark: false, bg: "bg-crust", ctaVariant: "ghost" },
 };
 
 function FeatureMark({ value, dark }: { value: FeatureValue; dark: boolean }) {
   if (value === true) return <span className="text-olive">●</span>;
   if (value === false) return <span className={dark ? "text-section-fg/35" : "text-muted"}>○</span>;
+  // Planned-but-unbuilt features are flagged "скоро" / "soon".
+  if (value === "скоро" || value === "soon") {
+    return (
+      <span
+        className={cn(
+          "font-body text-[10px] font-semibold uppercase tracking-[0.13em] italic",
+          dark ? "text-section-fg/55" : "text-soft",
+        )}
+      >
+        {value}
+      </span>
+    );
+  }
   return (
     <span
       className={cn(
@@ -55,6 +77,8 @@ export default async function PricingPage() {
   const headerFacts = t.raw("headerFacts") as string[];
   const packs = t.raw("packs") as [string, string, string][];
   const faq = t.raw("faq") as [string, string][];
+  const compareCols = t.raw("compareCols") as [string, string][];
+  const compareGroups = t.raw("compareGroups") as CompareGroup[];
 
   return (
     <div className="bg-paper text-ink">
@@ -91,19 +115,24 @@ export default async function PricingPage() {
               <div
                 key={tier.key}
                 className={cn(
-                  "relative flex flex-col px-8 py-10",
+                  "relative flex flex-col px-8 pb-10",
                   style.bg,
                   style.dark ? "text-section-fg" : "text-ink",
                   i < tiers.length - 1 && "border-b border-rule lg:border-b-0 lg:border-r",
                 )}
               >
-                {tier.noteTop && (
-                  <div className="absolute inset-x-0 top-0 bg-ochre px-4 py-2 text-center font-body text-[10px] font-bold uppercase tracking-[0.16em] text-seal">
-                    {tier.noteTop}
-                  </div>
-                )}
+                {/* Ribbon zone — same height on every card so the numeral rows align;
+                    the gold badge appears on the highlighted (middle) card only. */}
+                <div
+                  className={cn(
+                    "-mx-8 flex h-9 items-center justify-center px-4 text-center font-body text-[10px] font-bold uppercase tracking-[0.16em]",
+                    tier.noteTop && "bg-ochre text-seal",
+                  )}
+                >
+                  {tier.noteTop}
+                </div>
 
-                <div className={tier.noteTop ? "mt-6" : ""}>
+                <div className="pt-8">
                   <div className="flex items-baseline gap-3.5">
                     <span className="font-display text-[44px] font-normal italic leading-[0.9] text-ochre sm:text-[48px]">
                       {tier.numeral}
@@ -133,48 +162,121 @@ export default async function PricingPage() {
                   </p>
                 </div>
 
-                {/* Features */}
-                <div className={cn("mt-7 border-t", style.dark ? "border-section-rule" : "border-rule")}>
-                  {tier.features.map(([name, value], idx) => (
-                    <div
+                {/* Highlights — laddered: higher tiers inherit lower ones, then show only deltas */}
+                <div className={cn("mt-7 border-t pt-5", style.dark ? "border-section-rule" : "border-rule")}>
+                  {tier.inherits && (
+                    <p
+                      className={cn(
+                        "mb-2 font-body text-[11px] font-semibold uppercase tracking-[0.13em]",
+                        style.dark ? "text-ochre" : "text-ochre-dk",
+                      )}
+                    >
+                      {tier.inherits}
+                    </p>
+                  )}
+                  <ul>
+                    {tier.highlights.map((name, idx) => (
+                    <li
                       key={idx}
                       className={cn(
-                        "grid grid-cols-[1fr_auto] items-baseline gap-3 border-b py-2.5 text-[13px]",
-                        style.dark ? "border-section-rule text-section-fg/88" : "border-rule text-ink",
+                        "grid grid-cols-[auto_1fr] items-baseline gap-2.5 py-2 text-[13.5px] leading-[1.5]",
+                        style.dark ? "text-section-fg/90" : "text-ink",
                       )}
                     >
-                      <span
-                        className={cn(
-                          value === false && "line-through",
-                          value === false && (style.dark ? "text-section-fg/40" : "text-muted"),
-                        )}
-                      >
-                        {name}
-                      </span>
-                      <FeatureMark value={value} dark={style.dark} />
-                    </div>
-                  ))}
+                      <span className="text-olive">●</span>
+                      <span>{name}</span>
+                    </li>
+                    ))}
+                  </ul>
                 </div>
 
-                {/* CTA */}
+                {/* CTA — Free has no button (it's the baseline plan), only the paid tiers do */}
                 <div className="mt-auto pt-7">
-                  <EditorialButton variant={style.ctaVariant} href="/register" className="w-full px-5 py-4">
-                    {tier.cta}
-                  </EditorialButton>
-                  {tier.noteBottom && (
-                    <div
-                      className={cn(
-                        "mt-3 text-center font-body text-[10px] font-semibold uppercase tracking-[0.16em]",
-                        style.dark ? "text-section-fg/60" : "text-soft",
-                      )}
-                    >
-                      {tier.noteBottom}
+                  {tier.key === "free" ? (
+                    <div className="flex w-full items-center justify-center border-[1.5px] border-dashed border-rule px-5 py-4 text-center font-body text-[12px] font-semibold uppercase tracking-[0.15em] text-soft">
+                      {tier.cta}
                     </div>
+                  ) : (
+                    <EditorialButton variant={style.ctaVariant} href="/register" className="w-full px-5 py-4">
+                      {tier.cta}
+                    </EditorialButton>
                   )}
+                  {/* Always reserved (even when empty) so buttons align across all cards */}
+                  <div
+                    className={cn(
+                      "mt-3 min-h-[15px] text-center font-body text-[10px] font-semibold uppercase tracking-[0.16em]",
+                      style.dark ? "text-section-fg/60" : "text-soft",
+                    )}
+                  >
+                    {tier.noteBottom}
+                  </div>
                 </div>
               </div>
             );
           })}
+        </div>
+      </section>
+
+      {/* ── Full comparison table ───────────────────────────────────────── */}
+      <section className="mx-auto max-w-[1320px] px-6 pb-20 md:px-10 lg:px-14">
+        <div className="mb-8">
+          <Eyebrow color="text-ochre-dk">{t("compareEyebrow")}</Eyebrow>
+          <h2 className="mt-3 font-display text-[40px] font-normal leading-[0.95] tracking-[-0.02em] text-burg sm:text-[56px]">
+            {t("compareTitle1")} <em className="italic text-ochre">{t("compareTitleAccent")}</em>
+          </h2>
+        </div>
+
+        <div className="-mx-6 overflow-x-auto px-6 md:mx-0 md:px-0">
+          <table className="w-full min-w-[600px] border-collapse text-left">
+            <thead>
+              <tr className="border-b-2 border-burg">
+                <th className="sticky left-0 z-10 bg-paper py-4 pr-4 align-bottom" />
+                {compareCols.map(([name, price], i) => (
+                  <th
+                    key={name}
+                    className={cn("w-[18%] px-3 py-4 text-center align-bottom", i === 1 && "bg-crust")}
+                  >
+                    <div className="font-display text-[20px] leading-none text-burg">{name}</div>
+                    <div className="mt-1 font-body text-[11px] font-semibold uppercase tracking-[0.13em] text-soft">
+                      {price}
+                    </div>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {compareGroups.map((g) => (
+                <Fragment key={g.title}>
+                  <tr>
+                    <td
+                      colSpan={4}
+                      className="sticky left-0 bg-paper pb-2 pt-7 font-body text-[11px] font-bold uppercase tracking-[0.16em] text-ochre-dk"
+                    >
+                      {g.title}
+                    </td>
+                  </tr>
+                  {g.rows.map((row, idx) => {
+                    const [name, ...vals] = row;
+                    return (
+                      <tr key={idx} className="border-b border-rule">
+                        <td className="sticky left-0 z-10 bg-paper py-3 pr-4 text-[13.5px] leading-[1.45] text-ink">
+                          {name}
+                        </td>
+                        {vals.map((v, ci) => (
+                          <td
+                            key={ci}
+                            className={cn("px-3 py-3 text-center text-[13px]", ci === 1 && "bg-crust")}
+                          >
+                            <FeatureMark value={v} dark={false} />
+                          </td>
+                        ))}
+                      </tr>
+                    );
+                  })}
+                </Fragment>
+              ))}
+            </tbody>
+          </table>
         </div>
       </section>
 

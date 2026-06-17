@@ -104,7 +104,12 @@
     "demoTitle1": "From a link —",
     "demoTitleAccent": "to a page in your book.",
     "demoLede": "Paste a recipe link — and The Slow Table fills in the ingredients, works out exact nutrition, and creates a cover.",
-    "demoSteps": ["Link", "Ingredients", "Nutrition", "Cover"],
+    "demoSteps": [
+      "Link",
+      "Ingredients",
+      "Nutrition",
+      "Cover"
+    ],
     "demoUrlLabel": "Recipe link",
     "demoUrl": "the-kitchen.blog/croissant-brie-plum",
     "demoImporting": "Importing…",
@@ -133,7 +138,7 @@
   },
   "pricing": {
     "metaTitle": "Subscription",
-    "metaDescription": "Free, Premium and Lifetime — choose how you read The Slow Table. A precise AI nutritionist, import, export and a week’s menu.",
+    "metaDescription": "Free, Premium and Lifetime — choose how you read The Slow Table. A precise AI nutritionist, AI import by link and book export to PDF.",
     "headerEyebrow": "Subscription · since July MMXXVI",
     "title1": "Get",
     "titleAccent": "the whole issue.",
@@ -151,59 +156,16 @@
         "price": "€0",
         "cadence": "forever",
         "lede": "Your book, to see whether you need more. No card, no trial, no reminders.",
-        "features": [
-          [
-            "Author’s recipe catalog",
-            true
-          ],
-          [
-            "Create your own recipes",
-            "20 max"
-          ],
-          [
-            "Welcome AI credits",
-            "10 nutrition + 5 recipes"
-          ],
-          [
-            "Regular AI",
-            "1 + 1 per month"
-          ],
-          [
-            "Favorites",
-            "50 max"
-          ],
-          [
-            "Private notes",
-            true
-          ],
-          [
-            "Share a recipe",
-            true
-          ],
-          [
-            "Import from URL",
-            false
-          ],
-          [
-            "Export to PDF",
-            false
-          ],
-          [
-            "Dark mode",
-            false
-          ],
-          [
-            "Week’s menu + shopping list",
-            false
-          ],
-          [
-            "AI images",
-            false
-          ]
-        ],
-        "cta": "Start free",
+        "cta": "Your plan",
         "noteTop": "",
-        "noteBottom": "No card"
+        "noteBottom": "",
+        "highlights": [
+          "Author’s recipe catalog",
+          "Your private book — up to 15 recipes",
+          "AI nutritionist (calories): 10 calcs to start + 1/mo",
+          "Favorites up to 50, private notes"
+        ],
+        "inherits": ""
       },
       {
         "key": "premium",
@@ -211,60 +173,18 @@
         "numeral": "II",
         "price": "€7.90",
         "cadence": "/ mo or €69 / yr",
-        "lede": "Unlimited AI, import, export, week’s menu. That “Notion from heaven”, just for food.",
-        "features": [
-          [
-            "Author’s recipe catalog",
-            true
-          ],
-          [
-            "Create your own recipes",
-            "unlimited"
-          ],
-          [
-            "Welcome AI credits",
-            "not needed"
-          ],
-          [
-            "Regular AI",
-            "unlimited"
-          ],
-          [
-            "Favorites",
-            "unlimited"
-          ],
-          [
-            "Private notes",
-            true
-          ],
-          [
-            "Share a recipe",
-            true
-          ],
-          [
-            "Import from URL",
-            true
-          ],
-          [
-            "Export to PDF",
-            true
-          ],
-          [
-            "Dark mode",
-            true
-          ],
-          [
-            "Week’s menu + shopping list",
-            true
-          ],
-          [
-            "AI images",
-            "by credits"
-          ]
-        ],
+        "lede": "No ceilings: unlimited book, calorie tracking and AI import. Your kitchen, every day.",
         "cta": "Get Premium",
         "noteTop": "Most popular choice",
-        "noteBottom": "Yearly: ≈ €5.75 / mo"
+        "noteBottom": "Yearly: ≈ €5.75 / mo",
+        "highlights": [
+          "Unlimited: book, calorie calcs, favorites",
+          "AI recipe import by link",
+          "AI cover images for recipes — by credits",
+          "Dark mode",
+          "Export your book to PDF · soon"
+        ],
+        "inherits": "Everything in Free, plus:"
       },
       {
         "key": "lifetime",
@@ -272,62 +192,21 @@
         "numeral": "III",
         "price": "€79",
         "cadence": "one-time · first 50",
-        "lede": "One payment, Premium forever. Your name in every issue’s colophon. Closes once it fills up.",
-        "features": [
-          [
-            "Everything in Premium",
-            true
-          ],
-          [
-            "Premium forever",
-            true
-          ],
-          [
-            "50 AI images bonus",
-            true
-          ],
-          [
-            "Name in the colophon",
-            true
-          ],
-          [
-            "Early access to new chapters",
-            true
-          ],
-          [
-            "Direct line to the author",
-            true
-          ],
-          [
-            "A say in features",
-            "vote"
-          ],
-          [
-            "Possible B2B plan later",
-            "discounted"
-          ],
-          [
-            "30-day refund",
-            true
-          ],
-          [
-            "Transfer to another email",
-            true
-          ],
-          [
-            "“Founder” sticker in comments",
-            true
-          ]
-        ],
+        "lede": "One payment, Premium forever. Closes once it fills up.",
         "cta": "Become a founder · 37 / 50",
-        "noteTop": "Closes when 50 are reached",
-        "noteBottom": "13 seats left"
+        "noteTop": "",
+        "noteBottom": "13 seats left",
+        "highlights": [
+          "One payment — Premium forever (no subscription)",
+          "50 AI cover images as a gift"
+        ],
+        "inherits": "Everything in Premium, plus:"
       }
     ],
     "aiEyebrow": "AI photography · credits",
     "aiTitle1": "When there’s",
     "aiTitle2": "no photo — we draw it.",
-    "aiLede": "Your own style — top-down, warm light, a wooden board. One preset, the book’s recognizable visual DNA. Premium only, by credits only.",
+    "aiLede": "No photo for your recipe — AI draws a cover in one consistent style: top-down, warm light, a wooden board. Your book’s recognizable visual DNA. Premium only, by credits only.",
     "packLabel": "pack",
     "packs": [
       [
@@ -361,7 +240,7 @@
       ],
       [
         "What if I subscribe and it’s not for me?",
-        "Cancel in one click — the unused part of the month isn’t refunded (that’s a standard subscription). For Lifetime — a refund within the first 30 days, no questions."
+        "That’s exactly what the free plan is for — try the book, recipes and AI with no card and decide at your own pace. You can cancel the subscription in one click anytime; Lifetime is a one-time, considered purchase."
       ],
       [
         "Does the AI really count accurately?",
@@ -382,7 +261,113 @@
     "finalLede": "Free gives you the book. Premium lifts the ceilings. Lifetime — for the first fifty. Choose.",
     "finalCtaPremium": "Premium · €7.90 / mo",
     "finalCtaLifetime": "Lifetime · €79 one-time",
-    "finalCtaFree": "Start free first →"
+    "finalCtaFree": "Start free first →",
+    "compareEyebrow": "Full comparison",
+    "compareTitle1": "Everything",
+    "compareTitleAccent": "included.",
+    "compareCols": [
+      [
+        "Free",
+        "€0"
+      ],
+      [
+        "Premium",
+        "€7.90"
+      ],
+      [
+        "Lifetime",
+        "€79"
+      ]
+    ],
+    "compareGroups": [
+      {
+        "title": "Your book",
+        "rows": [
+          [
+            "Author’s recipe catalog",
+            true,
+            true,
+            true
+          ],
+          [
+            "Your private book (create recipes)",
+            "up to 15",
+            "unlimited",
+            "unlimited"
+          ],
+          [
+            "Share a recipe by link",
+            "soon",
+            "soon",
+            "soon"
+          ],
+          [
+            "Favorites",
+            "up to 50",
+            "unlimited",
+            "unlimited"
+          ],
+          [
+            "Private notes on recipes",
+            true,
+            true,
+            true
+          ],
+          [
+            "Dark mode",
+            false,
+            true,
+            true
+          ]
+        ]
+      },
+      {
+        "title": "AI nutritionist",
+        "rows": [
+          [
+            "AI nutritionist: nutrition calc (±5%)",
+            "10 + 1/mo",
+            "unlimited",
+            "unlimited"
+          ],
+          [
+            "AI recipe generation",
+            "soon",
+            "soon",
+            "soon"
+          ],
+          [
+            "AI import by link — fill your book",
+            false,
+            true,
+            true
+          ],
+          [
+            "AI cover images for your recipes",
+            false,
+            "by credits",
+            "50 free"
+          ],
+          [
+            "Export your book to PDF",
+            false,
+            "soon",
+            "soon"
+          ]
+        ]
+      },
+      {
+        "title": "For founders",
+        "rows": [
+          [
+            "One payment — Premium forever",
+            false,
+            false,
+            true
+          ]
+        ]
+      }
+    ]
   },
   "recipes": {
     "tagline": "all recipes",
