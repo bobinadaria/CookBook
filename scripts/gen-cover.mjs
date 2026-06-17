@@ -11,6 +11,8 @@
  *   --title         Recipe title (required)
  *   --description   Short description to improve image accuracy (optional)
  *   --recipe-id     If provided, updates the cover_image field in Supabase (optional)
+ *   --prompt        Custom full image prompt — overrides the auto-built one. Use when
+ *                   you need a specific composition (English, editorial top-down style).
  *
  * Requires in .env.local:
  *   GOOGLE_AI_API_KEY
@@ -52,11 +54,12 @@ function loadEnv() {
 
 function parseArgs() {
   const args = process.argv.slice(2);
-  const result = { title: "", description: "", recipeId: "" };
+  const result = { title: "", description: "", recipeId: "", prompt: "" };
   for (let i = 0; i < args.length; i++) {
     if (args[i] === "--title" && args[i + 1]) result.title = args[++i];
     else if (args[i] === "--description" && args[i + 1]) result.description = args[++i];
     else if (args[i] === "--recipe-id" && args[i + 1]) result.recipeId = args[++i];
+    else if (args[i] === "--prompt" && args[i + 1]) result.prompt = args[++i];
   }
   return result;
 }
@@ -80,7 +83,7 @@ function buildPrompt(title, description) {
 async function main() {
   loadEnv();
 
-  const { title, description, recipeId } = parseArgs();
+  const { title, description, recipeId, prompt: customPrompt } = parseArgs();
 
   if (!title) {
     console.error("❌  --title is required\n");
@@ -103,7 +106,8 @@ async function main() {
 
   // 1. Generate image (Imagen 4 Ultra, формат 1:1 — квадрат, единый для всех рецептов)
   console.log(`\n🎨  Генерирую обложку для «${title}» (Imagen 4 Ultra)…`);
-  const prompt = buildPrompt(title, description);
+  const prompt = customPrompt || buildPrompt(title, description);
+  if (customPrompt) console.log("✎  Использую кастомный промпт (--prompt)");
   console.log(`📝  Промпт: ${prompt.slice(0, 100)}…\n`);
 
   let imageBuffer;
