@@ -3,14 +3,16 @@ import { cn } from "@/lib/utils";
 
 export type EditorialButtonVariant = "solid" | "ghost" | "ochre" | "paper";
 
+// Рамка 1.5px есть у ВСЕХ вариантов (у не-ghost — прозрачная), чтобы box-model
+// был одинаковым и высота кнопок совпадала. Отличается только цвет/состояние.
 const base =
-  "inline-flex items-center justify-center gap-2 rounded-none px-7 py-[15px] font-body text-[12px] font-semibold uppercase tracking-[0.15em] transition-colors duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed";
+  "inline-flex items-center justify-center gap-2 rounded-none border-[1.5px] px-7 py-[15px] font-body text-[12px] font-semibold uppercase tracking-[0.15em] transition-colors duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed";
 
 const variants: Record<EditorialButtonVariant, string> = {
-  solid: "border-0 bg-burg text-paper hover:bg-burg-dk",
-  ghost: "border-[1.5px] border-burg bg-transparent text-burg hover:bg-burg hover:text-paper",
-  ochre: "border-0 bg-ochre text-seal hover:bg-ochre-dk",
-  paper: "border-0 bg-paper text-burg hover:bg-crust",
+  solid: "border-transparent bg-burg text-paper hover:bg-burg-dk",
+  ghost: "border-burg bg-transparent text-burg hover:bg-burg hover:text-paper",
+  ochre: "border-transparent bg-ochre text-seal hover:bg-ochre-dk",
+  paper: "border-transparent bg-paper text-burg hover:bg-crust",
 };
 
 interface CommonProps {

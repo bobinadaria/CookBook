@@ -43,9 +43,9 @@ export default async function HomePage() {
 
           <div>
             <div className="mb-6 flex flex-wrap items-center gap-4">
-              <EditorialButton href="/recipes">{t("heroCtaOpen")}</EditorialButton>
-              <EditorialButton href="/pricing" variant="ghost">
-                {t("heroCtaTry")}
+              <EditorialButton href="/register">{t("heroCtaCreate")}</EditorialButton>
+              <EditorialButton href="/recipes" variant="ghost">
+                {t("heroCtaOpen")}
               </EditorialButton>
             </div>
             <div className="flex flex-wrap gap-x-8 gap-y-3 border-t border-rule pt-5 font-body text-[11px] font-semibold uppercase tracking-[0.13em] text-soft">
@@ -90,11 +90,11 @@ export default async function HomePage() {
       <HomeMagicDemo />
 
       {/* ── Колонка редактора ─────────────────────────────────────────────── */}
-      <section className="mx-auto max-w-[1320px] px-6 pb-14 pt-20 md:px-10 lg:px-14 lg:pt-[88px]">
+      <section className="mx-auto max-w-[1320px] px-6 pb-10 pt-12 md:px-10 md:pb-14 md:pt-20 lg:px-14 lg:pt-[88px]">
         <div className="grid items-start gap-10 lg:grid-cols-[280px_1fr] lg:gap-14">
           <div>
             <Eyebrow color="text-ochre-dk">{t("editorEyebrow")}</Eyebrow>
-            <h2 className="mt-3.5 font-display text-[44px] font-normal leading-[0.95] tracking-[-0.02em] text-burg sm:text-[56px]">
+            <h2 className="mt-3.5 font-display text-[40px] font-normal leading-[0.95] tracking-[-0.02em] text-burg sm:text-[56px]">
               {t("editorTitle1")}
               <br />
               <em className="italic">{t("editorTitle2")}</em>
@@ -108,7 +108,7 @@ export default async function HomePage() {
             </div>
           </div>
 
-          <div className="max-w-[720px] font-reader text-[17px] leading-[1.85] text-ink">
+          <div className="max-w-[720px] font-reader text-[17px] leading-[1.7] text-ink lg:leading-[1.85]">
             <p>
               <DropCap>{editorP1.charAt(0)}</DropCap>
               {editorP1.slice(1)}
@@ -125,11 +125,11 @@ export default async function HomePage() {
       </section>
 
       {/* ── Содержание выпуска ────────────────────────────────────────────── */}
-      <section className="mx-auto max-w-[1320px] px-6 py-16 md:px-10 lg:px-14">
+      <section className="mx-auto max-w-[1320px] px-6 py-12 md:px-10 md:py-16 lg:px-14">
         <div className="mb-9 flex items-end justify-between gap-6">
           <div>
             <Eyebrow color="text-ochre-dk">{t("tocEyebrow")}</Eyebrow>
-            <h2 className="mt-3 font-display text-[44px] font-normal leading-[0.95] tracking-[-0.02em] text-burg sm:text-[64px] lg:text-[72px]">
+            <h2 className="mt-3 font-display text-[40px] font-normal leading-[0.95] tracking-[-0.02em] text-burg sm:text-[64px] lg:text-[72px]">
               {t("tocTitleLead")} <em className="italic text-ochre">{t("tocTitleAccent")}</em>
             </h2>
           </div>
@@ -147,7 +147,7 @@ export default async function HomePage() {
             <p className="mt-3 max-w-sm font-body text-sm text-soft">{t("emptySubtitle")}</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-x-9 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:gap-x-9 sm:gap-y-12 lg:grid-cols-3">
             {featured.map((recipe, i) => (
               <RevealCard key={recipe.id} index={i}>
                 <RecipeCard recipe={recipe} locale={locale} index={i + 1} />
@@ -164,21 +164,21 @@ export default async function HomePage() {
       </section>
 
       {/* ── Кухня в цифрах ────────────────────────────────────────────────── */}
-      <section className="mt-14 bg-section px-6 py-[72px] text-section-fg md:px-10 lg:px-14">
+      <section className="mt-10 bg-section px-6 py-14 text-section-fg md:mt-14 md:px-10 md:py-[72px] lg:px-14">
         <div className="mx-auto grid max-w-[1320px] items-center gap-12 lg:grid-cols-[1fr_2fr] lg:gap-14">
           <div>
             <Eyebrow color="text-ochre">{t("statsEyebrow")}</Eyebrow>
-            <h2 className="mt-3 font-display text-[40px] font-normal italic leading-[0.95] tracking-[-0.02em] text-section-fg sm:text-[56px]">
+            <h2 className="mt-3 font-display text-[36px] font-normal italic leading-[0.95] tracking-[-0.02em] text-section-fg sm:text-[56px]">
               {t("statsTitle")}
             </h2>
           </div>
-          <div className="grid gap-7 sm:grid-cols-2">
+          <div className="grid grid-cols-2 gap-x-5 gap-y-7 sm:gap-x-7">
             {stats.map((s) => (
               <div key={s.n} className="border-b border-section-rule pb-5">
-                <div className="font-display text-[56px] font-normal leading-none tracking-[-0.02em] text-ochre sm:text-[64px]">
+                <div className="font-display text-[40px] font-normal leading-none tracking-[-0.02em] text-ochre sm:text-[56px] lg:text-[64px]">
                   {s.n}
                 </div>
-                <p className="mt-2 font-body text-[13px] leading-[1.6] text-section-soft">{s.t}</p>
+                <p className="mt-2 font-body text-[12px] leading-[1.55] text-section-soft sm:text-[13px] sm:leading-[1.6]">{s.t}</p>
               </div>
             ))}
           </div>
@@ -186,11 +186,11 @@ export default async function HomePage() {
       </section>
 
       {/* ── Подписка-тизер ────────────────────────────────────────────────── */}
-      <section className="mx-auto max-w-[1320px] px-6 py-20 md:px-10 lg:px-14 lg:py-24">
-        <div className="grid items-end gap-10 bg-crust px-6 py-12 md:px-14 lg:grid-cols-[1.3fr_1fr] lg:gap-14">
+      <section className="mx-auto max-w-[1320px] px-6 py-12 md:px-10 md:py-20 lg:px-14 lg:py-24">
+        <div className="grid items-end gap-10 bg-crust px-6 py-10 md:px-14 md:py-12 lg:grid-cols-[1.3fr_1fr] lg:gap-14">
           <div>
             <Eyebrow color="text-ochre-dk">{t("subEyebrow")}</Eyebrow>
-            <h2 className="mt-3.5 font-display text-[48px] font-normal leading-[0.92] tracking-[-0.03em] text-burg sm:text-[64px] lg:text-[80px]">
+            <h2 className="mt-3.5 font-display text-[40px] font-normal leading-[0.92] tracking-[-0.03em] text-burg sm:text-[64px] lg:text-[80px]">
               {t("subTitle1")}
               <br />
               <em className="italic text-ochre">{t("subTitleAccent")}</em>
