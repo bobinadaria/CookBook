@@ -67,7 +67,9 @@ export async function estimateMacros(
     return result;
   }
 
-  const client = new OpenAI({ apiKey });
+  // timeout/maxRetries — это вспомогательная оценка для UI; не даём ей подвесить
+  // весь пересчёт КБЖУ. Если AI не успел — молча отдаём пустую Map (см. catch).
+  const client = new OpenAI({ apiKey, timeout: 30_000, maxRetries: 1 });
   try {
     const completion = await client.chat.completions.create({
       model: MODEL,

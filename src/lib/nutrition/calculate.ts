@@ -20,8 +20,11 @@ import {
   loadAllIngredients,
   loadUserAliases,
   resolveAlias,
-  matchIngredient,
+  exactMatch,
+  fuzzyMatch,
   getTopSuggestions,
+  type IngredientRow,
+  type AliasResolution,
 } from "./match";
 import { estimateMacros, type EstimateResult } from "./estimate";
 import { ingredientsHash } from "./ingredients-hash.mjs";
@@ -71,11 +74,40 @@ export async function calculateNutrition({
   }> = [];
   const skipped: SkippedIngredient[] = [];
 
+  /** Записать сматченный ингредиент: суммируем макросы + пушим в matches. */
+  const recordIngredient = (
+    row: IngredientRow,
+    grams: number,
+    match_type: NutritionMatch["match_type"],
+    similarity: number | null,
+    parsed_name: string,
+    input: string,
+  ) => {
+    const factor = grams / 100;
+    const kcal = Number(row.kcal_100g) * factor;
+    totals.kcal += kcal;
+    totals.protein += Number(row.protein_100g) * factor;
+    totals.fat += Number(row.fat_100g) * factor;
+    totals.carbs += Number(row.carbs_100g) * factor;
+    matched_weight_g.value += grams;
+    matches.push({
+      input,
+      parsed_name,
+      matched: row.name_ru,
+      matched_id: row.id,
+      grams,
+      kcal: round(kcal),
+      match_type,
+      similarity,
+    });
+  };
+
   for (const p of parsed) {
     // Пропущенные парсером строки (заголовки, «по вкусу») — как и раньше.
     if (p.skipped || !p.name || p.grams == null) {
       matches.push({
         input: p.input,
+        parsed_name: p.name,
         matched: null,
         grams: 0,
         kcal: null,
@@ -88,115 +120,97 @@ export async function calculateNutrition({
     const grams = p.grams;
     totals.weight_g += grams;
 
-    // 3a. Сначала — алиас (если юзер уже решил, как считать эту строку).
-    const alias = resolveAlias(p.name, aliases, index);
-    if (alias?.type === "skip") {
+    // Кандидаты для матчинга: основное имя + «или»-альтернативы. Берём тот, что
+    // реально находится в базе (приоритет: алиас → exact → лучший fuzzy по всем).
+    // Пример: «100 г шиитаке или шампиньонов» → шиитаке нет, шампиньоны есть → берём их.
+    const candidates = [p.name, ...(p.alternatives ?? [])].filter(
+      (c): c is string => !!c && c.trim().length > 0,
+    );
+
+    // 3a. Алиас (explicit-решение) — самый ранний кандидат с алиасом побеждает.
+    let aliasHit: { res: AliasResolution; name: string } | null = null;
+    for (const c of candidates) {
+      const a = resolveAlias(c, aliases, index);
+      if (a) {
+        aliasHit = { res: a, name: c };
+        break;
+      }
+    }
+    if (aliasHit?.res.type === "skip") {
       matches.push({
         input: p.input,
+        parsed_name: aliasHit.name,
         matched: null,
         grams,
         kcal: null,
         match_type: "skipped",
         similarity: null,
       });
-      skipped.push({
-        original_text: p.input,
-        parsed_name: p.name,
-        quantity_g: grams,
-      });
-      // Не суммируем — юзер явно сказал «не считать».
+      skipped.push({ original_text: p.input, parsed_name: aliasHit.name, quantity_g: grams });
       continue;
     }
-    if (alias?.type === "ingredient") {
-      const row = alias.row;
+    if (aliasHit?.res.type === "ingredient") {
+      recordIngredient(aliasHit.res.row, grams, "alias", null, aliasHit.name, p.input);
+      continue;
+    }
+    if (aliasHit?.res.type === "ai_estimate") {
+      const mm = aliasHit.res.macros;
       const factor = grams / 100;
-      const kcal = Number(row.kcal_100g) * factor;
-      const protein = Number(row.protein_100g) * factor;
-      const fat = Number(row.fat_100g) * factor;
-      const carbs = Number(row.carbs_100g) * factor;
-      totals.kcal += kcal;
-      totals.protein += protein;
-      totals.fat += fat;
-      totals.carbs += carbs;
+      totals.kcal += mm.kcal_100g * factor;
+      totals.protein += mm.protein_100g * factor;
+      totals.fat += mm.fat_100g * factor;
+      totals.carbs += mm.carbs_100g * factor;
       matched_weight_g.value += grams;
       matches.push({
         input: p.input,
-        matched: row.name_ru,
-        matched_id: row.id,
+        parsed_name: aliasHit.name,
+        matched: aliasHit.res.name,
         grams,
-        kcal: round(kcal),
-        match_type: "alias",
-        similarity: null,
-      });
-      continue;
-    }
-
-    // AI-оценка: используем приблизительные макросы без USDA.
-    // Помечаем match_type="ai_estimate" — для отображения «~» в UI.
-    if (alias?.type === "ai_estimate") {
-      const m = alias.macros;
-      const factor = grams / 100;
-      const kcal = m.kcal_100g * factor;
-      const protein = m.protein_100g * factor;
-      const fat = m.fat_100g * factor;
-      const carbs = m.carbs_100g * factor;
-      totals.kcal += kcal;
-      totals.protein += protein;
-      totals.fat += fat;
-      totals.carbs += carbs;
-      matched_weight_g.value += grams;
-      matches.push({
-        input: p.input,
-        matched: alias.name,
-        grams,
-        kcal: round(kcal),
+        kcal: round(mm.kcal_100g * factor),
         match_type: "ai_estimate",
         similarity: null,
       });
       continue;
     }
 
-    // 3b. Алиаса нет — обычный exact → fuzzy.
-    const m = await matchIngredient(supabase, p.name, index);
-    if (!m) {
-      // 3c. Не сматчилось — это unmatched, собираем для суждений.
-      matches.push({
-        input: p.input,
-        matched: null,
-        grams,
-        kcal: null,
-        match_type: "unknown",
-        similarity: null,
-      });
-      unmatchedRaw.push({
-        original_text: p.input,
-        parsed_name: p.name,
-        quantity_g: grams,
-      });
+    // 3b. Точный матч — самый ранний кандидат с exact.
+    let exactHit: { row: IngredientRow; name: string } | null = null;
+    for (const c of candidates) {
+      const ex = exactMatch(c, index);
+      if (ex) {
+        exactHit = { row: ex, name: c };
+        break;
+      }
+    }
+    if (exactHit) {
+      recordIngredient(exactHit.row, grams, "exact", null, exactHit.name, p.input);
       continue;
     }
 
-    const factor = grams / 100;
-    const kcal = Number(m.row.kcal_100g) * factor;
-    const protein = Number(m.row.protein_100g) * factor;
-    const fat = Number(m.row.fat_100g) * factor;
-    const carbs = Number(m.row.carbs_100g) * factor;
+    // 3c. Fuzzy — лучший по similarity среди ВСЕХ кандидатов (exact уже не нашёлся).
+    let fuzzyHit: { row: IngredientRow; similarity: number; name: string } | null = null;
+    for (const c of candidates) {
+      const f = await fuzzyMatch(supabase, c);
+      if (f && (!fuzzyHit || f.similarity > fuzzyHit.similarity)) {
+        fuzzyHit = { row: f.row, similarity: f.similarity, name: c };
+      }
+    }
+    if (fuzzyHit) {
+      recordIngredient(fuzzyHit.row, grams, "fuzzy", fuzzyHit.similarity, fuzzyHit.name, p.input);
+      continue;
+    }
 
-    totals.kcal += kcal;
-    totals.protein += protein;
-    totals.fat += fat;
-    totals.carbs += carbs;
-    matched_weight_g.value += grams;
-
+    // 3d. Совсем не нашли — unmatched (по основному имени).
     matches.push({
       input: p.input,
-      matched: m.row.name_ru,
-      matched_id: m.row.id,
+      parsed_name: p.name,
+      matched: null,
       grams,
-      kcal: round(kcal),
-      match_type: m.match_type,
-      similarity: m.similarity,
+      kcal: null,
+      match_type: "unknown",
+      similarity: null,
     });
+    unmatchedRaw.push({ original_text: p.input, parsed_name: p.name, quantity_g: grams });
   }
 
   // 4. Для unmatched — собираем top-3 кандидата и (опционально) AI-оценку макросов.

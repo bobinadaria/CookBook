@@ -20,6 +20,7 @@ import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { Spinner } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
+import { fetchWithTimeout, isTimeoutError } from "@/lib/fetch-with-timeout";
 import type { NutritionData, NutritionMatch } from "@/types";
 
 interface FuzzyMatchReviewProps {
@@ -62,7 +63,7 @@ export default function FuzzyMatchReview({
     setResolvingFor(aliasText);
     setError(null);
     try {
-      const res = await fetch("/api/recipes/resolve-alias", {
+      const res = await fetchWithTimeout("/api/recipes/resolve-alias", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -83,7 +84,7 @@ export default function FuzzyMatchReview({
         onResolved(json.nutrition as NutritionData);
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(isTimeoutError(e) ? t("timeout") : e instanceof Error ? e.message : String(e));
     } finally {
       setResolvingFor(null);
     }

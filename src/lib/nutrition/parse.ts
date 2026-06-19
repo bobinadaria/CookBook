@@ -27,6 +27,12 @@ export interface ParsedIngredient {
    */
   name: string | null;
   /**
+   * Альтернативы из «или»-вариантов: «шиитаке или шампиньоны» → name="шиитаке",
+   * alternatives=["шампиньоны"]. Матчер пробует name + все alternatives и берёт
+   * первый, что реально есть в базе. Пустой массив, если «или» в строке не было.
+   */
+  alternatives: string[];
+  /**
    * Сколько грамм считать. Конвертация из ст.л/ч.л/шт/пучков
    * делается LLM на основе общеизвестных оценок (1 яйцо ≈ 50г, 1 ст.л. муки ≈ 10г).
    * Null если skipped.
@@ -51,7 +57,9 @@ export async function parseIngredients(rawText: string): Promise<ParseResult> {
     );
   }
 
-  const client = new OpenAI({ apiKey });
+  // timeout/maxRetries — чтобы запрос не висел бесконечно, если OpenAI тормозит
+  // (иначе на фронте крутится вечный спиннер). 45с с запасом под maxDuration роутов.
+  const client = new OpenAI({ apiKey, timeout: 45_000, maxRetries: 1 });
   const model = NUTRITION_MODEL;
 
   const response = await client.chat.completions.create({

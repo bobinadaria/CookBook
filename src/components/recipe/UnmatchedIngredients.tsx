@@ -17,6 +17,7 @@ import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { Spinner } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
+import { fetchWithTimeout, isTimeoutError } from "@/lib/fetch-with-timeout";
 import type {
   IngredientSuggestion,
   NutritionData,
@@ -64,7 +65,7 @@ export default function UnmatchedIngredients({
       else if (opts.type === "skip") body.is_skip = true;
       else if (opts.type === "ai_estimate") body.ai_estimate = opts.macros;
 
-      const res = await fetch("/api/recipes/resolve-alias", {
+      const res = await fetchWithTimeout("/api/recipes/resolve-alias", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
@@ -78,7 +79,7 @@ export default function UnmatchedIngredients({
         onResolved(json.nutrition as NutritionData);
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(isTimeoutError(e) ? t("timeout") : e instanceof Error ? e.message : String(e));
     } finally {
       setResolvingFor(null);
     }

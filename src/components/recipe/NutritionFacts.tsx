@@ -43,10 +43,10 @@ export default async function NutritionFacts({
             {t("perServingTitle")}
           </h2>
           <p className="max-w-[360px] font-body text-[14px] leading-[1.7] text-section-soft">
-            {t("method")}
+            {nutrition.manual ? t("manualMethod") : t("method")}
           </p>
           <p className="mt-6 max-w-[360px] font-body text-[10px] font-semibold uppercase leading-[1.7] tracking-[0.16em] text-section-soft">
-            ※ {t("approximate")}
+            ※ {nutrition.manual ? t("manualNote") : t("approximate")}
           </p>
         </div>
 
