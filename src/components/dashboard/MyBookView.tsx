@@ -6,6 +6,8 @@ import Image from "next/image";
 import { useLocale, useTranslations } from "next-intl";
 import { localizedField } from "@/lib/localized-content";
 import { cn } from "@/lib/utils";
+import { useFavorites } from "@/context/FavoritesContext";
+import FavoriteButton from "@/components/recipe/FavoriteButton";
 import type { LocaleCode } from "@/types";
 
 /** 1-based позиция → римская цифра (как в карточках каталога). */
@@ -36,6 +38,8 @@ export interface BookItem {
   id: string;
   kind: "own" | "saved";
   href: string;
+  /** Slug нужен для сохранённых карточек — по нему работает сердечко/избранное. */
+  slug: string | null;
   title: string;
   title_en: string | null;
   cover_image: string | null;
@@ -46,17 +50,24 @@ type Tab = "all" | "mine" | "saved";
 export default function MyBookView({ items }: { items: BookItem[] }) {
   const t = useTranslations("myRecipes");
   const locale = useLocale() as LocaleCode;
+  const { favorites, loaded } = useFavorites();
   const [tab, setTab] = useState<Tab>("all");
 
-  const mineCount = items.filter((i) => i.kind === "own").length;
-  const savedCount = items.filter((i) => i.kind === "saved").length;
+  // Сохранённая карточка пропадает, как только пользователь снял лайк (сердечко).
+  // До загрузки избранного (loaded=false) ничего не прячем — иначе мелькание.
+  const effectiveItems = items.filter(
+    (i) => i.kind !== "saved" || !loaded || (i.slug != null && favorites.has(i.slug)),
+  );
 
-  const visible = items.filter((i) =>
+  const mineCount = effectiveItems.filter((i) => i.kind === "own").length;
+  const savedCount = effectiveItems.filter((i) => i.kind === "saved").length;
+
+  const visible = effectiveItems.filter((i) =>
     tab === "all" ? true : tab === "mine" ? i.kind === "own" : i.kind === "saved",
   );
 
   const tabs: { key: Tab; label: string; count: number }[] = [
-    { key: "all", label: t("tabAll"), count: items.length },
+    { key: "all", label: t("tabAll"), count: effectiveItems.length },
     { key: "mine", label: t("tabMine"), count: mineCount },
     { key: "saved", label: t("tabSaved"), count: savedCount },
   ];
@@ -119,9 +130,19 @@ export default function MyBookView({ items }: { items: BookItem[] }) {
                       <span className="font-display text-3xl italic text-burg/30">The Slow Table</span>
                     </div>
                   )}
-                  <div className="absolute left-3 top-3 bg-ochre px-2.5 py-1.5 font-body text-[10px] font-bold uppercase tracking-[0.16em] text-seal transition-colors group-hover:bg-ochre-dk">
-                    {item.kind === "own" ? t("labelMine") : t("labelSaved")}
-                  </div>
+                  {item.kind === "own" ? (
+                    <div className="absolute left-3 top-3 bg-ochre px-2.5 py-1.5 font-body text-[10px] font-bold uppercase tracking-[0.16em] text-seal transition-colors group-hover:bg-ochre-dk">
+                      {t("labelMine")}
+                    </div>
+                  ) : (
+                    // Сохранённый рецепт: заполненное сердечко (как в каталоге) —
+                    // консистентно и позволяет снять из избранного прямо здесь.
+                    item.slug && (
+                      <div className="absolute right-3 top-3">
+                        <FavoriteButton slug={item.slug} />
+                      </div>
+                    )
+                  )}
                 </div>
 
                 {/* Цифра + заголовок */}

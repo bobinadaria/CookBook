@@ -31,18 +31,23 @@ import type { User } from "@supabase/supabase-js";
 interface FavoritesCtx {
   user: User | null;
   favorites: Set<string>;
+  /** True после того, как избранное загружено (или стало ясно, что юзера нет).
+   *  Нужно, чтобы UI не прятал «сохранённые» карточки в момент до загрузки. */
+  loaded: boolean;
   toggle: (slug: string) => Promise<void>;
 }
 
 const FavoritesContext = createContext<FavoritesCtx>({
   user: null,
   favorites: new Set(),
+  loaded: false,
   toggle: async () => {},
 });
 
 export function FavoritesProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
+  const [loaded, setLoaded] = useState(false);
 
   // Track auth state
   useEffect(() => {
@@ -57,7 +62,7 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
 
   // Load favorites whenever user changes
   useEffect(() => {
-    if (!user) { setFavorites(new Set()); return; }
+    if (!user) { setFavorites(new Set()); setLoaded(true); return; }
 
     const supabase = createClient();
     supabase
@@ -66,6 +71,7 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
       .eq("user_id", user.id)
       .then(({ data }) => {
         if (data) setFavorites(new Set(data.map((r: { recipe_slug: string }) => r.recipe_slug)));
+        setLoaded(true);
       });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
@@ -86,7 +92,7 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
   }, [user, favorites]);
 
   return (
-    <FavoritesContext.Provider value={{ user, favorites, toggle }}>
+    <FavoritesContext.Provider value={{ user, favorites, loaded, toggle }}>
       {children}
     </FavoritesContext.Provider>
   );

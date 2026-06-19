@@ -23,6 +23,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { EditorialButton, ConfirmDialog } from "@/components/ui";
 import { cn } from "@/lib/utils";
+import { fetchWithTimeout, isTimeoutError } from "@/lib/fetch-with-timeout";
 import { localizedField } from "@/lib/localized-content";
 import { categoryTypesForRecipe } from "@/lib/category-types";
 import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
@@ -30,8 +31,9 @@ import type { Category, LocaleCode, NutritionData } from "@/types";
 import { createUserRecipe, updateUserRecipe } from "@/app/dashboard/recipes/actions";
 import type { UserRecipeResult } from "@/app/dashboard/recipes/types";
 import type { ImportedRecipe, ImportSource } from "@/lib/recipe-import/types";
-import UnmatchedIngredients from "@/components/recipe/UnmatchedIngredients";
-import FuzzyMatchReview from "@/components/recipe/FuzzyMatchReview";
+import NutritionResolveModal, {
+  buildResolveQueue,
+} from "@/components/recipe/NutritionResolveModal";
 
 interface StepState {
   id?: string;
@@ -78,6 +80,45 @@ async function uploadImage(bucket: string, file: File): Promise<string> {
 const inputClass =
   "w-full bg-crust rounded-none px-4 py-3 text-sm text-ink placeholder:text-muted outline-none focus:ring-2 focus:ring-burg/30 transition";
 
+/**
+ * Собирает NutritionData из вручную введённых значений на порцию. Возвращает
+ * null, если калории не заданы (нечего сохранять). Помечается manual=true, чтобы
+ * в UI не выдавать ручные числа за USDA-точность ±5%.
+ */
+function buildManualNutrition(
+  fields: { kcal: string; protein: string; fat: string; carbs: string },
+  servings: number | null,
+): NutritionData | null {
+  const num = (s: string) => {
+    const n = parseFloat(s.replace(",", "."));
+    return Number.isFinite(n) && n >= 0 ? n : null;
+  };
+  const kcal = num(fields.kcal);
+  if (kcal == null) return null; // без калорий смысла нет
+  const protein = num(fields.protein) ?? 0;
+  const fat = num(fields.fat) ?? 0;
+  const carbs = num(fields.carbs) ?? 0;
+  const portions = servings && servings > 0 ? servings : 1;
+  const per_serving = { kcal, protein, fat, carbs };
+  return {
+    per_serving,
+    total: {
+      kcal: kcal * portions,
+      protein: protein * portions,
+      fat: fat * portions,
+      carbs: carbs * portions,
+      weight_g: 0,
+    },
+    servings: portions,
+    confidence: 1,
+    warnings: [],
+    ingredients: [],
+    manual: true,
+    calculated_at: new Date().toISOString(),
+    model: "manual",
+  };
+}
+
 export default function UserRecipeForm({
   categories,
   recipeId,
@@ -89,6 +130,10 @@ export default function UserRecipeForm({
   const locale = useLocale() as LocaleCode;
   const router = useRouter();
   const coverInputRef = useRef<HTMLInputElement>(null);
+  // Блок действий (кнопки + ошибки) — чтобы прокрутить к нему при ошибке
+  // сохранения: иначе сообщение прячется внизу длинной формы и человек не видит,
+  // почему рецепт «молча не сохранился».
+  const actionsRef = useRef<HTMLDivElement>(null);
 
   const [title, setTitle] = useState(defaultValues?.title ?? "");
   const [description, setDescription] = useState(defaultValues?.description ?? "");
@@ -135,6 +180,17 @@ export default function UserRecipeForm({
   );
   const [calcLoading, setCalcLoading] = useState(false);
   const [calcError, setCalcError] = useState<string | null>(null);
+  // Модалка пошагового разрешения спорных ингредиентов.
+  const [resolveOpen, setResolveOpen] = useState(false);
+
+  // Ручной ввод КБЖУ блюда (для составных/нетиповых блюд). Стартуем в ручном
+  // режиме, если у рецепта уже сохранено ручное КБЖУ.
+  const manualInit = defaultValues?.nutrition?.manual ? defaultValues.nutrition.per_serving : null;
+  const [manualMode, setManualMode] = useState(!!manualInit);
+  const [manualKcal, setManualKcal] = useState(manualInit ? String(manualInit.kcal) : "");
+  const [manualProtein, setManualProtein] = useState(manualInit ? String(manualInit.protein) : "");
+  const [manualFat, setManualFat] = useState(manualInit ? String(manualInit.fat) : "");
+  const [manualCarbs, setManualCarbs] = useState(manualInit ? String(manualInit.carbs) : "");
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -152,6 +208,8 @@ export default function UserRecipeForm({
         return t("importErrTimeout");
       case "unreachable":
         return t("importErrUnreachable");
+      case "js_blocked":
+        return t("importErrJsBlocked");
       case "not_recipe":
         return t("importErrNotRecipe");
       default:
@@ -166,7 +224,7 @@ export default function UserRecipeForm({
     setImportError(null);
     setImportNotice(null);
     try {
-      const res = await fetch("/api/recipes/import-url", {
+      const res = await fetchWithTimeout("/api/recipes/import-url", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url }),
@@ -182,6 +240,15 @@ export default function UserRecipeForm({
       }
 
       const r = json.recipe;
+      // Защита от «молчаливого» провала: иногда импорт формально успешен, но
+      // вернулся пустой/скудный рецепт. Если нет ни состава, ни шагов, ни
+      // названия — честно говорим, что не вышло, и НЕ затираем форму.
+      const hasIngredients = (r.ingredients ?? []).some((s) => s.trim().length > 0);
+      const hasSteps = (r.steps ?? []).length > 0;
+      if (!r.title?.trim() && !hasIngredients && !hasSteps) {
+        setImportError(importErrorMessage("not_recipe"));
+        return;
+      }
       // Тип ставим первым: для «напитка» обнуляются время/порции, поэтому их
       // выставляем только для еды.
       changeRecipeType(r.recipe_type === "drink" ? "drink" : "food");
@@ -202,11 +269,17 @@ export default function UserRecipeForm({
       }
       // КБЖУ пересчитывается по новому составу — старое значение не тащим.
       setNutrition(null);
-      setImportNotice(
-        json.source === "structured" ? t("importDoneStructured") : t("importDoneAi"),
-      );
-    } catch {
-      setImportError(t("importErrGeneric"));
+      if (!hasIngredients) {
+        // Поля частично заполнены, но состав не подтянулся — предупреждаем
+        // явно (без него не посчитать КБЖУ), а не показываем «готово».
+        setImportError(t("importPartial"));
+      } else {
+        setImportNotice(
+          json.source === "structured" ? t("importDoneStructured") : t("importDoneAi"),
+        );
+      }
+    } catch (e) {
+      setImportError(isTimeoutError(e) ? t("importErrTimeout") : t("importErrGeneric"));
     } finally {
       setImporting(false);
     }
@@ -234,6 +307,8 @@ export default function UserRecipeForm({
           photoFile: s.photoFile ? `${s.photoFile.name}:${s.photoFile.size}` : null,
         })),
         nutrition,
+        manualMode,
+        manual: [manualKcal, manualProtein, manualFat, manualCarbs],
       }),
     [
       title,
@@ -248,6 +323,11 @@ export default function UserRecipeForm({
       selectedCategoryIds,
       steps,
       nutrition,
+      manualMode,
+      manualKcal,
+      manualProtein,
+      manualFat,
+      manualCarbs,
     ],
   );
   const initialSnapshotRef = useRef<string | null>(null);
@@ -265,7 +345,8 @@ export default function UserRecipeForm({
     steps.length > 0 ||
     cookTime !== null ||
     servings !== null ||
-    nutrition !== null;
+    nutrition !== null ||
+    manualKcal.trim() !== "";
   // Во время сохранения не считаем форму «грязной», чтобы не мешать редиректу.
   // Создание: «грязно», если есть содержимое. Редактирование: если что-то изменилось.
   const isDirty =
@@ -373,7 +454,7 @@ export default function UserRecipeForm({
     setCalcLoading(true);
     setCalcError(null);
     try {
-      const res = await fetch("/api/recipes/calculate-nutrition", {
+      const res = await fetchWithTimeout("/api/recipes/calculate-nutrition", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ingredients, servings }),
@@ -383,22 +464,34 @@ export default function UserRecipeForm({
         setCalcError(json.error || t("nutritionError"));
         return;
       }
-      setNutrition(json.nutrition as NutritionData);
-    } catch {
-      setCalcError(t("nutritionError"));
+      const n = json.nutrition as NutritionData;
+      setNutrition(n);
+      // Есть спорные ингредиенты — сразу открываем пошаговую модалку.
+      if (buildResolveQueue(n).length > 0) setResolveOpen(true);
+    } catch (e) {
+      setCalcError(isTimeoutError(e) ? t("nutritionTimeout") : t("nutritionError"));
     } finally {
       setCalcLoading(false);
     }
   };
 
+  // Показать ошибку И прокрутить к блоку действий, чтобы она была видна
+  // (сообщение в самом низу длинной формы иначе остаётся незамеченным).
+  const showError = (msg: string) => {
+    setError(msg);
+    requestAnimationFrame(() =>
+      actionsRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }),
+    );
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) {
-      setError(t("errTitle"));
+      showError(t("errTitle"));
       return;
     }
     if (steps.some((s) => !s.description.trim())) {
-      setError(t("errStep"));
+      showError(t("errStep"));
       return;
     }
 
@@ -425,6 +518,16 @@ export default function UserRecipeForm({
         }),
       );
 
+      // КБЖУ: у напитков нет; в ручном режиме — собираем из полей; иначе AI-расчёт.
+      const effectiveNutrition = isDrink
+        ? null
+        : manualMode
+          ? buildManualNutrition(
+              { kcal: manualKcal, protein: manualProtein, fat: manualFat, carbs: manualCarbs },
+              servings,
+            )
+          : nutrition;
+
       const payload = {
         title,
         description,
@@ -436,7 +539,7 @@ export default function UserRecipeForm({
         categoryIds: Array.from(selectedCategoryIds),
         cover_image: coverUrl,
         steps: resolvedSteps,
-        nutrition: isDrink ? null : nutrition,
+        nutrition: effectiveNutrition,
       };
 
       const result: UserRecipeResult = recipeId
@@ -446,9 +549,9 @@ export default function UserRecipeForm({
       if (!result.ok) {
         if (result.code === "limit") {
           const limit = result.error.split(":")[1] || "";
-          setError(t("errLimit", { limit }));
+          showError(t("errLimit", { limit }));
         } else {
-          setError(t("errGeneric"));
+          showError(t("errGeneric"));
         }
         setSaving(false);
         return;
@@ -457,7 +560,7 @@ export default function UserRecipeForm({
       router.push(`/dashboard/recipes/${result.id}`);
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("errGeneric"));
+      showError(err instanceof Error ? err.message : t("errGeneric"));
       setSaving(false);
     }
   };
@@ -714,73 +817,123 @@ export default function UserRecipeForm({
           <p className="mt-1 text-xs text-muted">{t("ingredientsHint")}</p>
         </section>
 
-        {/* КБЖУ через AI — только для аккаунтов с доступом к AI (premium) и только
-            для еды (у напитков КБЖУ нет). Кнопка неактивна, пока не заполнен состав. */}
+        {/* КБЖУ — только premium (aiEnabled) и только для еды. Два режима:
+            AI-расчёт по составу или ручной ввод (для составных/нетиповых блюд). */}
         {aiEnabled && !isDrink && (
           <section className="border border-rule bg-crust/40 p-5">
-            <p className="mb-1 text-xs uppercase tracking-wider text-soft">{t("nutritionTitle")}</p>
-            <p className="mb-4 text-xs text-muted">{t("nutritionHint")}</p>
-            <div className="flex flex-wrap items-center gap-3">
-              <EditorialButton
-                type="button"
-                variant="ghost"
-                onClick={handleCalcNutrition}
-                disabled={calcLoading || !ingredients.trim()}
-                className="px-6 py-3"
-              >
-                {calcLoading
-                  ? t("nutritionCalculating")
-                  : nutrition
-                    ? t("nutritionRecalc")
-                    : t("nutritionCalc")}
-              </EditorialButton>
-              {!ingredients.trim() && (
-                <span className="text-xs text-muted">{t("nutritionNeedIngredients")}</span>
-              )}
-              {calcError && <span className="text-sm text-red-500">{calcError}</span>}
+            <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+              <p className="text-xs uppercase tracking-wider text-soft">{t("nutritionTitle")}</p>
+              <div className="inline-flex gap-1">
+                {([false, true] as const).map((manual) => (
+                  <button
+                    key={String(manual)}
+                    type="button"
+                    onClick={() => setManualMode(manual)}
+                    className={cn(
+                      "rounded-none border px-2.5 py-1 text-[11px] uppercase tracking-wider transition-colors",
+                      manualMode === manual
+                        ? "border-burg bg-burg text-paper"
+                        : "border-rule bg-transparent text-soft hover:border-burg hover:text-burg",
+                    )}
+                  >
+                    {manual ? t("nutritionModeManual") : t("nutritionModeAi")}
+                  </button>
+                ))}
+              </div>
             </div>
-            {nutrition?.per_serving && (
-              <div className="mt-4 border-t border-rule pt-4">
-                <p>
-                  <span className="font-display text-3xl leading-none text-burg">
-                    {nutrition.per_serving.kcal}
-                  </span>{" "}
-                  <span className="text-xs uppercase tracking-wider text-soft">
-                    {tn("kcal")} · {t("nutritionPerServing")}
-                  </span>
-                </p>
-                <p className="mt-2 text-xs text-soft">
-                  {tn("protein")} {nutrition.per_serving.protein} {tn("gram")} · {tn("fat")}{" "}
-                  {nutrition.per_serving.fat} {tn("gram")} · {tn("carbs")}{" "}
-                  {nutrition.per_serving.carbs} {tn("gram")}
+            <p className="mb-4 text-xs text-muted">
+              {manualMode ? t("nutritionManualHint") : t("nutritionHint")}
+            </p>
+
+            {manualMode ? (
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                {(
+                  [
+                    ["kcal", manualKcal, setManualKcal, tn("kcal")],
+                    ["protein", manualProtein, setManualProtein, tn("protein")],
+                    ["fat", manualFat, setManualFat, tn("fat")],
+                    ["carbs", manualCarbs, setManualCarbs, tn("carbs")],
+                  ] as const
+                ).map(([key, val, setter, label]) => (
+                  <div key={key}>
+                    <label className="mb-1 block text-[11px] uppercase tracking-wider text-soft">
+                      {label}
+                    </label>
+                    <input
+                      type="number"
+                      min={0}
+                      inputMode="decimal"
+                      value={val}
+                      onChange={(e) => setter(e.target.value)}
+                      placeholder={key === "kcal" ? "320" : "0"}
+                      className={inputClass}
+                    />
+                  </div>
+                ))}
+                <p className="col-span-2 text-[11px] text-muted sm:col-span-4">
+                  {t("nutritionManualNote")}
                 </p>
               </div>
+            ) : (
+              <>
+                <div className="flex flex-wrap items-center gap-3">
+                  <EditorialButton
+                    type="button"
+                    variant="ghost"
+                    onClick={handleCalcNutrition}
+                    disabled={calcLoading || !ingredients.trim()}
+                    className="px-6 py-3"
+                  >
+                    {calcLoading
+                      ? t("nutritionCalculating")
+                      : nutrition && !nutrition.manual
+                        ? t("nutritionRecalc")
+                        : t("nutritionCalc")}
+                  </EditorialButton>
+                  {!ingredients.trim() && (
+                    <span className="text-xs text-muted">{t("nutritionNeedIngredients")}</span>
+                  )}
+                  {calcError && <span className="text-sm text-red-500">{calcError}</span>}
+                </div>
+
+                {nutrition?.per_serving && !nutrition.manual && (
+                  <div className="mt-4 border-t border-rule pt-4">
+                    <p>
+                      <span className="font-display text-3xl leading-none text-burg">
+                        {nutrition.per_serving.kcal}
+                      </span>{" "}
+                      <span className="text-xs uppercase tracking-wider text-soft">
+                        {tn("kcal")} · {t("nutritionPerServing")}
+                      </span>
+                    </p>
+                    <p className="mt-2 text-xs text-soft">
+                      {tn("protein")} {nutrition.per_serving.protein} {tn("gram")} · {tn("fat")}{" "}
+                      {nutrition.per_serving.fat} {tn("gram")} · {tn("carbs")}{" "}
+                      {nutrition.per_serving.carbs} {tn("gram")}
+                    </p>
+                  </div>
+                )}
+
+                {/* Тихая пометка: остались спорные ингредиенты — кнопка открывает модалку. */}
+                {nutrition &&
+                  !nutrition.manual &&
+                  buildResolveQueue(nutrition).length > 0 && (
+                    <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 bg-ochre/10 px-4 py-3">
+                      <span className="text-xs text-ochre-dk">
+                        {t("nutritionApprox", { count: buildResolveQueue(nutrition).length })}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setResolveOpen(true)}
+                        className="text-xs font-medium text-burg underline underline-offset-2 transition-colors hover:text-burg-dk"
+                      >
+                        {t("nutritionRefine")}
+                      </button>
+                    </div>
+                  )}
+              </>
             )}
           </section>
-        )}
-
-        {/* Fuzzy-матчи — AI нашёл похожие, но не точные совпадения.
-            Показываем карточки «вы написали → мы засчитали» с кнопками «Подходит / Заменить».
-            Только для матчей с similarity < 0.85 — высококонфидентные принимаем молча. */}
-        {aiEnabled && !isDrink && nutrition?.ingredients && (
-          <FuzzyMatchReview
-            ingredients={nutrition.ingredients}
-            ingredientsText={ingredients}
-            servings={servings}
-            onResolved={(n) => setNutrition(n)}
-          />
-        )}
-
-        {/* Блок «не нашли в базе» — после расчёта КБЖУ. Юзер выбирает: считать
-            как X / выбрать другой / пропустить из расчёта. Решение запоминается
-            как алиас, рецепт пересчитывается, новый nutrition приходит в onResolved. */}
-        {aiEnabled && !isDrink && nutrition?.unmatched && nutrition.unmatched.length > 0 && (
-          <UnmatchedIngredients
-            unmatched={nutrition.unmatched}
-            ingredientsText={ingredients}
-            servings={servings}
-            onResolved={(n) => setNutrition(n)}
-          />
         )}
 
         {/* Categories */}
@@ -919,20 +1072,22 @@ export default function UserRecipeForm({
         </section>
 
         {/* Actions */}
-        <div className="flex flex-wrap items-center gap-3 border-t border-rule pt-6">
-          <EditorialButton type="submit" disabled={saving} className="px-7 py-3">
-            {saving ? t("saving") : t("save")}
-          </EditorialButton>
-          <EditorialButton
-            type="button"
-            variant="ghost"
-            onClick={guardedBack}
-            disabled={saving}
-            className="px-6 py-3"
-          >
-            {t("cancel")}
-          </EditorialButton>
-          {error && <span className="text-sm text-red-500">{error}</span>}
+        <div ref={actionsRef} className="flex flex-col gap-3 border-t border-rule pt-6">
+          <div className="flex flex-wrap items-center gap-3">
+            <EditorialButton type="submit" disabled={saving} className="px-7 py-3">
+              {saving ? t("saving") : t("save")}
+            </EditorialButton>
+            <EditorialButton
+              type="button"
+              variant="ghost"
+              onClick={guardedBack}
+              disabled={saving}
+              className="px-6 py-3"
+            >
+              {t("cancel")}
+            </EditorialButton>
+            {error && <span className="text-sm text-red-500">{error}</span>}
+          </div>
         </div>
       </form>
 
@@ -944,6 +1099,17 @@ export default function UserRecipeForm({
           cancelLabel={t("leaveCancel")}
           onConfirm={confirmLeave}
           onCancel={cancelLeave}
+        />
+      )}
+
+      {/* Пошаговое разрешение спорных ингредиентов КБЖУ. */}
+      {resolveOpen && nutrition && !nutrition.manual && (
+        <NutritionResolveModal
+          nutrition={nutrition}
+          ingredientsText={ingredients}
+          servings={servings}
+          onResolved={(n) => setNutrition(n)}
+          onClose={() => setResolveOpen(false)}
         />
       )}
     </>

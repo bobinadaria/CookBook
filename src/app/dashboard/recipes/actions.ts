@@ -188,40 +188,16 @@ export async function updateUserRecipe(
   const catErr = await insertCategories(supabase, recipeId, input.categoryIds);
   if (catErr) return { ok: false, error: catErr.message, code: "db" };
 
-  // Upsert steps: keep existing rows (by id) so we don't churn ids; delete
-  // rows whose order is no longer present; insert new ones.
-  const incomingOrders = input.steps.map((s) => s.order);
-  const delSteps =
-    incomingOrders.length > 0
-      ? await supabase
-          .from("steps")
-          .delete()
-          .eq("recipe_id", recipeId)
-          .not("order", "in", `(${incomingOrders.join(",")})`)
-      : await supabase.from("steps").delete().eq("recipe_id", recipeId);
+  // Заменяем шаги целиком: удаляем все по recipe_id и вставляем заново.
+  // Почему не точечный upsert по order: колонка "order" совпадает с
+  // зарезервированным параметром PostgREST — фильтр `.not("order", in, …)`
+  // падает с PGRST100 ("failed to parse order") на КАЖДОМ сохранении. Плюс форма
+  // перенумеровывает order при удалении шага, поэтому «удалить по старому order»
+  // логически неверно. Delete-all + insert чисто и не зависит от id/order.
+  const delSteps = await supabase.from("steps").delete().eq("recipe_id", recipeId);
   if (delSteps.error) return { ok: false, error: delSteps.error.message, code: "db" };
-
-  for (const step of input.steps) {
-    const res = step.id
-      ? await supabase
-          .from("steps")
-          .update({
-            order: step.order,
-            title: step.title.trim() || null,
-            description: step.description,
-            photo_url: step.photo_url,
-          })
-          .eq("id", step.id)
-          .eq("recipe_id", recipeId)
-      : await supabase.from("steps").insert({
-          recipe_id: recipeId,
-          order: step.order,
-          title: step.title.trim() || null,
-          description: step.description,
-          photo_url: step.photo_url,
-        });
-    if (res.error) return { ok: false, error: res.error.message, code: "db" };
-  }
+  const stepErr = await insertSteps(supabase, recipeId, input.steps);
+  if (stepErr) return { ok: false, error: stepErr.message, code: "db" };
 
   revalidatePath("/dashboard/recipes");
   revalidatePath(`/dashboard/recipes/${recipeId}`);

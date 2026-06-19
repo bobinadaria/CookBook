@@ -252,60 +252,32 @@ export async function updateRecipe(recipeId: string, input: RecipeInput): Promis
     );
   }
 
-  // 4. Upsert steps — preserve existing IDs (and their _en translations)
-  //    Steps with an id are updated in-place; new steps (no id) are inserted.
-  //    Steps no longer in the list are deleted by order exclusion.
-  const incomingOrders = input.steps.map((s) => s.order);
+  // 4. Заменяем шаги целиком: удаляем все по recipe_id и вставляем заново.
+  //    Раньше удаление шло через `.not("order", in, …)`, но "order" совпадает с
+  //    зарезервированным параметром PostgREST → запрос падал (ошибка молча
+  //    игнорировалась, удалённые шаги НЕ убирались из БД). Плюс форма
+  //    перенумеровывает order. Delete-all + insert надёжнее; _en-поля и фото
+  //    сохраняются — форма передаёт их в input.steps.
+  await supabase.from("steps").delete().eq("recipe_id", recipeId);
 
-  // Delete steps whose order is no longer present
-  if (incomingOrders.length > 0) {
-    await supabase
-      .from("steps")
-      .delete()
-      .eq("recipe_id", recipeId)
-      .not("order", "in", `(${incomingOrders.join(",")})`);
-  } else {
-    await supabase.from("steps").delete().eq("recipe_id", recipeId);
-  }
-
-  if (input.steps.length > 0) {
-    for (const step of input.steps) {
-      let photo_url = step.photo_url;
-      if (step.photoFile) {
-        photo_url = await uploadFile(
-          "step-photos",
-          `${recipeId}/${safeFileName(step.photoFile)}`,
-          step.photoFile
-        );
-      }
-
-      if (step.id) {
-        // Update existing step in-place, включая английские поля (форма грузит их
-        // из БД и обновляет при авто-переводе, поэтому пишем их явно).
-        await supabase
-          .from("steps")
-          .update({
-            order: step.order,
-            title: step.title || null,
-            description: step.description,
-            title_en: step.title_en?.trim() || null,
-            description_en: step.description_en?.trim() || null,
-            photo_url,
-          })
-          .eq("id", step.id);
-      } else {
-        // Insert new step
-        await supabase.from("steps").insert({
-          recipe_id: recipeId,
-          order: step.order,
-          title: step.title || null,
-          description: step.description,
-          title_en: step.title_en?.trim() || null,
-          description_en: step.description_en?.trim() || null,
-          photo_url,
-        });
-      }
+  for (const step of input.steps) {
+    let photo_url = step.photo_url;
+    if (step.photoFile) {
+      photo_url = await uploadFile(
+        "step-photos",
+        `${recipeId}/${safeFileName(step.photoFile)}`,
+        step.photoFile
+      );
     }
+    await supabase.from("steps").insert({
+      recipe_id: recipeId,
+      order: step.order,
+      title: step.title || null,
+      description: step.description,
+      title_en: step.title_en?.trim() || null,
+      description_en: step.description_en?.trim() || null,
+      photo_url,
+    });
   }
 }
 

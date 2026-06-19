@@ -73,7 +73,7 @@ export default async function EditUserRecipePage({
           href={`/dashboard/recipes/${id}`}
           className="font-body text-[11px] font-semibold uppercase tracking-[0.16em] text-soft transition-colors hover:text-burg"
         >
-          {t("back")}
+          {t("backToRecipe")}
         </Link>
         <h1 className="mt-3 font-display text-[clamp(2rem,4vw,3rem)] font-normal leading-[0.95] tracking-[-0.02em] text-burg">
           {t("editTitle")}
