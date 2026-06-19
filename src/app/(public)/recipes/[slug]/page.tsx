@@ -241,7 +241,8 @@ export default async function RecipePage({ params }: RecipePageProps) {
           <span className="flex items-center gap-2 text-burg">
             <FavoriteButton
               slug={recipe.slug}
-              className="h-7 w-7 rounded-none bg-transparent text-burg shadow-none hover:scale-100"
+              size="lg"
+              className="h-9 w-9 rounded-none bg-transparent text-burg shadow-none hover:scale-100"
             />
           </span>
         </div>

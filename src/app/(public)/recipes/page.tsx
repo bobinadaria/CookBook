@@ -48,6 +48,31 @@ function getSearchableText(recipe: Recipe): string {
     .toLowerCase();
 }
 
+/** Нормализация для поиска: ё→е + lowercase (заодно ловим «свекла/свёкла»). */
+function normalizeSearch(s: string): string {
+  return s.toLowerCase().replace(/ё/g, "е");
+}
+
+/**
+ * Поиск с устойчивостью к склонениям: «котлеты» находят «котлета», «вафлю» —
+ * «вафля». Каждое слово запроса (≥3 букв) сверяем по нему и по «основам» —
+ * отбрасываем до 2 последних букв (русские окончания). Все слова должны совпасть.
+ * Короткие слова (<3) — точное вхождение.
+ */
+function matchesSearch(text: string, query: string): boolean {
+  const haystack = normalizeSearch(text);
+  const tokens = normalizeSearch(query).split(/\s+/).filter(Boolean);
+  if (tokens.length === 0) return true;
+  return tokens.every((tok) => {
+    if (tok.length < 3) return haystack.includes(tok);
+    for (let cut = 0; cut <= 2; cut++) {
+      const stem = tok.slice(0, tok.length - cut);
+      if (stem.length >= 3 && haystack.includes(stem)) return true;
+    }
+    return false;
+  });
+}
+
 export default function RecipesPage() {
   const t = useTranslations("recipes");
   const tf = useTranslations("filters");
@@ -155,10 +180,7 @@ export default function RecipesPage() {
   const filtered = useMemo(() => {
     return recipes.filter((recipe) => {
       if (drinksOnly && recipe.recipe_type !== "drink") return false;
-      if (search) {
-        const q = search.toLowerCase();
-        if (!getSearchableText(recipe).includes(q)) return false;
-      }
+      if (search && !matchesSearch(getSearchableText(recipe), search)) return false;
       for (const [groupType, ids] of Object.entries(activeFilters)) {
         if (ids.size === 0) continue;
         const recipeIds = new Set(

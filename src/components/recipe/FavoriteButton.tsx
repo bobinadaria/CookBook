@@ -8,9 +8,11 @@ import { useFavorites } from "@/context/FavoritesContext";
 interface FavoriteButtonProps {
   slug: string;
   className?: string;
+  /** Размер иконки. "sm" — карточки (по умолчанию), "lg" — страница рецепта. */
+  size?: "sm" | "lg";
 }
 
-export default function FavoriteButton({ slug, className }: FavoriteButtonProps) {
+export default function FavoriteButton({ slug, className, size = "sm" }: FavoriteButtonProps) {
   const t = useTranslations("common");
   const { user, favorites, toggle } = useFavorites();
   const router = useRouter();
@@ -37,7 +39,7 @@ export default function FavoriteButton({ slug, className }: FavoriteButtonProps)
       onClick={handleClick}
       aria-label={isFavorited ? t("removeFromFavorites") : t("addToFavorites")}
       className={cn(
-        // Visual size
+        // Visual size (карточный размер — как было)
         "w-8 h-8 rounded-full flex items-center justify-center",
         "bg-paper/90 backdrop-blur-sm shadow-sm",
         "transition-all duration-200",
@@ -51,7 +53,7 @@ export default function FavoriteButton({ slug, className }: FavoriteButtonProps)
       )}
     >
       <svg
-        className="w-3.5 h-3.5"
+        className={size === "lg" ? "w-6 h-6" : "w-3.5 h-3.5"}
         viewBox="0 0 24 24"
         fill={isFavorited ? "currentColor" : "none"}
         stroke="currentColor"
