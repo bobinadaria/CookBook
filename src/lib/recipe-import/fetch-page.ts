@@ -79,11 +79,16 @@ export async function safeFetchHtml(rawUrl: string): Promise<string> {
       redirect: "follow",
       signal: controller.signal,
       headers: {
-        // Некоторые сайты режут запросы без «браузерного» User-Agent.
+        // Прикидываемся настоящим десктопным Chrome. Многие сайты (напр.
+        // andychef.ru) отдают «бот»-заглушку «включите JS» на честный
+        // bot-UA, хотя страница полностью server-rendered. С браузерным UA
+        // приходит нормальный HTML (проверено: 79КБ с составом и шагами).
         "User-Agent":
-          "Mozilla/5.0 (compatible; SlowTableBot/1.0; +https://bydaria.kitchen)",
-        Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "ru,en;q=0.8",
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+        Accept:
+          "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+        "Accept-Language": "ru-RU,ru;q=0.9,en;q=0.8",
+        "Upgrade-Insecure-Requests": "1",
       },
     });
   } catch (err) {

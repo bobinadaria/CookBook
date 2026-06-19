@@ -87,7 +87,7 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     if (err instanceof RecipeImportError) {
       // not_recipe — это «не нашли», остальное — проблема доступа к странице.
-      const status = err.code === "not_recipe" ? 422 : 400;
+      const status = err.code === "not_recipe" || err.code === "js_blocked" ? 422 : 400;
       return NextResponse.json({ error: err.message, code: err.code }, { status });
     }
     const msg = err instanceof Error ? err.message : String(err);

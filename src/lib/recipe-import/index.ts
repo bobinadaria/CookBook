@@ -26,6 +26,23 @@ export interface ImportResult {
   source: ImportSource;
 }
 
+/**
+ * Похоже ли это на анти-бот «бот»-заглушку «включите JavaScript».
+ *
+ * Проверяем по СЫРОМУ html (а не по очищенному тексту): фраза часто лежит в
+ * <noscript>, который вычищается при htmlToReadableText. Признак заглушки —
+ * крошечная страница (настоящие рецепты — десятки КБ), упоминающая JS вместе
+ * с характерным словом-триггером. Пример (andychef): 950 байт с
+ * «<noscript>Вам нужно включить поддержку js…</noscript>».
+ */
+function looksLikeJsGate(html: string): boolean {
+  if (html.length > 5000) return false; // настоящая страница рецепта крупнее
+  const s = html.toLowerCase();
+  const mentionsJs = /javascript|\bjs\b/.test(s);
+  const gateWord = /включ|enable|поддержк|requires?|noscript/.test(s);
+  return mentionsJs && gateWord;
+}
+
 /** Бросает ошибку, если HTML не удалось декодировать (много U+FFFD). */
 function assertReadable(html: string): void {
   const replacements = (html.match(/�/g) || []).length;
@@ -68,6 +85,17 @@ export async function importRecipeFromUrl(url: string): Promise<ImportResult> {
   // НЕ зовём AI — иначе модель «додумает» рецепт по мусору. Лучше честно сказать.
   assertReadable(html);
 
+  // Анти-бот JS/cookie-заслонка (напр. andychef): сервер без выполнения JS
+  // получает крошечную заглушку «включите JS» (часто внутри <noscript>). Это НЕ
+  // «рецепт не найден» — сайт в принципе не отдаётся автоимпорту. Проверяем по
+  // СЫРОМУ html и раньше всего, чтобы дать честное отдельное сообщение.
+  if (looksLikeJsGate(html)) {
+    throw new RecipeImportError(
+      "js_blocked",
+      "Сайт защищён от автоимпорта (требует JavaScript) — рецепт не получить автоматически.",
+    );
+  }
+
   // 1. Бесплатный путь — микроразметка.
   const structured = extractRecipeFromJsonLd(html);
   if (structured) {
@@ -85,7 +113,7 @@ export async function importRecipeFromUrl(url: string): Promise<ImportResult> {
   // 2. AI-фолбэк — текст страницы → gpt-4o-mini.
   const text = htmlToReadableText(html);
   if (!text || text.length < 40) {
-    // Пустая/JS-only страница — извлекать нечего.
+    // Пустая / без читаемого текста страница — извлекать нечего.
     throw new RecipeImportError(
       "not_recipe",
       "Страница пустая или подгружает контент скриптами — рецепт не найден.",
