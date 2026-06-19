@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
@@ -18,15 +18,11 @@ interface NavItem {
 
 export default function Header() {
   const pathname = usePathname();
-  const router = useRouter();
   const t = useTranslations("nav");
   const th = useTranslations("header");
-  const tp = useTranslations("dashboard");
 
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [plan, setPlan] = useState<"free" | "premium" | "lifetime">("free");
-  const [signingOut, setSigningOut] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
@@ -38,22 +34,19 @@ export default function Header() {
     const applyUser = async (nextUser: User | null) => {
       currentUserId = nextUser?.id ?? null;
       setUser(nextUser);
-      // Сброс в первую очередь: никогда не тащим флаг админа/план из прошлого аккаунта.
+      // Сброс в первую очередь: никогда не тащим флаг админа из прошлого аккаунта.
       setIsAdmin(false);
-      setPlan("free");
       if (!nextUser) return;
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("role, plan")
+        .select("role")
         .eq("id", nextUser.id)
         .single();
 
       // Игнорируем «опоздавший» ответ, если активный пользователь уже сменился.
       if (currentUserId !== nextUser.id) return;
       setIsAdmin(profile?.role === "admin");
-      const p = (profile as { plan?: string } | null)?.plan;
-      setPlan(p === "premium" || p === "lifetime" ? p : "free");
     };
 
     supabase.auth.getUser().then(({ data }) => applyUser(data.user));
@@ -80,53 +73,45 @@ export default function Header() {
     return () => { document.body.style.overflow = prev; };
   }, [mobileOpen]);
 
-  const handleSignOut = async () => {
-    setSigningOut(true);
-    setMobileOpen(false);
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push("/");
-    router.refresh();
-  };
+  // В кабинете («Моя книга») — отдельное пространство: глобальное меню
+  // «Обложка/Рецепты» прячем, оставляем только «← На сайт» (выход в журнал).
+  // Навигация внутри кабинета (Мои рецепты / Мой аккаунт) — это DashboardTabs.
+  const inCabinet = pathname.startsWith("/dashboard");
 
-  const navItems: NavItem[] = [
-    { href: "/", label: t("home"), active: pathname === "/" },
-    { href: "/recipes", label: t("recipes"), active: pathname.startsWith("/recipes") },
-  ];
-  if (!user) {
-    // «Подписка» — витрина для гостей. У вошедших она живёт внутри «Моей книги»
-    // (вкладка «Аккаунт» → ссылка на тарифы), поэтому из верхнего меню её убираем.
-    navItems.push({ href: "/pricing", label: t("pricing"), active: pathname.startsWith("/pricing") });
-  }
-  if (user) {
-    // Единая точка входа в кабинет. Внутри — вкладки «Рецепты» и «Аккаунт».
-    navItems.push({
-      href: "/dashboard/recipes",
-      label: t("myBook"),
-      active: pathname.startsWith("/dashboard"),
-    });
-  }
-  if (isAdmin) {
-    navItems.push({ href: "/admin", label: t("admin"), active: pathname.startsWith("/admin") });
+  let navItems: NavItem[];
+  if (inCabinet) {
+    navItems = [{ href: "/", label: `← ${t("backToSite")}`, active: false }];
+  } else {
+    navItems = [
+      { href: "/", label: t("home"), active: pathname === "/" },
+      { href: "/recipes", label: t("recipes"), active: pathname.startsWith("/recipes") },
+    ];
+    if (!user) {
+      // «Подписка» — витрина для гостей. У вошедших она живёт внутри «Моей книги».
+      navItems.push({ href: "/pricing", label: t("pricing"), active: pathname.startsWith("/pricing") });
+    }
+    // «Моя книга» больше НЕ в центральном меню — она в правом верхнем углу.
+    // Тариф и «Выйти» живут только в профиле (/dashboard → «Аккаунт»).
+    if (isAdmin) {
+      navItems.push({ href: "/admin", label: t("admin"), active: pathname.startsWith("/admin") });
+    }
   }
 
-  // Бейдж плана пользователя (free/premium/lifetime). Premium/Lifetime —
-  // акцентный (охра), Free — приглушённый. Показываем только вошедшим.
-  const isPaid = plan === "premium" || plan === "lifetime";
-  const planLabel =
-    plan === "premium" ? tp("planPremium") : plan === "lifetime" ? tp("planLifetime") : tp("planFree");
-  const planBadge = user ? (
+  // Кнопка-вход в кабинет «Моя книга» (правый верхний угол). Без иконки —
+  // в духе дизайн-системы (CLAUDE.md §7).
+  const accountActive = pathname.startsWith("/dashboard");
+  const accountButton = user ? (
     <Link
-      href="/pricing"
-      aria-label={planLabel}
+      href="/dashboard/recipes"
+      aria-label={t("myBook")}
       className={cn(
-        "rounded-none px-2 py-0.5 font-body text-[10px] font-semibold uppercase tracking-[0.12em] transition-colors",
-        isPaid
-          ? "bg-ochre-dk text-paper hover:bg-burg"
-          : "border border-rule text-soft hover:border-burg hover:text-burg",
+        "rounded-none border px-2.5 py-1 font-body text-[10px] font-semibold uppercase tracking-[0.16em] transition-colors",
+        accountActive
+          ? "border-burg text-burg"
+          : "border-rule text-soft hover:border-burg hover:text-burg",
       )}
     >
-      {planLabel}
+      {t("myBook")}
     </Link>
   ) : null;
 
@@ -140,15 +125,8 @@ export default function Header() {
           <span className="flex items-center gap-5">
             <LanguageSwitcher />
             <ThemeToggle />
-            {planBadge}
             {user ? (
-              <button
-                onClick={handleSignOut}
-                disabled={signingOut}
-                className="uppercase tracking-[0.16em] text-soft transition-colors hover:text-burg disabled:opacity-50"
-              >
-                {signingOut ? "…" : t("signOut")}
-              </button>
+              accountButton
             ) : (
               <Link href="/login" className="text-burg transition-colors hover:text-ochre-dk">
                 {t("signIn")} &rarr;
@@ -157,12 +135,10 @@ export default function Header() {
           </span>
         </div>
 
-        {/* Masthead row */}
-        <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-5 px-6 pb-5 pt-9 lg:px-14">
-          <span className="justify-self-start font-body text-[11px] font-semibold uppercase tracking-[0.16em] text-soft">
-            {th("taglineLeft")}
-          </span>
-          <Link href="/" className="flex flex-col items-center justify-self-center">
+        {/* Masthead row — только логотип по центру (боковые подписи убраны,
+            чтобы не рассеивать внимание на главном экране). */}
+        <div className="flex justify-center px-6 pb-5 pt-9 lg:px-14">
+          <Link href="/" className="flex flex-col items-center">
             <span className="whitespace-nowrap font-display text-[48px] font-normal italic leading-[0.9] tracking-[-0.02em] text-burg lg:text-[72px]">
               The Slow Table
             </span>
@@ -170,13 +146,16 @@ export default function Header() {
               by Daria
             </span>
           </Link>
-          <span className="justify-self-end font-body text-[11px] font-semibold uppercase tracking-[0.16em] text-soft">
-            {th("taglineRight")}
-          </span>
         </div>
 
-        {/* Nav row — sticky */}
-        <nav className="sticky top-0 z-40 flex justify-center gap-12 border-y border-rule bg-paper/95 px-6 py-3.5 backdrop-blur-sm lg:gap-14 lg:px-14">
+        {/* Nav row — sticky. В кабинете «← На сайт» прижимаем влево (привычный
+            паттерн возврата), на публичных страницах меню по центру. */}
+        <nav
+          className={cn(
+            "sticky top-0 z-40 flex gap-12 border-y border-rule bg-paper/95 px-6 py-3.5 backdrop-blur-sm lg:gap-14 lg:px-14",
+            inCabinet ? "justify-start" : "justify-center",
+          )}
+        >
           {navItems.map((it) => (
             <Link
               key={it.href}
@@ -280,33 +259,35 @@ export default function Header() {
               </Link>
             ))}
 
-            {planBadge && <div className="flex min-h-[44px] items-center">{planBadge}</div>}
-
-            <div className="my-2 h-px bg-rule" />
-
             {user ? (
-              <button
-                onClick={handleSignOut}
-                disabled={signingOut}
-                className="flex min-h-[48px] items-center text-left font-body text-[13px] uppercase tracking-[0.16em] text-soft transition-colors hover:text-burg disabled:opacity-50"
+              // Вход в кабинет. Тариф и «Выйти» — внутри, на вкладке «Аккаунт».
+              <Link
+                href="/dashboard/recipes"
+                className={cn(
+                  "flex min-h-[48px] items-center font-body text-[13px] uppercase tracking-[0.16em] transition-colors",
+                  accountActive ? "font-bold text-burg" : "font-medium text-soft hover:text-burg",
+                )}
               >
-                {signingOut ? "…" : t("signOut")}
-              </button>
+                {t("myBook")}
+              </Link>
             ) : (
-              <div className="flex flex-col gap-2 pb-2 pt-1">
-                <Link
-                  href="/login"
-                  className="flex min-h-[48px] items-center font-body text-[13px] uppercase tracking-[0.16em] text-soft transition-colors hover:text-burg"
-                >
-                  {t("signIn")}
-                </Link>
-                <Link
-                  href="/register"
-                  className="flex min-h-[48px] items-center justify-center bg-burg px-4 font-body text-[13px] font-semibold uppercase tracking-[0.16em] text-paper transition-colors hover:bg-burg-dk"
-                >
-                  {t("register")}
-                </Link>
-              </div>
+              <>
+                <div className="my-2 h-px bg-rule" />
+                <div className="flex flex-col gap-2 pb-2 pt-1">
+                  <Link
+                    href="/login"
+                    className="flex min-h-[48px] items-center font-body text-[13px] uppercase tracking-[0.16em] text-soft transition-colors hover:text-burg"
+                  >
+                    {t("signIn")}
+                  </Link>
+                  <Link
+                    href="/register"
+                    className="flex min-h-[48px] items-center justify-center bg-burg px-4 font-body text-[13px] font-semibold uppercase tracking-[0.16em] text-paper transition-colors hover:bg-burg-dk"
+                  >
+                    {t("register")}
+                  </Link>
+                </div>
+              </>
             )}
 
             <div className="pb-safe" />

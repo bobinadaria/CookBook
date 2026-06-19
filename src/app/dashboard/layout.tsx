@@ -16,7 +16,9 @@ export default function DashboardLayout({
 }) {
   return (
     <FavoritesProvider>
-      <div className="pt-16 min-h-dvh">
+      {/* Без pt-16: шапка должна стоять вплотную к верху, как на публичных
+          страницах (раньше лишний отступ делал хедер в кабинете выше). */}
+      <div className="min-h-dvh bg-paper">
         <Header />
         <DashboardTabs />
         {children}
