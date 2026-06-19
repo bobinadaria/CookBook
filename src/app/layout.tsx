@@ -8,6 +8,7 @@ import "@fontsource-variable/bodoni-moda";
 import "@fontsource-variable/bodoni-moda/wght-italic.css";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import CursorGlow from "@/components/animations/CursorGlow";
 import { ThemeProvider } from "@/components/layout/ThemeProvider";
@@ -111,6 +112,7 @@ export default async function RootLayout({
             {children}
           </NextIntlClientProvider>
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   );
