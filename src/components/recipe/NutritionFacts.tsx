@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import Link from "next/link";
 import { Eyebrow } from "@/components/ui";
 import type { NutritionData } from "@/types";
 
@@ -43,7 +44,15 @@ export default async function NutritionFacts({
             {t("perServingTitle")}
           </h2>
           <p className="max-w-[360px] font-body text-[14px] leading-[1.7] text-section-soft">
-            {nutrition.manual ? t("manualMethod") : t("method")}
+            {nutrition.manual
+              ? t("manualMethod")
+              : t.rich("method", {
+                  usda: (chunks) => (
+                    <Link href="/pricing#faq-usda" className="underline underline-offset-2 hover:text-section-fg">
+                      {chunks}
+                    </Link>
+                  ),
+                })}
           </p>
           <p className="mt-6 max-w-[360px] font-body text-[10px] font-semibold uppercase leading-[1.7] tracking-[0.16em] text-section-soft">
             ※ {nutrition.manual ? t("manualNote") : t("approximate")}

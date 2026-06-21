@@ -27,6 +27,9 @@ export default async function MyBookEmptyState() {
           <p className="mt-5 max-w-[480px] font-reader text-[17px] leading-[1.7] text-ink">
             {t("emptyLede")}
           </p>
+          <p className="mt-2 font-body text-[12px] font-semibold uppercase tracking-[0.13em] text-ochre-dk">
+            {t("emptyPrivacyNote")}
+          </p>
 
           <div className="mt-8 space-y-5 border-t border-rule pt-7">
             {magics.map((m) => (

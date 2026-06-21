@@ -26,10 +26,8 @@ export default async function HomePage() {
     <div className="bg-paper text-ink">
       {/* ── Hero spread ───────────────────────────────────────────────────── */}
       <section className="flex flex-col-reverse border-b border-rule lg:grid lg:grid-cols-[1fr_1.1fr] lg:min-h-[760px]">
-        {/* Left — chapter header + headline + lede + meta */}
+        {/* Left — headline + lede + meta */}
         <div className="flex flex-col justify-between gap-8 px-6 py-10 md:px-10 lg:gap-10 lg:px-14 lg:py-16">
-          <Eyebrow color="text-ochre-dk">{t("heroEyebrow")}</Eyebrow>
-
           <div>
             <h1 className="font-display text-[clamp(2.5rem,9vw,120px)] font-normal leading-[0.9] tracking-[-0.03em] text-burg lg:leading-[0.88]">
               {t("heroTitle1")}
@@ -37,7 +35,13 @@ export default async function HomePage() {
               <em className="italic text-ochre">{t("heroTitle2")}</em>
             </h1>
             <p className="mt-7 max-w-[520px] font-reader text-[19px] leading-[1.6] text-ink">
-              {t("heroDescriptor")}
+              {t.rich("heroDescriptor", {
+                usda: (chunks) => (
+                  <Link href="/pricing#faq-usda" className="underline underline-offset-2 hover:text-burg">
+                    {chunks}
+                  </Link>
+                ),
+              })}
             </p>
           </div>
 
@@ -173,12 +177,22 @@ export default async function HomePage() {
             </h2>
           </div>
           <div className="grid grid-cols-2 gap-x-5 gap-y-7 sm:gap-x-7">
-            {stats.map((s) => (
+            {stats.map((s, i) => (
               <div key={s.n} className="border-b border-section-rule pb-5">
                 <div className="font-display text-[40px] font-normal leading-none tracking-[-0.02em] text-ochre sm:text-[56px] lg:text-[64px]">
                   {s.n}
                 </div>
-                <p className="mt-2 font-body text-[12px] leading-[1.55] text-section-soft sm:text-[13px] sm:leading-[1.6]">{s.t}</p>
+                <p className="mt-2 font-body text-[12px] leading-[1.55] text-section-soft sm:text-[13px] sm:leading-[1.6]">
+                  {i === 0
+                    ? t.rich(`stats.${i}.t`, {
+                        usda: (chunks) => (
+                          <Link href="/pricing#faq-usda" className="underline underline-offset-2 hover:text-section-fg">
+                            {chunks}
+                          </Link>
+                        ),
+                      })
+                    : s.t}
+                </p>
               </div>
             ))}
           </div>

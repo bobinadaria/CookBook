@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getEntitlements, type Plan } from "@/lib/entitlements";
 import CheckoutProvider from "@/components/pricing/CheckoutProvider";
 import CheckoutButton from "@/components/pricing/CheckoutButton";
+import FaqAutoOpen from "@/components/pricing/FaqAutoOpen";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("pricing");
@@ -23,7 +24,6 @@ type FeatureValue = boolean | string;
 interface Tier {
   key: "free" | "premium" | "lifetime";
   name: string;
-  chapterLabel: string;
   numeral: string;
   price: string;
   cadence: string;
@@ -98,13 +98,14 @@ export default async function PricingPage() {
   const tiers = t.raw("tiers") as Tier[];
   const headerFacts = t.raw("headerFacts") as string[];
   const packs = t.raw("packs") as [string, string, string][];
-  const faq = t.raw("faq") as [string, string][];
+  const faq = t.raw("faq") as [string, string, string?][];
   const compareCols = t.raw("compareCols") as [string, string][];
   const compareGroups = t.raw("compareGroups") as CompareGroup[];
 
   return (
     <CheckoutProvider>
     <div className="bg-paper text-ink">
+      <FaqAutoOpen />
       {/* ── Header ──────────────────────────────────────────────────────── */}
       <section className="mx-auto max-w-[1320px] px-6 pb-14 pt-16 md:px-10 lg:px-14 lg:pt-[72px]">
         <div className="grid items-end gap-10 lg:grid-cols-[1.4fr_1fr] lg:gap-14">
@@ -117,8 +118,7 @@ export default async function PricingPage() {
             </h1>
           </div>
           <div>
-            <p className="font-body text-[16px] leading-[1.75] text-ink">{t("headerLede")}</p>
-            <div className="mt-6 flex flex-wrap justify-between gap-x-6 gap-y-2 border-t-2 border-burg pt-5 font-body text-[11px] font-semibold uppercase tracking-[0.13em] text-soft">
+            <div className="flex flex-wrap justify-between gap-x-6 gap-y-2 border-t-2 border-burg pt-5 font-body text-[11px] font-semibold uppercase tracking-[0.13em] text-soft">
               {headerFacts.map((f) => (
                 <span key={f}>
                   <span className="text-olive">●</span> {f}
@@ -162,16 +162,8 @@ export default async function PricingPage() {
                       {tier.numeral}
                     </span>
                     {/* Каноничное имя тарифа (Free/Premium/Lifetime) — единое во
-                        всех местах страницы; «Глава · …» уходит в подзаголовок. */}
+                        всех местах страницы. */}
                     <Eyebrow color={style.dark ? "text-ochre" : "text-ochre-dk"}>{tier.name}</Eyebrow>
-                  </div>
-                  <div
-                    className={cn(
-                      "mt-1 font-reader text-[12px] italic",
-                      style.dark ? "text-section-fg/60" : "text-soft",
-                    )}
-                  >
-                    {tier.chapterLabel}
                   </div>
 
                   <div className="mt-5 font-display text-[72px] font-normal leading-[0.9] tracking-[-0.03em] sm:text-[88px]">
@@ -399,8 +391,8 @@ export default async function PricingPage() {
             </h2>
           </div>
           <div>
-            {faq.map(([q, a], i) => (
-              <details key={i} className="group border-t border-rule py-5">
+            {faq.map(([q, a, id], i) => (
+              <details key={i} id={id} className="group border-t border-rule py-5">
                 <summary className="flex cursor-pointer items-baseline justify-between gap-6">
                   <span className="font-display text-[20px] font-normal italic text-burg sm:text-[22px]">{q}</span>
                   <span className="shrink-0 font-body text-[11px] font-bold uppercase tracking-[0.13em] text-ochre-dk">

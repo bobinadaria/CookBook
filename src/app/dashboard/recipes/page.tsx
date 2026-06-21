@@ -89,6 +89,9 @@ export default async function MyBookPage() {
           <h1 className="mt-3 font-display text-[clamp(2.75rem,6vw,72px)] font-normal leading-[0.92] tracking-[-0.03em] text-burg">
             {t("title")}
           </h1>
+          <p className="mt-2 font-body text-[11px] font-semibold uppercase tracking-[0.16em] text-soft">
+            {t("myBookPrivacyNote")}
+          </p>
         </div>
         <CreateRecipeButton disabled={atLimit} className="px-6 py-3" />
       </div>
