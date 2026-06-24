@@ -47,7 +47,10 @@ export default function PlanBanner({ plan = "free" }: { plan?: Plan }) {
       </div>
 
       {isPaid ? (
-        /* Premium/Lifetime — доступ открыт, без тизера апгрейда. */
+        /* Premium/Lifetime — доступ открыт, без тизера апгрейда. Downgrade —
+           только для Premium (подписка, есть что отменить); у Lifetime
+           разовый платёж, кнопки нет (см. DowngradeToFreeButton).
+           Кнопка даунгрейда намеренно спрятана внизу — не должна быть CTA. */
         <div>
           <p className="font-display text-3xl leading-none text-burg">{t("planActiveTitle")}</p>
           <p className="mt-2 font-body text-sm leading-relaxed text-soft">{t("premiumDesc")}</p>
@@ -90,14 +93,16 @@ export default function PlanBanner({ plan = "free" }: { plan?: Plan }) {
         </>
       )}
 
-      {/* Сравнить планы — прямая ссылка на отдельную страницу тарифов. */}
+      {/* Нижняя строка: сравнить планы + тихий даунгрейд для Premium */}
       <div className="mt-6 border-t border-rule pt-4">
-        <Link
-          href="/pricing"
-          className="font-body text-[12px] font-semibold uppercase tracking-[0.12em] text-burg transition-colors hover:text-ochre-dk"
-        >
-          {t("compareShow")} &rarr;
-        </Link>
+        <div className="flex items-center justify-between gap-4">
+          <Link
+            href="/pricing"
+            className="font-body text-[12px] font-semibold uppercase tracking-[0.12em] text-burg transition-colors hover:text-ochre-dk"
+          >
+            {t("compareShow")} &rarr;
+          </Link>
+        </div>
       </div>
     </section>
   );

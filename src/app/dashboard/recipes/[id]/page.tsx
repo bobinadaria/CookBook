@@ -7,6 +7,7 @@ import { DropCap, Eyebrow } from "@/components/ui";
 import RecipeOwnerActions from "@/components/dashboard/RecipeOwnerActions";
 import NutritionFacts from "@/components/recipe/NutritionFacts";
 import { localizedField, type Locale } from "@/lib/localized-content";
+import { noBreakHyphens } from "@/lib/text";
 import type { NutritionData, Step } from "@/types";
 
 export const dynamic = "force-dynamic";
@@ -105,8 +106,8 @@ export default async function ViewUserRecipePage({
       value: String(nutrition.per_serving.kcal),
       unit: tr("nutrition.kcal"),
     });
-  if (hasSteps)
-    metrics.push({ label: tr("stepsLabel"), value: String(steps.length), unit: "" });
+  // Кол-во шагов под заголовком убрано — дублирует «N шагов» в блоке
+  // «Приготовление» ниже (stepsHeading), как и на публичной странице рецепта.
 
   const servingsHeading = recipe.servings
     ? tr("servingsHeading", { count: recipe.servings })
@@ -141,7 +142,7 @@ export default async function ViewUserRecipePage({
           <div>
             <Eyebrow color="text-ochre-dk">{t("private")}</Eyebrow>
             <h1 className="mt-3 font-display text-[clamp(2.5rem,7vw,96px)] font-normal leading-[0.92] tracking-[-0.03em] text-burg">
-              {title}
+              {noBreakHyphens(title)}
             </h1>
 
             {story && (

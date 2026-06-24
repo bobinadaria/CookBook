@@ -1,14 +1,15 @@
 /**
- * Единая точка интеграции платёжной системы (Paddle и т.п.).
+ * Единая точка интеграции платёжной системы — Stripe Hosted Checkout.
  *
- * Сейчас оплата НЕ подключена: PAYMENTS_ENABLED=false → модалка показывает
- * заглушку «оплата скоро». Чтобы запустить платежи позже, нужно ровно две вещи —
- * и БОЛЬШЕ нигде по коду менять ничего не нужно:
- *   1) выставить env  NEXT_PUBLIC_PAYMENTS_ENABLED=true;
- *   2) реализовать mountCheckout() — поднять чекаут провайдера в переданном
- *      контейнере для выбранного товара (план или пакет картинок).
+ * Флаг NEXT_PUBLIC_PAYMENTS_ENABLED управляет включением оплаты:
+ *   false (по умолчанию) → модалка показывает заглушку «скоро»
+ *   true                 → реальный чекаут через Stripe
  *
- * Кнопки тарифов и пакетов уже активны и вызывают эту логику через CheckoutModal.
+ * Как подключить (один раз):
+ *   1. Выставить NEXT_PUBLIC_PAYMENTS_ENABLED=true в .env.local
+ *   2. Прописать STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET и STRIPE_PRICE_* в .env.local
+ *
+ * Больше нигде по коду менять ничего не нужно.
  */
 
 /** Включена ли реальная оплата. Public-флаг — читается и на клиенте. */
@@ -16,22 +17,38 @@ export const PAYMENTS_ENABLED = process.env.NEXT_PUBLIC_PAYMENTS_ENABLED === "tr
 
 /** Что покупает пользователь — план подписки или пакет AI-картинок. */
 export type CheckoutItem =
-  | { kind: "plan"; plan: "free" | "premium" | "lifetime"; title: string; price: string }
+  | { kind: "plan"; plan: "free" | "premium" | "lifetime"; cadence?: "monthly" | "annual"; title: string; price: string }
   | { kind: "pack"; size: string; title: string; price: string };
 
 /**
- * TODO(payments): поднять чекаут платёжной системы внутри `container` для `item`.
+ * Запускает Stripe Hosted Checkout: создаёт сессию на сервере и редиректит
+ * пользователя на страницу оплаты Stripe. После оплаты Stripe перенаправляет
+ * на /pricing/success, а вебхук обновляет profiles.plan в Supabase.
+ *
  * Вызывается из CheckoutModal ТОЛЬКО когда PAYMENTS_ENABLED === true.
- * Пример (Paddle inline):
- *   Paddle.Checkout.open({ items: [...mapItem(item)], settings: { frameTarget: container.id } })
- * Сейчас — заглушка: пока платежи не подключены, бросаем ошибку, и модалка
- * показывает сообщение «оплата скоро».
+ * Параметр `_container` оставлен для совместимости с интерфейсом, не используется.
  */
 export async function mountCheckout(
-  container: HTMLElement,
+  _container: HTMLElement,
   item: CheckoutItem,
 ): Promise<void> {
-  void container;
-  void item;
-  throw new Error("Payments not connected yet");
+  const res = await fetch("/api/payments/create-checkout-session", {
+    method:  "POST",
+    headers: { "Content-Type": "application/json" },
+    body:    JSON.stringify({ item }),
+  });
+
+  if (res.status === 401) {
+    // Незалогиненный пользователь — отправляем на логин
+    window.location.href = "/login?redirect=/pricing";
+    return;
+  }
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({})) as { message?: string };
+    throw new Error(data.message ?? "Failed to create checkout session");
+  }
+
+  const { url } = await res.json() as { url: string };
+  window.location.href = url;
 }

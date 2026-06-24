@@ -13,9 +13,12 @@ import UserQuickCreateModal from "./UserQuickCreateModal";
 export default function CreateRecipeButton({
   disabled = false,
   className,
+  aiEnabled = false,
 }: {
   disabled?: boolean;
   className?: string;
+  /** Доступ к AI-фичам (premium/lifetime) — решает, заперт ли режим «Ссылка» в модалке. */
+  aiEnabled?: boolean;
 }) {
   const t = useTranslations("myRecipes");
   const [open, setOpen] = useState(false);
@@ -30,7 +33,7 @@ export default function CreateRecipeButton({
       >
         {t("addRecipe")}
       </EditorialButton>
-      {open && <UserQuickCreateModal onClose={() => setOpen(false)} />}
+      {open && <UserQuickCreateModal onClose={() => setOpen(false)} aiEnabled={aiEnabled} />}
     </>
   );
 }

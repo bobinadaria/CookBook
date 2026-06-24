@@ -36,7 +36,10 @@ export default async function NewUserRecipePage({
     getEntitlements(user.id),
   ]);
 
-  // Название и тип приходят из модалки создания (?title=…&type=food|drink).
+  // Название и тип приходят из модалки создания (?title=…&type=food|drink) —
+  // режим «Название». В режиме «Ссылка» query-параметров нет вообще: модалка
+  // уже распарсила рецепт и положила его в sessionStorage, UserRecipeForm
+  // подхватывает его сам при маунте (см. PENDING_IMPORT_KEY).
   const presetTitle = sp.title?.trim();
   const presetType = sp.type === "drink" ? "drink" : "food";
 

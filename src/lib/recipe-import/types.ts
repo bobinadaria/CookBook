@@ -60,3 +60,19 @@ export class RecipeImportError extends Error {
     this.code = code;
   }
 }
+
+/**
+ * Ключ sessionStorage, через который `UserQuickCreateModal` (режим «Ссылка»)
+ * передаёт уже распарсенный рецепт странице `/dashboard/recipes/new` —
+ * полный рецепт (состав, шаги) не пролезает в query-параметры. Один и тот же
+ * ключ используют обе стороны (см. docs/RECIPE_IMPORT_AND_PREMIUM_TEASERS_PLAN.md §2).
+ * `UserRecipeForm` читает и сразу удаляет — повторный маунт/обновление страницы
+ * не должны применить тот же импорт повторно.
+ */
+export const PENDING_IMPORT_KEY = "cookbook:pendingImport";
+
+/** Содержимое, которое модалка кладёт в sessionStorage под PENDING_IMPORT_KEY. */
+export interface PendingImport {
+  recipe: ImportedRecipe;
+  source?: ImportSource;
+}

@@ -16,6 +16,7 @@ export default function CheckoutButton({
   label,
   variant = "outline",
   dark = false,
+  disabled = false,
 }: {
   item: CheckoutItem;
   label: string;
@@ -23,11 +24,14 @@ export default function CheckoutButton({
   variant?: "primary" | "outline";
   /** Кнопка на тёмной секции (меняет цвета обводки). */
   dark?: boolean;
+  /** Заблокировать покупку (например, пакеты картинок — только Premium/Lifetime). */
+  disabled?: boolean;
 }) {
   const { open } = useCheckout();
   const [loading, setLoading] = useState(false);
 
   const handleClick = () => {
+    if (disabled) return;
     setLoading(true);
     open(item);
     // короткая загрузка, пока поднимается окно оплаты
@@ -38,10 +42,11 @@ export default function CheckoutButton({
     <button
       type="button"
       onClick={handleClick}
-      disabled={loading}
+      disabled={loading || disabled}
       className={cn(
         "flex w-full items-center justify-center gap-2 rounded-none border-[1.5px] px-5 py-4 text-center font-body text-[12px] font-semibold uppercase tracking-[0.15em] transition-all",
-        "active:translate-y-px disabled:cursor-wait disabled:opacity-70",
+        "active:translate-y-px disabled:opacity-50",
+        loading ? "disabled:cursor-wait" : "disabled:cursor-not-allowed",
         variant === "primary"
           ? "border-ochre bg-ochre text-seal hover:bg-ochre-dk"
           : dark

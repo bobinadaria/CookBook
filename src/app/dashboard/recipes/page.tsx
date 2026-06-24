@@ -93,7 +93,11 @@ export default async function MyBookPage() {
             {t("myBookPrivacyNote")}
           </p>
         </div>
-        <CreateRecipeButton disabled={atLimit} className="px-6 py-3" />
+        <CreateRecipeButton
+          disabled={atLimit}
+          className="px-6 py-3"
+          aiEnabled={entitlements.aiEnabled}
+        />
       </div>
 
       {monetizationEnabled && limits.recipes !== null && (
@@ -109,7 +113,7 @@ export default async function MyBookPage() {
       )}
 
       {items.length === 0 ? (
-        <MyBookEmptyState />
+        <MyBookEmptyState aiEnabled={entitlements.aiEnabled} />
       ) : (
         <MyBookView items={items} />
       )}

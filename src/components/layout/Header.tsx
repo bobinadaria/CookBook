@@ -85,11 +85,14 @@ export default function Header() {
     navItems = [
       { href: "/", label: t("home"), active: pathname === "/" },
       { href: "/recipes", label: t("recipes"), active: pathname.startsWith("/recipes") },
+      // «Подписка» — равноправная страница верхнего уровня (как «Обложка» и
+      // «Рецепты»), не вложенная ни во что. Раньше пряталась из меню для
+      // вошедших пользователей («живёт внутри Моей книги») — но реально на
+      // неё попадают и залогиненные (через PlanBanner/CTA), и без таба в
+      // меню страница «висела» без подсветки активного состояния, не давая
+      // понять, где ты в иерархии сайта. Показываем всем одинаково.
+      { href: "/pricing", label: t("pricing"), active: pathname.startsWith("/pricing") },
     ];
-    if (!user) {
-      // «Подписка» — витрина для гостей. У вошедших она живёт внутри «Моей книги».
-      navItems.push({ href: "/pricing", label: t("pricing"), active: pathname.startsWith("/pricing") });
-    }
     // «Моя книга» больше НЕ в центральном меню — она в правом верхнем углу.
     // Тариф и «Выйти» живут только в профиле (/dashboard → «Аккаунт»).
     if (isAdmin) {

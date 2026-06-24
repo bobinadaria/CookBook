@@ -14,6 +14,7 @@ import FavoriteButton from "@/components/recipe/FavoriteButton";
 import { DropCap, Eyebrow } from "@/components/ui";
 import type { NutritionData } from "@/types";
 import { getSiteUrl } from "@/lib/site-url";
+import { noBreakHyphens } from "@/lib/text";
 
 /**
  * ISR: страница рендерится один раз, кэшируется на Vercel edge на час.
@@ -222,7 +223,9 @@ export default async function RecipePage({ params }: RecipePageProps) {
   if (recipe.servings) metrics.push({ label: t("servings"), value: String(recipe.servings), unit: "" });
   if (!isDrink && nutrition?.per_serving?.kcal)
     metrics.push({ label: t("calories"), value: String(nutrition.per_serving.kcal), unit: t("nutrition.kcal") });
-  if (hasSteps) metrics.push({ label: t("stepsLabel"), value: String(recipe.steps.length), unit: "" });
+  // Кол-во шагов под заголовком убрано — дублирует «N шагов» в самом блоке
+  // «Приготовление» ниже (stepsHeading). У напитков (нет порций/КБЖУ) метрик
+  // под заголовком теперь не будет совсем — ожидаемо.
 
   const servingsHeading = recipe.servings
     ? t("servingsHeading", { count: recipe.servings })
@@ -261,7 +264,7 @@ export default async function RecipePage({ params }: RecipePageProps) {
           <div>
             <Eyebrow color="text-ochre-dk">{categoryLabel ?? t("recipeFallback")}</Eyebrow>
             <h1 className="mt-3 font-display text-[clamp(2.5rem,7vw,96px)] font-normal leading-[0.92] tracking-[-0.03em] text-burg">
-              {title}
+              {noBreakHyphens(title)}
             </h1>
             {story && (
               <div className="mt-7 max-w-[560px]">

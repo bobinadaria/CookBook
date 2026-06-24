@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useLocale, useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { localizedField } from "@/lib/localized-content";
+import { noBreakHyphens } from "@/lib/text";
 import type { Category, LocaleCode, RecipeCardData } from "@/types";
 import FavoriteButton from "./FavoriteButton";
 import { useFavorites } from "@/context/FavoritesContext";
@@ -157,13 +158,20 @@ export default function RecipeCard({
               {eyebrowLabel}
             </div>
           )}
+          {/* min-h-[2lh] резервирует высоту ровно на 2 строки заголовка
+              независимо от его реальной длины (короткие названия вроде «Папин
+              плов в казане» иначе занимали бы 1 строку, и низ карточки —
+              разделитель + время + «Читать →» — скакал бы относительно соседних
+              карточек в том же ряду). Юнит lh = высота строки самого элемента,
+              поэтому работает сразу на всех брейкпоинтах без отдельных значений
+              на каждый размер шрифта. */}
           <h3
             className={cn(
-              "font-display font-normal leading-[1.15] text-ink transition-colors group-hover:text-burg",
+              "min-h-[2lh] font-display font-normal leading-[1.15] text-ink transition-colors group-hover:text-burg",
               compact ? "line-clamp-2 text-[15px] lg:text-[24px]" : "text-[20px] sm:text-[24px]",
             )}
           >
-            {title}
+            {noBreakHyphens(title)}
           </h3>
         </div>
       </div>

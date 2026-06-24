@@ -7,7 +7,12 @@ import CreateRecipeButton from "./CreateRecipeButton";
  * Слева — тёплое вступление, две «суперсилы» (импорт по ссылке + AI-КБЖУ) и CTA.
  * Справа — пример того, во что превратится первый рецепт (показ, а не рассказ).
  */
-export default async function MyBookEmptyState() {
+export default async function MyBookEmptyState({
+  aiEnabled = false,
+}: {
+  /** Доступ к AI-фичам (premium/lifetime) — решает, заперт ли режим «Ссылка» в модалке. */
+  aiEnabled?: boolean;
+}) {
   const t = await getTranslations("myRecipes");
 
   const magics = [
@@ -48,7 +53,7 @@ export default async function MyBookEmptyState() {
           </div>
 
           <div className="mt-9">
-            <CreateRecipeButton className="px-7 py-3.5" />
+            <CreateRecipeButton className="px-7 py-3.5" aiEnabled={aiEnabled} />
           </div>
         </div>
 

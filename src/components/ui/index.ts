@@ -19,3 +19,4 @@ export { default as EditorialButton } from "./EditorialButton";
 export type { EditorialButtonVariant } from "./EditorialButton";
 export { default as NumberDial } from "./NumberDial";
 export { default as SectionLabel } from "./SectionLabel";
+export { default as PremiumLock } from "./PremiumLock";

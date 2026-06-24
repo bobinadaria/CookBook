@@ -73,8 +73,7 @@ export default async function HomePage() {
             sizes="(max-width: 1024px) 100vw, 55vw"
           />
           <div className="absolute left-7 top-7 flex flex-col bg-ochre px-4 py-3">
-            <span className="font-display text-[34px] italic leading-[0.95] text-seal">{t("heroPlateNo")}</span>
-            <span className="mt-1 font-body text-[9px] font-bold uppercase tracking-[0.18em] text-seal">
+            <span className="font-body text-[9px] font-bold uppercase tracking-[0.18em] text-seal">
               {t("heroPlateLabel")}
             </span>
           </div>
@@ -104,8 +103,6 @@ export default async function HomePage() {
               <em className="italic">{t("editorTitle2")}</em>
             </h2>
             <div className="mt-5 font-body text-[12px] font-medium leading-[1.7] text-soft">
-              {t("editorMetaIssue")}
-              <br />
               {t("editorMetaDate")}
               <br />
               <span className="font-bold text-ochre-dk">{t("editorMetaRead")}</span>

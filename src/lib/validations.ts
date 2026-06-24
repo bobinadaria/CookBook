@@ -75,6 +75,26 @@ export const GenerateImageRequestSchema = z.object({
   recipeId: uuid.optional(),
 });
 
+/** Body expected by POST /api/admin/ingredients — добавление в ingredients_base
+ *  со страницы «Запросы ингредиентов» (зеркалит upsert из scripts/seed-*.mjs). */
+export const NewIngredientSchema = z.object({
+  name_ru: z.string().min(1, "Название обязательно").max(200),
+  name_en: z.string().max(200).optional().default(""),
+  category: z.enum([
+    "grain", "dairy", "meat", "fish", "egg", "fat",
+    "sweet", "spice", "vegetable", "fruit", "nut", "seed", "other",
+  ]),
+  kcal_100g: z.number().min(0).max(1000),
+  protein_100g: z.number().min(0).max(100),
+  fat_100g: z.number().min(0).max(100),
+  carbs_100g: z.number().min(0).max(100),
+  usda_fdc_id: z.string().max(50).optional().default(""),
+  /** parsed_name запросов, которые нужно удалить из очереди после добавления. */
+  resolvedRequestNames: z.array(z.string()).default([]),
+});
+
+export type NewIngredientValues = z.infer<typeof NewIngredientSchema>;
+
 /** Body expected by POST /api/admin/calculate-nutrition.
  *  Два режима (как в пользовательской форме):
  *   - { recipeId } — посчитать сохранённый рецепт и записать nutrition в БД (+кеш по хешу);

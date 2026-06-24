@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getEntitlements, type Plan } from "@/lib/entitlements";
 import CheckoutProvider from "@/components/pricing/CheckoutProvider";
 import CheckoutButton from "@/components/pricing/CheckoutButton";
+import DowngradeToFreeButton from "@/components/pricing/DowngradeToFreeButton";
 import FaqAutoOpen from "@/components/pricing/FaqAutoOpen";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -95,8 +96,11 @@ export default async function PricingPage() {
     }
   }
 
+  // Пакеты AI-обложек докупаются только поверх Premium/Lifetime — без них пакет
+  // не к чему применить (AI-обложка для своего рецепта сама по себе premium-фича).
+  const canBuyPacks = currentPlan === "premium" || currentPlan === "lifetime";
+
   const tiers = t.raw("tiers") as Tier[];
-  const headerFacts = t.raw("headerFacts") as string[];
   const packs = t.raw("packs") as [string, string, string][];
   const faq = t.raw("faq") as [string, string, string?][];
   const compareCols = t.raw("compareCols") as [string, string][];
@@ -108,24 +112,13 @@ export default async function PricingPage() {
       <FaqAutoOpen />
       {/* ── Header ──────────────────────────────────────────────────────── */}
       <section className="mx-auto max-w-[1320px] px-6 pb-14 pt-16 md:px-10 lg:px-14 lg:pt-[72px]">
-        <div className="grid items-end gap-10 lg:grid-cols-[1.4fr_1fr] lg:gap-14">
-          <div>
-            <Eyebrow color="text-ochre-dk">{t("headerEyebrow")}</Eyebrow>
-            <h1 className="mt-3.5 font-display text-[clamp(3rem,8vw,120px)] font-normal leading-[0.9] tracking-[-0.03em] text-burg">
-              {t("title1")}
-              <br />
-              <em className="italic text-ochre">{t("titleAccent")}</em>
-            </h1>
-          </div>
-          <div>
-            <div className="flex flex-wrap justify-between gap-x-6 gap-y-2 border-t-2 border-burg pt-5 font-body text-[11px] font-semibold uppercase tracking-[0.13em] text-soft">
-              {headerFacts.map((f) => (
-                <span key={f}>
-                  <span className="text-olive">●</span> {f}
-                </span>
-              ))}
-            </div>
-          </div>
+        <div>
+          <Eyebrow color="text-ochre-dk">{t("headerEyebrow")}</Eyebrow>
+          <h1 className="mt-3.5 font-display text-[clamp(3rem,8vw,120px)] font-normal leading-[0.9] tracking-[-0.03em] text-burg">
+            {t("title1")}
+            <br />
+            <em className="italic text-ochre">{t("titleAccent")}</em>
+          </h1>
         </div>
       </section>
 
@@ -134,6 +127,7 @@ export default async function PricingPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3">
           {tiers.map((tier, i) => {
             const style = TIER_STYLE[tier.key];
+            // Lifetime включает все возможности Premium — показываем «Ваш тариф»
             const isCurrent = currentPlan === tier.key;
             return (
               <div
@@ -218,8 +212,11 @@ export default async function PricingPage() {
 
                 {/* CTA — состояние зависит от текущего плана пользователя:
                     • выбран (текущий) → «✓ Ваш тариф» (бейдж, не кнопка);
-                    • доступен → активная кнопка покупки (открывает окно оплаты).
-                    Для премиум-юзера у Free — «Перейти на Free». */}
+                    • доступен → активная кнопка покупки (открывает окно оплаты);
+                    • Free-карточка для Premium-пользователя → отдельная кнопка
+                      downgrade (НЕ через checkout — переход на Free бесплатный,
+                      это не покупка). Lifetime сюда не попадает — у него нет
+                      подписки, которую можно «отменить» (см. actions.ts). */}
                 <div className="mt-auto pt-7">
                   {isCurrent ? (
                     <div
@@ -232,6 +229,14 @@ export default async function PricingPage() {
                     >
                       <span aria-hidden>✓</span> {t("currentPlanBadge")}
                     </div>
+                  ) : tier.key === "free" && currentPlan === "lifetime" ? (
+                    // Lifetime → возврата на Free нет
+                    null
+                  ) : tier.key === "premium" && currentPlan === "lifetime" ? (
+                    // Lifetime → Premium подписка не нужна (уже включено навсегда)
+                    null
+                  ) : tier.key === "free" && currentPlan === "premium" ? (
+                    <DowngradeToFreeButton dark={style.dark} />
                   ) : (
                     <CheckoutButton
                       item={{
@@ -240,12 +245,7 @@ export default async function PricingPage() {
                         title: tier.name,
                         price: `${tier.price} ${tier.cadence}`,
                       }}
-                      label={
-                        tier.key === "free" &&
-                        (currentPlan === "premium" || currentPlan === "lifetime")
-                          ? t("ctaSwitchFree")
-                          : tier.cta
-                      }
+                      label={tier.cta}
                       variant={tier.key === "premium" ? "primary" : "outline"}
                       dark={style.dark}
                     />
@@ -257,7 +257,7 @@ export default async function PricingPage() {
                       style.dark ? "text-section-fg/60" : "text-soft",
                     )}
                   >
-                    {tier.noteBottom}
+                    {tier.key === "lifetime" && currentPlan === "lifetime" ? null : tier.noteBottom}
                   </div>
                 </div>
               </div>
@@ -286,7 +286,7 @@ export default async function PricingPage() {
                     className={cn("w-[18%] px-3 py-4 text-center align-bottom", i === 1 && "bg-crust")}
                   >
                     <div className="font-display text-[20px] leading-none text-burg">{name}</div>
-                    <div className="mt-1 font-body text-[11px] font-semibold uppercase tracking-[0.13em] text-soft">
+                    <div className="mt-1.5 font-display text-[24px] leading-none text-burg">
                       {price}
                     </div>
                   </th>
@@ -361,12 +361,15 @@ export default async function PricingPage() {
                         item={{ kind: "pack", size, title: `${t("packLabel")} ${size}`, price }}
                         label={t("packBuy")}
                         variant="outline"
+                        disabled={!canBuyPacks}
                       />
                     </div>
                   </div>
                 ))}
               </div>
-              <p className="mt-4 font-body text-[12px] leading-[1.6] text-muted">{t("packsNote")}</p>
+              <p className="mt-4 font-body text-[12px] leading-[1.6] text-muted">
+                {canBuyPacks ? t("packsNote") : t("packsNeedPremium")}
+              </p>
             </div>
           </div>
         </div>

@@ -17,11 +17,11 @@
  * (useUnsavedChangesGuard + ConfirmDialog).
  */
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
-import { EditorialButton, ConfirmDialog } from "@/components/ui";
+import { EditorialButton, ConfirmDialog, PremiumLock } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { fetchWithTimeout, isTimeoutError } from "@/lib/fetch-with-timeout";
 import { localizedField } from "@/lib/localized-content";
@@ -30,7 +30,12 @@ import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
 import type { Category, LocaleCode, NutritionData } from "@/types";
 import { createUserRecipe, updateUserRecipe } from "@/app/dashboard/recipes/actions";
 import type { UserRecipeResult } from "@/app/dashboard/recipes/types";
-import type { ImportedRecipe, ImportSource } from "@/lib/recipe-import/types";
+import {
+  PENDING_IMPORT_KEY,
+  type ImportedRecipe,
+  type ImportSource,
+  type PendingImport,
+} from "@/lib/recipe-import/types";
 import NutritionResolveModal, {
   buildResolveQueue,
 } from "@/components/recipe/NutritionResolveModal";
@@ -217,6 +222,59 @@ export default function UserRecipeForm({
     }
   };
 
+  /**
+   * Раскладывает уже распарсенный `ImportedRecipe` по полям формы. Вынесено
+   * из handleImport, чтобы тем же кодом мог воспользоваться и второй путь —
+   * результат, который положила в sessionStorage модалка создания (режим
+   * «Ссылка»), читаем при маунте (см. useEffect ниже). Возвращает true, если
+   * состав подтянулся (для решения, показывать «готово» или «частично»).
+   */
+  const applyImportedRecipe = (r: ImportedRecipe): boolean => {
+    const hasIngredients = (r.ingredients ?? []).some((s) => s.trim().length > 0);
+    // Тип ставим первым: для «напитка» обнуляются время/порции, поэтому их
+    // выставляем только для еды.
+    changeRecipeType(r.recipe_type === "drink" ? "drink" : "food");
+    if (r.title) setTitle(r.title);
+    setDescription(r.description ?? "");
+    setIngredients((r.ingredients ?? []).join("\n"));
+    setSteps(
+      (r.steps ?? []).map((s, i) => ({
+        order: i + 1,
+        title: s.title ?? "",
+        description: s.description ?? "",
+        photo_url: null,
+      })),
+    );
+    if (r.recipe_type !== "drink") {
+      setCookTime(typeof r.cook_time === "number" ? r.cook_time : null);
+      setServings(typeof r.servings === "number" ? r.servings : null);
+    }
+    // КБЖУ пересчитывается по новому составу — старое значение не тащим.
+    setNutrition(null);
+    return hasIngredients;
+  };
+
+  /** Общая обработка результата импорта — общая для ручного клика и для
+   * результата, принесённого модалкой через sessionStorage. */
+  const applyImportResult = (r: ImportedRecipe, source?: ImportSource) => {
+    // Защита от «молчаливого» провала: иногда импорт формально успешен, но
+    // вернулся пустой/скудный рецепт. Если нет ни состава, ни шагов, ни
+    // названия — честно говорим, что не вышло, и НЕ затираем форму.
+    const hasSteps = (r.steps ?? []).length > 0;
+    if (!r.title?.trim() && !(r.ingredients ?? []).some((s) => s.trim()) && !hasSteps) {
+      setImportError(importErrorMessage("not_recipe"));
+      return;
+    }
+    const hasIngredients = applyImportedRecipe(r);
+    if (!hasIngredients) {
+      // Поля частично заполнены, но состав не подтянулся — предупреждаем
+      // явно (без него не посчитать КБЖУ), а не показываем «готово».
+      setImportError(t("importPartial"));
+    } else {
+      setImportNotice(source === "structured" ? t("importDoneStructured") : t("importDoneAi"));
+    }
+  };
+
   const handleImport = async () => {
     const url = importUrl.trim();
     if (!url || importing) return;
@@ -238,52 +296,34 @@ export default function UserRecipeForm({
         setImportError(importErrorMessage(json.code));
         return;
       }
-
-      const r = json.recipe;
-      // Защита от «молчаливого» провала: иногда импорт формально успешен, но
-      // вернулся пустой/скудный рецепт. Если нет ни состава, ни шагов, ни
-      // названия — честно говорим, что не вышло, и НЕ затираем форму.
-      const hasIngredients = (r.ingredients ?? []).some((s) => s.trim().length > 0);
-      const hasSteps = (r.steps ?? []).length > 0;
-      if (!r.title?.trim() && !hasIngredients && !hasSteps) {
-        setImportError(importErrorMessage("not_recipe"));
-        return;
-      }
-      // Тип ставим первым: для «напитка» обнуляются время/порции, поэтому их
-      // выставляем только для еды.
-      changeRecipeType(r.recipe_type === "drink" ? "drink" : "food");
-      if (r.title) setTitle(r.title);
-      setDescription(r.description ?? "");
-      setIngredients((r.ingredients ?? []).join("\n"));
-      setSteps(
-        (r.steps ?? []).map((s, i) => ({
-          order: i + 1,
-          title: s.title ?? "",
-          description: s.description ?? "",
-          photo_url: null,
-        })),
-      );
-      if (r.recipe_type !== "drink") {
-        setCookTime(typeof r.cook_time === "number" ? r.cook_time : null);
-        setServings(typeof r.servings === "number" ? r.servings : null);
-      }
-      // КБЖУ пересчитывается по новому составу — старое значение не тащим.
-      setNutrition(null);
-      if (!hasIngredients) {
-        // Поля частично заполнены, но состав не подтянулся — предупреждаем
-        // явно (без него не посчитать КБЖУ), а не показываем «готово».
-        setImportError(t("importPartial"));
-      } else {
-        setImportNotice(
-          json.source === "structured" ? t("importDoneStructured") : t("importDoneAi"),
-        );
-      }
+      applyImportResult(json.recipe, json.source);
     } catch (e) {
       setImportError(isTimeoutError(e) ? t("importErrTimeout") : t("importErrGeneric"));
     } finally {
       setImporting(false);
     }
   };
+
+  // Результат, который принесла модалка создания (режим «Ссылка») — она сама
+  // вызвала /api/recipes/import-url и положила распарсенный рецепт сюда, пока
+  // эта страница монтировалась. Применяем один раз и сразу убираем ключ, чтобы
+  // обновление страницы не повторило подстановку.
+  useEffect(() => {
+    if (recipeId) return; // только для нового рецепта
+    const raw = sessionStorage.getItem(PENDING_IMPORT_KEY);
+    if (!raw) return;
+    sessionStorage.removeItem(PENDING_IMPORT_KEY);
+    try {
+      const pending = JSON.parse(raw) as PendingImport;
+      applyImportResult(pending.recipe, pending.source);
+    } catch {
+      // Битый JSON в sessionStorage — молча игнорируем, форма остаётся пустой.
+    }
+    // applyImportResult намеренно не в зависимостях: эффект должен сработать
+    // ровно раз при маунте (читает sessionStorage и сразу удаляет ключ),
+    // а не при каждом ре-рендере, в котором функция пересоздаётся.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recipeId]);
 
   // ── Несохранённые изменения ───────────────────────────────────────────────
   // Снимок текущих полей; сравниваем с исходным снимком (снят при первом рендере).
@@ -568,42 +608,46 @@ export default function UserRecipeForm({
   return (
     <>
       <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-        {/* Импорт по ссылке — premium-фича, только при создании нового рецепта.
+        {/* Ссылка на рецепт — premium-фича, только при создании нового рецепта.
             Бесплатный путь (микроразметка страницы) токены не тратит; фолбэк
             через AI — тратит. Обложку/фото шагов не переносим (next/image +
-            копирайт), о чём явно предупреждаем в подсказке. */}
-        {aiEnabled && !recipeId && (
-          <section className="border border-ochre-dk/40 bg-crust/40 p-5">
-            <p className="mb-1 text-xs uppercase tracking-wider text-soft">{t("importTitle")}</p>
-            <p className="mb-4 text-xs text-muted">{t("importHint")}</p>
-            <div className="flex flex-wrap items-center gap-3">
-              <input
-                type="url"
-                inputMode="url"
-                value={importUrl}
-                onChange={(e) => setImportUrl(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    handleImport();
-                  }
-                }}
-                placeholder={t("importPlaceholder")}
-                className={cn(inputClass, "flex-1 min-w-[220px]")}
-              />
-              <EditorialButton
-                type="button"
-                variant="ghost"
-                onClick={handleImport}
-                disabled={importing || !importUrl.trim()}
-                className="px-6 py-3"
-              >
-                {importing ? t("importLoading") : t("importButton")}
-              </EditorialButton>
-            </div>
-            {importNotice && <p className="mt-3 text-sm text-olive">{importNotice}</p>}
-            {importError && <p className="mt-3 text-sm text-red-500">{importError}</p>}
-          </section>
+            копирайт), о чём явно предупреждаем в подсказке.
+            Для Free секция видна, но заперта через PremiumLock — не исчезает
+            целиком, как раньше (см. docs/RECIPE_IMPORT_AND_PREMIUM_TEASERS_PLAN.md §3). */}
+        {!recipeId && (
+          <PremiumLock locked={!aiEnabled}>
+            <section className="border border-ochre-dk/40 bg-crust/40 p-5">
+              <p className="mb-1 text-xs uppercase tracking-wider text-soft">{t("importTitle")}</p>
+              <p className="mb-4 text-xs text-muted">{t("importHint")}</p>
+              <div className="flex flex-wrap items-center gap-3">
+                <input
+                  type="url"
+                  inputMode="url"
+                  value={importUrl}
+                  onChange={(e) => setImportUrl(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleImport();
+                    }
+                  }}
+                  placeholder={t("importPlaceholder")}
+                  className={cn(inputClass, "flex-1 min-w-[220px]")}
+                />
+                <EditorialButton
+                  type="button"
+                  variant="ghost"
+                  onClick={handleImport}
+                  disabled={importing || !importUrl.trim()}
+                  className="px-6 py-3"
+                >
+                  {importing ? t("importLoading") : t("importButton")}
+                </EditorialButton>
+              </div>
+              {importNotice && <p className="mt-3 text-sm text-olive">{importNotice}</p>}
+              {importError && <p className="mt-3 text-sm text-red-500">{importError}</p>}
+            </section>
+          </PremiumLock>
         )}
 
         {/* Тип рецепта: еда / напиток (обычно уже выбран в модалке создания). */}
@@ -678,12 +722,12 @@ export default function UserRecipeForm({
               onChange={handleCoverChange}
             />
 
-            {/* AI-генерация обложки — только для premium/lifetime (aiEnabled).
-                Делаем заметную плашку прямо под фото, чтобы premium-юзер сразу
-                видел: эта возможность входит в его план. Кнопка неактивна, пока
-                нет названия. Сгенерированное превью заменяет coverPreview выше. */}
-            {aiEnabled && (
-              <div className="mt-3 border border-ochre/40 bg-ochre/[0.06] p-3">
+            {/* AI-генерация обложки — раньше исчезала целиком для Free, теперь
+                видна заперта (PremiumLock), чтобы человек видел, чего лишён.
+                Кнопка неактивна, пока нет названия. Сгенерированное превью
+                заменяет coverPreview выше. */}
+            <PremiumLock locked={!aiEnabled} className="mt-3">
+              <div className="border border-ochre/40 bg-ochre/[0.06] p-3">
                 <div className="mb-1 flex items-center justify-between gap-2">
                   <span className="font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-burg">
                     {t("coverAiTitle")}
@@ -733,7 +777,7 @@ export default function UserRecipeForm({
                   <p className="mt-2 text-[11px] text-olive">{t("coverAiDone")}</p>
                 )}
               </div>
-            )}
+            </PremiumLock>
           </section>
 
           {/* Правая колонка: название, описание, время/порции */}
@@ -817,10 +861,12 @@ export default function UserRecipeForm({
           <p className="mt-1 text-xs text-muted">{t("ingredientsHint")}</p>
         </section>
 
-        {/* КБЖУ — только premium (aiEnabled) и только для еды. Два режима:
-            AI-расчёт по составу или ручной ввод (для составных/нетиповых блюд). */}
-        {aiEnabled && !isDrink && (
-          <section className="border border-rule bg-crust/40 p-5">
+        {/* КБЖУ — только для еды; доступ (aiEnabled) теперь решает не показ,
+            а locked-состояние через PremiumLock. Два режима: AI-расчёт по
+            составу или ручной ввод (для составных/нетиповых блюд). */}
+        {!isDrink && (
+          <PremiumLock locked={!aiEnabled}>
+            <section className="border border-rule bg-crust/40 p-5">
             <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
               <p className="text-xs uppercase tracking-wider text-soft">{t("nutritionTitle")}</p>
               <div className="inline-flex gap-1">
@@ -934,6 +980,7 @@ export default function UserRecipeForm({
               </>
             )}
           </section>
+          </PremiumLock>
         )}
 
         {/* Categories */}
