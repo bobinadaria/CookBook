@@ -7,11 +7,24 @@
  */
 import Stripe from "stripe";
 
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error("[stripe] Missing STRIPE_SECRET_KEY env variable");
+let _stripe: Stripe | null = null;
+
+export function getStripe(): Stripe {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error("[stripe] Missing STRIPE_SECRET_KEY env variable");
+  }
+  if (!_stripe) {
+    _stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+  }
+  return _stripe;
 }
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+/** @deprecated use getStripe() */
+export const stripe = new Proxy({} as Stripe, {
+  get(_target, prop) {
+    return getStripe()[prop as keyof Stripe];
+  },
+});
 
 // ─── Price ID маппинг ────────────────────────────────────────────────────────
 
