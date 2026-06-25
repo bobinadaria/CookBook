@@ -181,6 +181,10 @@ export default function UserQuickCreateModal({
           </span>
           <h2 className="font-display text-3xl leading-tight text-ink">{t("modalQuestion")}</h2>
           <p className="mt-1.5 text-sm text-soft">{t("modalHint")}</p>
+          <p className="mt-2 flex items-center gap-1.5 text-xs text-muted">
+            <span>🔒</span>
+            {t("myBookPrivacyNote")}
+          </p>
         </div>
 
         {/* Переключатель: имя ИЛИ ссылка — тот же визуальный язык, что у еда/напиток. */}

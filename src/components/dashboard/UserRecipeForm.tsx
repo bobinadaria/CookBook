@@ -634,6 +634,12 @@ export default function UserRecipeForm({
   return (
     <>
       <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+        {/* Приватность: явная строка, чтобы пользователь понял — это личная книга. */}
+        <p className="flex items-center gap-1.5 text-xs text-muted">
+          <span>🔒</span>
+          {t("myBookPrivacyNote")}
+        </p>
+
         {/* Ссылка на рецепт — premium-фича, только при создании нового рецепта.
             Бесплатный путь (микроразметка страницы) токены не тратит; фолбэк
             через AI — тратит. Обложку/фото шагов не переносим (next/image +
