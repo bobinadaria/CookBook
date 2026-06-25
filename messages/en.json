@@ -200,8 +200,8 @@
     "aiEyebrow": "AI covers for recipes",
     "aiTitle1": "When there’s",
     "aiTitle2": "no photo — we draw it.",
-    "aiLede": "No photo for your recipe? AI will draw a beautiful cover. One cover — one image from the pack. Available on Premium.",
-    "packLabel": "pack",
+    "aiLede": "No photo for your recipe? AI will draw a beautiful cover in the style of the book. Buy images in small sets and use them across any recipe. Available on Premium.",
+    "packLabel": "set",
     "currentPlanBadge": "Your plan",
     "ctaSwitchFree": "Switch to Free",
     "downgradeModalEyebrow": "Confirmation",
@@ -229,8 +229,8 @@
       ]
     ],
     "packBuy": "Buy",
-    "packsNote": "“Up to” — because sometimes you’ll want a regenerate if you’d like a different cover.",
-    "packsNeedPremium": "Available on Premium and Lifetime — get the subscription first.",
+    "packsNote": "The number is approximate — sometimes you regenerate a cover to get a different look.",
+    "packsNeedPremium": "Image sets are available on Premium and Lifetime — get the subscription first.",
     "checkout": {
       "title": "Checkout",
       "connecting": "Connecting payment…",
@@ -265,9 +265,9 @@
     "testimonialQuote": "I paid for Notion templates and dropped them within a week. This is the first cooking subscription I’m not embarrassed about.",
     "testimonialAuthor": "Anna, product manager · Berlin · Lifetime",
     "faqEyebrow": "Frequently asked",
-    "faqTitle1": "Before",
-    "faqTitle2": "you pay —",
-    "faqTitleAccent": "read this.",
+    "faqTitle1": "Honest",
+    "faqTitle2": "answers to",
+    "faqTitleAccent": "your questions.",
     "faqOpen": "+ Open",
     "faqClose": "– Close",
     "faq": [
@@ -283,6 +283,10 @@
         "Does the AI really count accurately?",
         "We don't ask AI to guess calories. Ingredients are matched against an open food database maintained by US government scientists (USDA FoodData Central) — an open source used by nutritionists worldwide. If an ingredient isn't found, we'll ask you instead of making it up.",
         "faq-usda"
+      ],
+      [
+        "What happens to my recipes if I switch to Free?",
+        "All your recipes and covers stay as they are — they're yours. AI features (nutrition, cover generation, adding by link) will turn off. If you have more than 15 recipes, you won't be able to add new ones until you delete some or come back to Premium. The Free limit is 15 recipes."
       ]
     ],
     "finalEyebrow": "Ready?",
@@ -391,7 +395,8 @@
           ]
         ]
       }
-    ]
+    ],
+    "finalCtaDashboard": "Open my book →"
   },
   "recipes": {
     "tagline": "all recipes",

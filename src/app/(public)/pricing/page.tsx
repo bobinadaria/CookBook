@@ -424,26 +424,37 @@ export default async function PricingPage() {
             </h2>
             <p className="max-w-[480px] font-body text-[16px] leading-[1.7] text-section-soft">{t("finalLede")}</p>
           </div>
-          {/* Кнопки покупки активны и открывают окно оплаты. «Смотреть рецепты» —
-              живая ссылка в каталог (не оплата). */}
           <div className="flex flex-col gap-3">
-            <CheckoutButton
-              item={{ kind: "plan", plan: "premium", title: "Premium", price: t("finalCtaPremium") }}
-              label={t("finalCtaPremium")}
-              variant="primary"
-            />
-            <CheckoutButton
-              item={{ kind: "plan", plan: "lifetime", title: "Lifetime", price: t("finalCtaLifetime") }}
-              label={t("finalCtaLifetime")}
-              variant="outline"
-              dark
-            />
-            <Link
-              href="/recipes"
-              className="flex w-full items-center justify-center px-6 py-3.5 text-center font-body text-[12px] font-semibold uppercase tracking-[0.15em] text-section-fg/70 transition-colors hover:text-section-fg"
-            >
-              {t("finalCtaFree")}
-            </Link>
+            {currentPlan === "premium" || currentPlan === "lifetime" ? (
+              /* Уже подписан — ведём в кабинет, не предлагаем покупку */
+              <Link
+                href="/dashboard"
+                className="flex w-full items-center justify-center border-[1.5px] border-ochre bg-ochre px-6 py-4 text-center font-body text-[12px] font-semibold uppercase tracking-[0.15em] text-seal transition-colors hover:bg-ochre-dk"
+              >
+                {t("finalCtaDashboard")}
+              </Link>
+            ) : (
+              /* Не подписан — стандартные кнопки покупки */
+              <>
+                <CheckoutButton
+                  item={{ kind: "plan", plan: "premium", title: "Premium", price: t("finalCtaPremium") }}
+                  label={t("finalCtaPremium")}
+                  variant="primary"
+                />
+                <CheckoutButton
+                  item={{ kind: "plan", plan: "lifetime", title: "Lifetime", price: t("finalCtaLifetime") }}
+                  label={t("finalCtaLifetime")}
+                  variant="outline"
+                  dark
+                />
+                <Link
+                  href="/recipes"
+                  className="flex w-full items-center justify-center px-6 py-3.5 text-center font-body text-[12px] font-semibold uppercase tracking-[0.15em] text-section-fg/70 transition-colors hover:text-section-fg"
+                >
+                  {t("finalCtaFree")}
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </section>

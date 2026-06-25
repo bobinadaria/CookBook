@@ -34,15 +34,14 @@ const CATEGORY_LABEL_KEYS: Record<string, string> = {
 
 const PAGE_SIZE = 24;
 
-/** Собирает весь текстовый контент рецепта по всем языкам для поиска. */
+/** Собирает текст для поиска: только название рецепта (RU + EN).
+ *  Note/description — история и контекст, не классификация; включать их
+ *  означало бы, что масло «к курице» находится по запросу «курица».
+ */
 function getSearchableText(recipe: Recipe): string {
   return [
     recipe.title,
     recipe.title_en,
-    recipe.note, // история блюда — теперь основной текст рецепта
-    recipe.note_en,
-    recipe.description, // legacy-описание: оставляем в поиске для старых рецептов
-    recipe.description_en,
   ]
     .filter(Boolean)
     .join(" ")
@@ -65,10 +64,13 @@ function matchesSearch(text: string, query: string): boolean {
   const tokens = normalizeSearch(query).split(/\s+/).filter(Boolean);
   if (tokens.length === 0) return true;
   return tokens.every((tok) => {
-    if (tok.length < 3) return haystack.includes(tok);
-    for (let cut = 0; cut <= 2; cut++) {
+    // Точное вхождение — всегда
+    if (haystack.includes(tok)) return true;
+    // Стемминг: пробуем основу без 1–2 окончаний, но минимум 5 букв в основе.
+    // Иначе «курица» → «кури» матчило бы «куриный» в описании масляного соуса.
+    for (let cut = 1; cut <= 2; cut++) {
       const stem = tok.slice(0, tok.length - cut);
-      if (stem.length >= 3 && haystack.includes(stem)) return true;
+      if (stem.length >= 5 && haystack.includes(stem)) return true;
     }
     return false;
   });

@@ -753,9 +753,9 @@ export default function UserRecipeForm({
                 Кнопка неактивна, пока нет названия. Сгенерированное превью
                 заменяет coverPreview выше. */}
             <PremiumLock locked={!aiEnabled} className="mt-3">
-              <div className="border border-ochre/40 bg-ochre/[0.06] p-3">
+              <div className="border-2 border-ochre/60 bg-ochre/[0.06] p-3">
                 <div className="mb-1 flex items-center justify-between gap-2">
-                  <span className="font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-burg">
+                  <span className="font-body text-[12px] font-semibold uppercase tracking-[0.14em] text-ochre-dk">
                     {t("coverAiTitle")}
                   </span>
                   <span className="rounded-none bg-ochre-dk px-1.5 py-0.5 font-body text-[9px] font-semibold uppercase tracking-[0.1em] text-paper">
