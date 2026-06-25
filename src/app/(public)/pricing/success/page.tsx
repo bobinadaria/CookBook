@@ -62,7 +62,7 @@ export default async function PricingSuccessPage({ searchParams }: Props) {
 
         <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row">
           <Link
-            href="/dashboard/recipes"
+            href="/dashboard"
             className="border-[1.5px] border-ochre bg-ochre px-8 py-4 font-body text-[12px] font-semibold uppercase tracking-[0.15em] text-seal transition-colors hover:bg-ochre-dk"
           >
             {t("ctaDashboard")}

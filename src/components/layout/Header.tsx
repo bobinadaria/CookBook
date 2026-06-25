@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
@@ -23,30 +23,34 @@ export default function Header() {
 
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [plan, setPlan] = useState<"free" | "premium" | "lifetime" | null>(null);
+  const [displayName, setDisplayName] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const supabase = createClient();
-    // Какого пользователя мы сейчас «обслуживаем». Нужно, чтобы медленный
-    // запрос роли из прошлой сессии не протёк админ-состоянием в другой аккаунт.
     let currentUserId: string | null = null;
 
     const applyUser = async (nextUser: User | null) => {
       currentUserId = nextUser?.id ?? null;
       setUser(nextUser);
-      // Сброс в первую очередь: никогда не тащим флаг админа из прошлого аккаунта.
       setIsAdmin(false);
       if (!nextUser) return;
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("role")
+        .select("role, plan, display_name")
         .eq("id", nextUser.id)
         .single();
 
-      // Игнорируем «опоздавший» ответ, если активный пользователь уже сменился.
       if (currentUserId !== nextUser.id) return;
       setIsAdmin(profile?.role === "admin");
+      setDisplayName(profile?.display_name ?? null);
+      const p = profile?.plan;
+      setPlan(p === "premium" || p === "lifetime" ? p : "free");
     };
 
     supabase.auth.getUser().then(({ data }) => applyUser(data.user));
@@ -60,12 +64,25 @@ export default function Header() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Закрывать мобильное меню при смене маршрута
+  // Закрывать всё при смене маршрута
   useEffect(() => {
     setMobileOpen(false);
+    setDropdownOpen(false);
   }, [pathname]);
 
-  // Блокируем прокрутку фона, пока открыта боковая панель меню
+  // Закрывать дропдаун при клике вне его
+  useEffect(() => {
+    if (!dropdownOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [dropdownOpen]);
+
+  // Блокируем прокрутку фона, пока открыто мобильное меню
   useEffect(() => {
     if (!mobileOpen) return;
     const prev = document.body.style.overflow;
@@ -73,9 +90,6 @@ export default function Header() {
     return () => { document.body.style.overflow = prev; };
   }, [mobileOpen]);
 
-  // В кабинете («Моя книга») — отдельное пространство: глобальное меню
-  // «Обложка/Рецепты» прячем, оставляем только «← На сайт» (выход в журнал).
-  // Навигация внутри кабинета (Мои рецепты / Мой аккаунт) — это DashboardTabs.
   const inCabinet = pathname.startsWith("/dashboard");
 
   let navItems: NavItem[];
@@ -85,37 +99,90 @@ export default function Header() {
     navItems = [
       { href: "/", label: t("home"), active: pathname === "/" },
       { href: "/recipes", label: t("recipes"), active: pathname.startsWith("/recipes") },
-      // «Подписка» — равноправная страница верхнего уровня (как «Обложка» и
-      // «Рецепты»), не вложенная ни во что. Раньше пряталась из меню для
-      // вошедших пользователей («живёт внутри Моей книги») — но реально на
-      // неё попадают и залогиненные (через PlanBanner/CTA), и без таба в
-      // меню страница «висела» без подсветки активного состояния, не давая
-      // понять, где ты в иерархии сайта. Показываем всем одинаково.
-      { href: "/pricing", label: t("pricing"), active: pathname.startsWith("/pricing") },
     ];
-    // «Моя книга» больше НЕ в центральном меню — она в правом верхнем углу.
-    // Тариф и «Выйти» живут только в профиле (/dashboard → «Аккаунт»).
     if (isAdmin) {
       navItems.push({ href: "/admin", label: t("admin"), active: pathname.startsWith("/admin") });
     }
   }
 
-  // Кнопка-вход в кабинет «Моя книга» (правый верхний угол). Без иконки —
-  // в духе дизайн-системы (CLAUDE.md §7).
-  const accountActive = pathname.startsWith("/dashboard");
-  const accountButton = user ? (
-    <Link
-      href="/dashboard/recipes"
-      aria-label={t("myBook")}
-      className={cn(
-        "rounded-none border px-2.5 py-1 font-body text-[10px] font-semibold uppercase tracking-[0.16em] transition-colors",
-        accountActive
-          ? "border-burg text-burg"
-          : "border-rule text-soft hover:border-burg hover:text-burg",
+  const planLabel = plan === "lifetime" ? "Lifetime" : plan === "premium" ? "Premium" : "Free";
+  const userInitial = (displayName ?? user?.email ?? "?")[0].toUpperCase();
+  const userName = displayName || user?.email?.split("@")[0] || "";
+
+  const handleSignOut = async () => {
+    setDropdownOpen(false);
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    window.location.href = "/";
+  };
+
+  // Дропдаун аватара (десктоп)
+  const avatarDropdown = user ? (
+    <div ref={dropdownRef} className="relative flex items-center gap-2.5">
+      {/* Лейбл тарифа */}
+      <Link
+        href="/pricing"
+        className={cn(
+          "font-body text-[10px] font-semibold uppercase tracking-[0.16em] transition-colors",
+          plan === "free" ? "text-muted hover:text-burg" : "text-ochre-dk hover:text-burg",
+        )}
+      >
+        {planLabel}
+      </Link>
+
+      {/* Аватар — триггер дропдауна */}
+      <button
+        type="button"
+        onClick={() => setDropdownOpen((v) => !v)}
+        aria-label="Открыть меню профиля"
+        aria-expanded={dropdownOpen}
+        className={cn(
+          "flex h-7 w-7 items-center justify-center font-body text-[13px] font-bold transition-colors",
+          dropdownOpen || inCabinet
+            ? "bg-burg text-paper"
+            : "bg-ink/10 text-ink hover:bg-burg hover:text-paper",
+        )}
+      >
+        {userInitial}
+      </button>
+
+      {/* Дропдаун */}
+      {dropdownOpen && (
+        <div className="absolute right-0 top-full z-50 mt-2 w-52 border border-rule bg-paper shadow-[0_4px_16px_rgba(21,17,13,0.10)]">
+          {/* Имя пользователя */}
+          <div className="border-b border-rule px-4 py-3">
+            <p className="font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-ink">
+              {userName}
+            </p>
+            <p className="mt-0.5 font-body text-[10px] text-muted">{user.email}</p>
+          </div>
+
+          {/* Пункты меню */}
+          <nav className="py-1">
+            <Link
+              href="/dashboard/profile"
+              className="flex items-center gap-2.5 px-4 py-2.5 font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-soft transition-colors hover:bg-crust hover:text-burg"
+            >
+              {t("myProfile")}
+            </Link>
+            <Link
+              href="/dashboard"
+              className="flex items-center gap-2.5 px-4 py-2.5 font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-soft transition-colors hover:bg-crust hover:text-burg"
+            >
+              {t("myBook")}
+            </Link>
+            <div className="my-1 h-px bg-rule" />
+            <button
+              type="button"
+              onClick={handleSignOut}
+              className="flex w-full items-center gap-2.5 px-4 py-2.5 font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-soft transition-colors hover:bg-crust hover:text-burg"
+            >
+              {t("signOut")}
+            </button>
+          </nav>
+        </div>
       )}
-    >
-      {t("myBook")}
-    </Link>
+    </div>
   ) : null;
 
   return (
@@ -129,7 +196,7 @@ export default function Header() {
             <LanguageSwitcher />
             <ThemeToggle />
             {user ? (
-              accountButton
+              avatarDropdown
             ) : (
               <Link href="/login" className="text-burg transition-colors hover:text-ochre-dk">
                 {t("signIn")} &rarr;
@@ -138,8 +205,7 @@ export default function Header() {
           </span>
         </div>
 
-        {/* Masthead row — только логотип по центру (боковые подписи убраны,
-            чтобы не рассеивать внимание на главном экране). */}
+        {/* Логотип */}
         <div className="flex justify-center px-6 pb-5 pt-9 lg:px-14">
           <Link href="/" className="flex flex-col items-center">
             <span className="whitespace-nowrap font-display text-[48px] font-normal italic leading-[0.9] tracking-[-0.02em] text-burg lg:text-[72px]">
@@ -151,8 +217,7 @@ export default function Header() {
           </Link>
         </div>
 
-        {/* Nav row — sticky. В кабинете «← На сайт» прижимаем влево (привычный
-            паттерн возврата), на публичных страницах меню по центру. */}
+        {/* Nav row — sticky */}
         <nav
           className={cn(
             "sticky top-0 z-40 flex gap-12 border-y border-rule bg-paper/95 px-6 py-3.5 backdrop-blur-sm lg:gap-14 lg:px-14",
@@ -192,26 +257,15 @@ export default function Header() {
               aria-controls="mobile-menu"
               className="-mr-1 flex h-11 w-11 flex-col items-center justify-center gap-[5px] text-burg"
             >
-              <span
-                className={cn(
-                  "block h-[2px] w-5 bg-current transition-transform",
-                  mobileOpen && "translate-y-[7px] rotate-45",
-                )}
-              />
+              <span className={cn("block h-[2px] w-5 bg-current transition-transform", mobileOpen && "translate-y-[7px] rotate-45")} />
               <span className={cn("block h-[2px] w-5 bg-current transition-opacity", mobileOpen && "opacity-0")} />
-              <span
-                className={cn(
-                  "block h-[2px] w-5 bg-current transition-transform",
-                  mobileOpen && "-translate-y-[7px] -rotate-45",
-                )}
-              />
+              <span className={cn("block h-[2px] w-5 bg-current transition-transform", mobileOpen && "-translate-y-[7px] -rotate-45")} />
             </button>
           </div>
         </div>
-
       </div>
 
-      {/* ─── Mobile nav drawer (<md) — выезжает справа, затемняет фон ─────── */}
+      {/* ─── Mobile nav drawer (<md) ─────────────────────────────────────── */}
       <div
         className={cn(
           "fixed inset-0 z-[60] md:hidden",
@@ -219,7 +273,6 @@ export default function Header() {
         )}
         aria-hidden={!mobileOpen}
       >
-        {/* Затемнение фона — клик закрывает */}
         <div
           onClick={() => setMobileOpen(false)}
           className={cn(
@@ -228,7 +281,6 @@ export default function Header() {
           )}
         />
 
-        {/* Панель */}
         <aside
           id="mobile-menu"
           className={cn(
@@ -263,16 +315,44 @@ export default function Header() {
             ))}
 
             {user ? (
-              // Вход в кабинет. Тариф и «Выйти» — внутри, на вкладке «Аккаунт».
-              <Link
-                href="/dashboard/recipes"
-                className={cn(
-                  "flex min-h-[48px] items-center font-body text-[13px] uppercase tracking-[0.16em] transition-colors",
-                  accountActive ? "font-bold text-burg" : "font-medium text-soft hover:text-burg",
-                )}
-              >
-                {t("myBook")}
-              </Link>
+              <>
+                <div className="my-2 h-px bg-rule" />
+                {/* Имя + тариф */}
+                <div className="mb-1 flex items-center justify-between py-2">
+                  <span className="font-body text-[13px] font-semibold text-ink">{userName}</span>
+                  <Link
+                    href="/pricing"
+                    className={cn(
+                      "font-body text-[10px] font-semibold uppercase tracking-[0.16em] transition-colors",
+                      plan === "free" ? "text-muted hover:text-burg" : "text-ochre-dk hover:text-burg",
+                    )}
+                  >
+                    {planLabel}
+                  </Link>
+                </div>
+                <Link
+                  href="/dashboard/profile"
+                  className="flex min-h-[44px] items-center font-body text-[13px] uppercase tracking-[0.16em] text-soft transition-colors hover:text-burg"
+                >
+                  {t("myProfile")}
+                </Link>
+                <Link
+                  href="/dashboard"
+                  className={cn(
+                    "flex min-h-[44px] items-center font-body text-[13px] uppercase tracking-[0.16em] transition-colors",
+                    pathname.startsWith("/dashboard") ? "font-bold text-burg" : "text-soft hover:text-burg",
+                  )}
+                >
+                  {t("myBook")}
+                </Link>
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  className="flex min-h-[44px] items-center font-body text-[13px] uppercase tracking-[0.16em] text-soft transition-colors hover:text-burg"
+                >
+                  {t("signOut")}
+                </button>
+              </>
             ) : (
               <>
                 <div className="my-2 h-px bg-rule" />

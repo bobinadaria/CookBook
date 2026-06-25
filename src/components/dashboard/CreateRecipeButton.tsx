@@ -14,11 +14,14 @@ export default function CreateRecipeButton({
   disabled = false,
   className,
   aiEnabled = false,
+  label,
 }: {
   disabled?: boolean;
   className?: string;
   /** Доступ к AI-фичам (premium/lifetime) — решает, заперт ли режим «Ссылка» в модалке. */
   aiEnabled?: boolean;
+  /** Кастомный текст кнопки. По умолчанию — t("addRecipe"). */
+  label?: React.ReactNode;
 }) {
   const t = useTranslations("myRecipes");
   const [open, setOpen] = useState(false);
@@ -31,7 +34,7 @@ export default function CreateRecipeButton({
         onClick={() => setOpen(true)}
         className={className}
       >
-        {t("addRecipe")}
+        {label ?? t("addRecipe")}
       </EditorialButton>
       {open && <UserQuickCreateModal onClose={() => setOpen(false)} aiEnabled={aiEnabled} />}
     </>

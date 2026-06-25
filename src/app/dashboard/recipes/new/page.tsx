@@ -59,6 +59,7 @@ export default async function NewUserRecipePage({
       <UserRecipeForm
         categories={categories}
         aiEnabled={ent.aiEnabled}
+        coverCredits={ent.credits.covers}
         defaultValues={{ title: presetTitle, recipe_type: presetType }}
       />
     </main>

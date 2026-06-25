@@ -1,136 +1,143 @@
-"use client";
+import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
+import { createClient } from "@/lib/supabase/server";
+import { getEntitlements } from "@/lib/entitlements";
+import { Eyebrow } from "@/components/ui";
+import MyBookView, { type BookItem } from "@/components/dashboard/MyBookView";
+import MyBookEmptyState from "@/components/dashboard/MyBookEmptyState";
+import CreateRecipeButton from "@/components/dashboard/CreateRecipeButton";
 
-import { useEffect, useState } from "react";
-import { useTranslations } from "next-intl";
-import { useFavorites } from "@/context/FavoritesContext";
-import { createClient } from "@/lib/supabase/client";
-import { EditorialButton, Eyebrow } from "@/components/ui";
-import PlanBanner from "./PlanBanner";
+// Персональные данные — никогда не кешировать статически.
+export const dynamic = "force-dynamic";
 
-/** Ключ приветствия по времени суток (локальное время браузера). */
+/** Ключ приветствия по часу (UTC; для более точного — нужен клиент, но UTC достаточно). */
 function greetingKey(): "greetingMorning" | "greetingDay" | "greetingEvening" | "greetingNight" {
-  const h = new Date().getHours();
+  const h = new Date().getUTCHours();
   if (h >= 5 && h < 12) return "greetingMorning";
   if (h >= 12 && h < 18) return "greetingDay";
   if (h >= 18 && h < 23) return "greetingEvening";
   return "greetingNight";
 }
 
-export default function AccountPage() {
-  const t = useTranslations("dashboard");
-  const tc = useTranslations("common");
-  const { user } = useFavorites();
-  const [displayName, setDisplayName] = useState("");
-  const [nameDraft, setNameDraft] = useState("");
-  const [savingName, setSavingName] = useState(false);
-  const [nameSaved, setNameSaved] = useState(false);
-  const [plan, setPlan] = useState<"free" | "premium" | "lifetime">("free");
+export default async function DashboardPage() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
 
-  useEffect(() => {
-    if (!user) return;
-    const supabase = createClient();
+  const [t, profileRes, ownRes, favRes, entitlements] = await Promise.all([
+    getTranslations("myRecipes"),
     supabase
       .from("profiles")
-      .select("display_name, plan")
+      .select("display_name")
       .eq("id", user.id)
-      .maybeSingle()
-      .then(({ data }) => {
-        const n = data?.display_name ?? user.email?.split("@")[0] ?? "";
-        setDisplayName(n);
-        setNameDraft(n);
-        const p = data?.plan;
-        setPlan(p === "premium" || p === "lifetime" ? p : "free");
-      });
-  }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+      .maybeSingle(),
+    supabase
+      .from("recipes")
+      .select("id, title, title_en, cover_image, created_at")
+      .eq("owner_id", user.id)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("favorites")
+      .select("recipe_slug, created_at")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false }),
+    getEntitlements(user.id),
+  ]);
 
-  const handleSignOut = async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    window.location.href = "/";
-  };
+  const displayName =
+    profileRes.data?.display_name ?? user.email?.split("@")[0] ?? "";
 
-  const handleSaveName = async () => {
-    if (!user) return;
-    const next = nameDraft.trim();
-    if (!next || next === displayName) return;
-    setSavingName(true);
-    setNameSaved(false);
-    const supabase = createClient();
-    await supabase.from("profiles").update({ display_name: next }).eq("id", user.id);
-    setDisplayName(next);
-    setSavingName(false);
-    setNameSaved(true);
-    setTimeout(() => setNameSaved(false), 2500);
-  };
+  // Свои рецепты
+  const own = ownRes.data ?? [];
 
-  // middleware гарантирует сессию, но на момент гидрации user может быть null
-  if (!user) {
-    return (
-      <div className="flex min-h-[40vh] items-center justify-center">
-        <span className="font-display text-2xl italic text-muted">{tc("loading")}</span>
-      </div>
-    );
+  // Сохранённые (избранное)
+  const favSlugs = (favRes.data ?? []).map((f) => f.recipe_slug as string);
+  let saved: {
+    id: string;
+    title: string;
+    title_en: string | null;
+    slug: string;
+    cover_image: string | null;
+  }[] = [];
+  if (favSlugs.length > 0) {
+    const { data } = await supabase
+      .from("recipes")
+      .select("id, title, title_en, slug, cover_image")
+      .eq("visibility", "public")
+      .eq("published", true)
+      .in("slug", favSlugs);
+    saved = data ?? [];
+    const order = new Map(favSlugs.map((s, i) => [s, i]));
+    saved.sort((a, b) => (order.get(a.slug) ?? 0) - (order.get(b.slug) ?? 0));
   }
 
-  const name = displayName || user.email?.split("@")[0] || "";
+  const items: BookItem[] = [
+    ...own.map((r) => ({
+      id: r.id as string,
+      kind: "own" as const,
+      href: `/dashboard/recipes/${r.id as string}`,
+      slug: null,
+      title: r.title as string,
+      title_en: (r.title_en as string | null) ?? null,
+      cover_image: (r.cover_image as string | null) ?? null,
+    })),
+    ...saved.map((r) => ({
+      id: r.id,
+      kind: "saved" as const,
+      href: `/recipes/${r.slug}`,
+      slug: r.slug,
+      title: r.title,
+      title_en: r.title_en,
+      cover_image: r.cover_image,
+    })),
+  ];
+
+  const { limits, monetizationEnabled } = entitlements;
+  const atLimit =
+    monetizationEnabled && limits.recipes !== null && own.length >= limits.recipes;
+
+  const td = await getTranslations("dashboard");
 
   return (
-    <main className="mx-auto max-w-[1320px] px-6 pb-24 md:px-10 lg:px-14">
-      <div className="pb-8 pt-10">
-        <Eyebrow color="text-ochre-dk">{t("tagline")}</Eyebrow>
-        <h1 className="mt-3 font-display text-[clamp(2.75rem,6vw,72px)] font-normal leading-[0.92] tracking-[-0.03em] text-burg">
-          {t(greetingKey(), { name })}
-        </h1>
+    <main className="mx-auto min-h-dvh max-w-[1320px] px-6 pb-24 md:px-10 lg:px-14">
+      {/* Приветствие + кнопка создания */}
+      <div className="flex flex-wrap items-end justify-between gap-6 pb-8 pt-10">
+        <div>
+          <Eyebrow color="text-ochre-dk">{t("tagline")}</Eyebrow>
+          <h1 className="mt-3 font-display text-[clamp(2.75rem,6vw,72px)] font-normal leading-[0.92] tracking-[-0.03em] text-burg">
+            {td(greetingKey(), { name: displayName })}
+          </h1>
+          <p className="mt-2 font-body text-[11px] font-semibold uppercase tracking-[0.16em] text-soft">
+            {t("myBookPrivacyNote")}
+          </p>
+        </div>
+        <CreateRecipeButton
+          disabled={atLimit}
+          className="px-6 py-3"
+          aiEnabled={entitlements.aiEnabled}
+        />
       </div>
 
-      {/* Две сгруппированные колонки: слева — аккаунт, справа — план.
-          На телефоне колонки автоматически встают друг под друга. */}
-      <div className="grid grid-cols-1 items-start gap-9 lg:grid-cols-2">
-        {/* Аккаунт — данные профиля сгруппированы наверху */}
-        <section className="bg-crust p-6 md:p-7">
-          <Eyebrow color="text-ochre-dk" className="mb-5">
-            {t("profileTitle")}
-          </Eyebrow>
+      {monetizationEnabled && limits.recipes !== null && (
+        <p className="mb-6 font-body text-[11px] font-semibold uppercase tracking-[0.16em] text-soft">
+          {t("limitCount", { count: own.length, limit: limits.recipes })}
+        </p>
+      )}
+      {atLimit && (
+        <p className="mb-6 font-body text-sm text-soft">
+          {t("errLimit", { limit: limits.recipes ?? "" })}
+        </p>
+      )}
 
-          <div className="max-w-md">
-            {/* Имя — редактируемое */}
-            <label className="mb-1.5 block font-body text-xs text-soft">{t("nameLabel")}</label>
-            <div className="flex items-center gap-3">
-              <input
-                type="text"
-                value={nameDraft}
-                onChange={(e) => setNameDraft(e.target.value)}
-                className="flex-1 rounded-none border border-rule bg-paper px-4 py-2.5 text-sm text-ink outline-none transition focus:border-burg"
-              />
-              <EditorialButton
-                variant="ghost"
-                onClick={handleSaveName}
-                disabled={savingName || !nameDraft.trim() || nameDraft.trim() === displayName}
-                className="px-5 py-2.5 text-[11px]"
-              >
-                {t("nameSave")}
-              </EditorialButton>
-            </div>
-            {nameSaved && <p className="mt-1.5 font-body text-xs text-olive">{t("nameSaved")}</p>}
+      {/* Рецепты */}
+      {items.length === 0 ? (
+        <MyBookEmptyState aiEnabled={entitlements.aiEnabled} />
+      ) : (
+        <MyBookView items={items} />
+      )}
 
-            {/* Почта */}
-            <div className="mt-6">
-              <p className="mb-1.5 font-body text-xs text-soft">{t("emailLabel")}</p>
-              <p className="font-body text-sm text-ink">{user.email}</p>
-            </div>
-
-            {/* Выход */}
-            <div className="mt-6 border-t border-rule pt-5">
-              <EditorialButton variant="ghost" onClick={handleSignOut} className="px-5 py-2.5 text-[11px]">
-                {t("signOut")}
-              </EditorialButton>
-            </div>
-          </div>
-        </section>
-
-        {/* План + подписка (карточка с «View more») */}
-        <PlanBanner plan={plan} />
-      </div>
     </main>
   );
 }

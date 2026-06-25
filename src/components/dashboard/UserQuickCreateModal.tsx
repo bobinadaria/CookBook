@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { PremiumLock, Spinner } from "@/components/ui";
 import { fetchWithTimeout, isTimeoutError } from "@/lib/fetch-with-timeout";
 import { PENDING_IMPORT_KEY, type ImportedRecipe, type ImportSource } from "@/lib/recipe-import/types";
+import ConfirmModal from "@/components/admin/ConfirmModal";
 
 type Mode = "title" | "link";
 
@@ -41,7 +42,10 @@ export default function UserQuickCreateModal({
   const [navigating, setNavigating] = useState(false);
   const [importing, setImporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [confirmingClose, setConfirmingClose] = useState(false);
   const busy = navigating || importing;
+
+  const isDirty = mode === "title" ? title.trim() !== "" : url.trim() !== "";
 
   // F45: модалка закрывалась, если выделить текст в поле и отпустить мышь за
   // её пределами — `mousedown` внутри инпута + `click`, всплывающий на
@@ -50,17 +54,28 @@ export default function UserQuickCreateModal({
   // backdrop — без «протаскивания» через границу модалки.
   const mouseDownOnBackdrop = useRef(false);
 
+  // Блокируем скролл фона
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
+  }, []);
+
   useEffect(() => {
     inputRef.current?.focus();
   }, [mode]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && !busy) onClose();
+      // Когда confirmingClose=true — Esc обрабатывает сам ConfirmModal (onCancel).
+      if (e.key === "Escape" && !busy && !confirmingClose) {
+        if (isDirty) setConfirmingClose(true);
+        else onClose();
+      }
     };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
-  }, [busy, onClose]);
+  }, [busy, onClose, isDirty, confirmingClose]);
 
   const importErrorMessage = (code?: string): string => {
     switch (code) {
@@ -147,16 +162,19 @@ export default function UserQuickCreateModal({
   return (
     <div
       className="fixed inset-0 z-[60] flex items-center justify-center p-4"
-      onMouseDown={(e) => {
-        mouseDownOnBackdrop.current = e.target === e.currentTarget;
-      }}
+      onMouseDown={(e) => { mouseDownOnBackdrop.current = e.target === e.currentTarget; }}
+      onTouchStart={(e) => { mouseDownOnBackdrop.current = e.target === e.currentTarget; }}
       onClick={(e) => {
-        if (e.target === e.currentTarget && mouseDownOnBackdrop.current && !busy) onClose();
+        if (e.target === e.currentTarget && mouseDownOnBackdrop.current && !busy) {
+          if (isDirty && !confirmingClose) setConfirmingClose(true);
+          else onClose();
+        }
       }}
     >
-      <div className="absolute inset-0 bg-burg/30 backdrop-blur-sm" />
+      {/* pointer-events-none: клики проходят сквозь оверлей к внешнему div-у */}
+      <div className="absolute inset-0 bg-burg/30 backdrop-blur-sm pointer-events-none" />
 
-      <div className="relative flex w-full max-w-md flex-col gap-6 rounded-3xl bg-paper p-8 text-left shadow-2xl">
+      <div className="relative flex w-full max-w-md flex-col gap-6 rounded-3xl bg-paper p-8 text-left shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div>
           <span className="mb-1 block font-display text-lg italic text-ochre-dk">
             {t("newTitle")}
@@ -285,7 +303,20 @@ export default function UserQuickCreateModal({
             </button>
           </form>
         )}
+
       </div>
+
+      {confirmingClose && (
+        <ConfirmModal
+          danger={false}
+          title={t("confirmClose")}
+          message={t("confirmCloseMessage")}
+          confirmLabel={t("confirmCloseYes")}
+          cancelLabel={t("confirmCloseNo")}
+          onConfirm={onClose}
+          onCancel={() => setConfirmingClose(false)}
+        />
+      )}
     </div>
   );
 }

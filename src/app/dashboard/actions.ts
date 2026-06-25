@@ -75,5 +75,6 @@ export async function downgradeToFree(): Promise<DowngradeResult> {
   revalidatePath("/pricing");
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/recipes");
+  revalidatePath("/dashboard/profile");
   return { ok: true };
 }

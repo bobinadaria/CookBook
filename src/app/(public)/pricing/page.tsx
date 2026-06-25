@@ -10,6 +10,7 @@ import CheckoutProvider from "@/components/pricing/CheckoutProvider";
 import CheckoutButton from "@/components/pricing/CheckoutButton";
 import DowngradeToFreeButton from "@/components/pricing/DowngradeToFreeButton";
 import FaqAutoOpen from "@/components/pricing/FaqAutoOpen";
+import ScrollToHash from "@/components/pricing/ScrollToHash";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("pricing");
@@ -96,8 +97,8 @@ export default async function PricingPage() {
     }
   }
 
-  // Пакеты AI-обложек докупаются только поверх Premium/Lifetime — без них пакет
-  // не к чему применить (AI-обложка для своего рецепта сама по себе premium-фича).
+  // Пакеты обложек — только Premium/Lifetime. Free не может использовать обложки,
+  // поэтому кнопки задисейблены (canBuyPacks=false → disabled + пояснительный текст).
   const canBuyPacks = currentPlan === "premium" || currentPlan === "lifetime";
 
   const tiers = t.raw("tiers") as Tier[];
@@ -108,6 +109,7 @@ export default async function PricingPage() {
 
   return (
     <CheckoutProvider>
+    <ScrollToHash />
     <div className="bg-paper text-ink">
       <FaqAutoOpen />
       {/* ── Header ──────────────────────────────────────────────────────── */}
@@ -123,7 +125,7 @@ export default async function PricingPage() {
       </section>
 
       {/* ── 3 tiers ─────────────────────────────────────────────────────── */}
-      <section className="mx-auto max-w-[1320px] px-6 pb-20 md:px-10 lg:px-14">
+      <section id="plans" className="mx-auto max-w-[1320px] px-6 pb-20 md:px-10 lg:px-14">
         <div className="grid grid-cols-1 lg:grid-cols-3">
           {tiers.map((tier, i) => {
             const style = TIER_STYLE[tier.key];
@@ -330,7 +332,7 @@ export default async function PricingPage() {
       </section>
 
       {/* ── AI-картинки кредитами ───────────────────────────────────────── */}
-      <section className="mx-auto max-w-[1320px] px-6 pb-20 md:px-10 lg:px-14">
+      <section id="covers" className="mx-auto max-w-[1320px] px-6 pb-20 md:px-10 lg:px-14">
         <div className="border-l-[6px] border-ochre bg-crust px-6 py-12 md:px-12">
           <div className="grid items-center gap-10 lg:grid-cols-[1fr_2fr] lg:gap-12">
             <div>

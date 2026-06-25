@@ -133,6 +133,13 @@ export default function NutritionResolveModal({
   const total = queue.length;
   const step = queue[index] ?? null;
 
+  // Блокируем скролл фона
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
+  }, []);
+
   // Esc = «выбрать за меня для всех оставшихся».
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -142,6 +149,9 @@ export default function NutritionResolveModal({
     return () => window.removeEventListener("keydown", onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [busy, finalizing, index]);
+
+  // F45: useRef должен быть ДО любого условного return (правила хуков).
+  const mouseDownOnBackdrop = useRef(false);
 
   if (total === 0) return null;
 
@@ -251,8 +261,16 @@ export default function NutritionResolveModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 p-4">
-      <div className="w-full max-w-md border border-rule bg-paper rounded-none shadow-none">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 p-4"
+      onMouseDown={(e) => { mouseDownOnBackdrop.current = e.target === e.currentTarget; }}
+      onTouchStart={(e) => { mouseDownOnBackdrop.current = e.target === e.currentTarget; }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget && mouseDownOnBackdrop.current && !busy && !finalizing)
+          autoFinishAll();
+      }}
+    >
+      <div className="w-full max-w-md border border-rule bg-paper rounded-none shadow-none" onClick={(e) => e.stopPropagation()}>
         {/* Шапка: счётчик + закрыть */}
         <div className="flex items-center justify-between border-b border-rule px-5 py-3">
           <span className="font-body text-[11px] font-semibold uppercase tracking-[0.16em] text-soft">

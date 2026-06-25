@@ -13,7 +13,8 @@
     "home": "Обложка",
     "pricing": "Подписка",
     "admin": "Админ",
-    "backToSite": "На сайт"
+    "backToSite": "На сайт",
+    "myProfile": "Мой профиль"
   },
   "header": {
     "tagline": "Твоя кухня · твоя книга · твой AI-нутрициолог",
@@ -33,6 +34,7 @@
     "heroDescriptor": "Создай свою личную книгу рецептов — AI заполнит её по ссылке, нарисует фото и честно посчитает КБЖУ по данным <usda>USDA</usda>. А рецепты автора можно добавлять в любой момент — каталог растёт каждый месяц.",
     "heroCtaOpen": "Смотреть рецепты →",
     "heroCtaCreate": "Создать свою книгу →",
+    "heroCtaAddRecipe": "Добавить рецепт в книгу →",
     "heroCtaTry": "Тарифы",
     "heroFacts": [
       {
@@ -202,6 +204,8 @@
     "packLabel": "пакет",
     "currentPlanBadge": "Ваш тариф",
     "ctaSwitchFree": "Перейти на Free",
+    "downgradeModalEyebrow": "Подтверждение",
+    "downgradeModalTitle": "Вернуться на Free?",
     "downgradeConfirmText": "AI-доступ (ссылка, обложки, КБЖУ) отключится сразу. Уже сохранённые рецепты и обложки останутся как есть. Если рецептов больше 15 — новые создать нельзя, пока не удалишь лишние или не вернёшься на Premium.",
     "downgradeConfirmYes": "Да, перейти на Free",
     "downgradeCancel": "Отмена",
@@ -397,6 +401,7 @@
     "noRecipes": "Рецепты пока не добавлены",
     "resetFilters": "Сбросить фильтры",
     "loadMore": "Загрузить ещё",
+    "addRecipe": "Добавить рецепт",
     "recipeCount": "{count, plural, one {# рецепт} few {# рецепта} other {# рецептов}}",
     "drinksFilter": "Напитки",
     "filtersButton": "Фильтры",
@@ -621,6 +626,7 @@
     "creditRecipes": "Генерации рецептов",
     "creditsCaption": "в приветственном наборе",
     "premiumTitle": "Premium",
+    "freeDesc": "Базовый доступ к книге рецептов. Расчёт КБЖУ, AI-обложки и импорт по ссылке — на Premium.",
     "premiumDesc": "КБЖУ для рецептов и импорт рецептов по ссылке",
     "premiumPrice": "€7.90/мес",
     "premiumCta": "Стать Premium",
@@ -639,7 +645,12 @@
     "subscribeCta": "Смотреть тарифы",
     "emailLabel": "Почта",
     "compareShow": "Сравнить планы",
-    "compareHide": "Свернуть"
+    "compareHide": "Свернуть",
+    "coverCreditsTitle": "AI обложки",
+    "coverCreditsUnlimited": "Без ограничений — бета-режим",
+    "coverCreditsEmpty": "Кредиты на обложки закончились. Купите пакет, чтобы продолжить.",
+    "coverCreditsRemaining": "обложек осталось",
+    "coverCreditsBuy": "Купить пакет"
   },
   "myRecipes": {
     "tagline": "личная книга рецептов",
@@ -758,6 +769,8 @@
     "coverAiTitle": "AI-обложка",
     "coverAiHint": "Лучше всего, когда рецепт уже заполнен: по названию, составу и шагам картинка точнее.",
     "coverAiCounter": "Обложки: без лимита на бете",
+    "coverAiCounterBeta": "Обложки: без лимита — бета",
+    "coverAiCounterN": "Обложек: {count}",
     "coverAiBuy": "Докупить",
     "coverAiBadge": "Premium · доступно",
     "premiumLockBadge": "Доступно на Premium",
@@ -770,6 +783,10 @@
     "leaveTitle": "Сохранить рецепт перед уходом?",
     "leaveMessage": "Вы кое-что написали, но ещё не сохранили. Можно остаться и дописать — или уйти, и черновик не сохранится.",
     "leaveConfirm": "Уйти без сохранения",
-    "leaveCancel": "Остаться и дописать"
+    "leaveCancel": "Остаться и дописать",
+    "confirmClose": "Закрыть без сохранения?",
+    "confirmCloseMessage": "Вы кое-что написали, но ещё не сохранили. Данные будут потеряны.",
+    "confirmCloseYes": "Закрыть",
+    "confirmCloseNo": "Остаться"
   }
 }

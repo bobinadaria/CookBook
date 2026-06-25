@@ -20,6 +20,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createServiceRoleClient } from "@/lib/supabase/admin";
 import { stripe, getPriceId } from "@/lib/stripe";
 import { getSiteUrl } from "@/lib/site-url";
+import { getEntitlements } from "@/lib/entitlements";
 import type { CheckoutItem } from "@/lib/checkout";
 
 export async function POST(request: Request) {
@@ -44,6 +45,14 @@ export async function POST(request: Request) {
 
   if (!item || (item.kind === "plan" && item.plan === "free")) {
     return NextResponse.json({ message: "Unsupported item" }, { status: 400 });
+  }
+
+  // Серверная защита: пакеты только для Premium/Lifetime (UI тоже блокирует кнопку).
+  if (item.kind === "pack") {
+    const { aiEnabled } = await getEntitlements(user.id);
+    if (!aiEnabled) {
+      return NextResponse.json({ message: "Cover packs require Premium or Lifetime plan" }, { status: 403 });
+    }
   }
 
   // ── Get or create Stripe customer ─────────────────────────────────────────

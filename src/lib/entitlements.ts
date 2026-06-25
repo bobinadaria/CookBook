@@ -3,7 +3,7 @@
  *
  * Единственный источник истины по тому, что пользователю «можно» в зависимости
  * от его плана. Сейчас используется фичей «Своя книга рецептов» (лимит личных
- * рецептов на Free). Дальше сюда же лягут лимиты на AI-кредиты, фото и т.п.
+ * рецептов на Free) и кредитами на AI-обложки (credit_ledger).
  *
  * Гейтинг включается фиче-флагом `MONETIZATION_ENABLED` (env). Пока флаг выключен
  * (пре-лонч) лимиты НЕ применяются — все лимиты возвращаются как `null` (безлимит),
@@ -20,6 +20,13 @@ export type Plan = "free" | "premium" | "lifetime";
 
 /** Лимит личных рецептов для Free-плана. Premium/Lifetime — без лимита. */
 export const FREE_RECIPE_LIMIT = 15;
+
+/** Кредиты за каждый размер пакета обложек. */
+export const PACK_COVER_CREDITS: Record<string, number> = {
+  S: 10,
+  M: 25,
+  L: 55,
+};
 
 export interface Entitlements {
   /** Текущий план пользователя (по умолчанию 'free'). */
@@ -38,6 +45,14 @@ export interface Entitlements {
     /** Максимум личных рецептов. `null` = безлимит (Premium/Lifetime или флаг выключен). */
     recipes: number | null;
   };
+  credits: {
+    /**
+     * Остаток кредитов на AI-обложки из credit_ledger.
+     * `null` — Free-план (пакеты недоступны) или MONETIZATION_ENABLED=false.
+     * Число — актуальный баланс для Premium/Lifetime.
+     */
+    covers: number | null;
+  };
 }
 
 /**
@@ -50,7 +65,7 @@ export function isMonetizationEnabled(): boolean {
 
 /** Лимит личных рецептов для плана с учётом фиче-флага. */
 function recipeLimitFor(plan: Plan, monetizationEnabled: boolean): number | null {
-  if (!monetizationEnabled) return null; // флаг выключен — лимит не применяется
+  if (!monetizationEnabled) return null;
   return plan === "free" ? FREE_RECIPE_LIMIT : null;
 }
 
@@ -74,24 +89,28 @@ function normalizePlan(value: unknown): Plan {
 export async function getEntitlements(userId: string): Promise<Entitlements> {
   const monetizationEnabled = isMonetizationEnabled();
   let plan: Plan = "free";
+  let coverBalance: number | null = null;
 
   if (userId) {
     const supabase = createServiceRoleClient();
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("plan")
-      .eq("id", userId)
-      .single();
 
-    if (error) {
-      console.error(
-        "[getEntitlements] Failed to read plan:",
-        error.message,
-        "userId:",
-        userId
-      );
+    const [profileRes, balanceRes] = await Promise.all([
+      supabase.from("profiles").select("plan").eq("id", userId).single(),
+      // Баланс обложек через RPC (только если монетизация включена)
+      monetizationEnabled
+        ? supabase.rpc("get_cover_balance", { p_user_id: userId })
+        : Promise.resolve({ data: null, error: null }),
+    ]);
+
+    if (profileRes.error) {
+      console.error("[getEntitlements] Failed to read plan:", profileRes.error.message, "userId:", userId);
     } else {
-      plan = normalizePlan(data?.plan);
+      plan = normalizePlan(profileRes.data?.plan);
+    }
+
+    // Баланс показываем только paid-планам (только они могут покупать пакеты)
+    if (monetizationEnabled && aiEnabledFor(plan)) {
+      coverBalance = typeof balanceRes.data === "number" ? balanceRes.data : 0;
     }
   }
 
@@ -101,6 +120,9 @@ export async function getEntitlements(userId: string): Promise<Entitlements> {
     aiEnabled: aiEnabledFor(plan),
     limits: {
       recipes: recipeLimitFor(plan, monetizationEnabled),
+    },
+    credits: {
+      covers: coverBalance,
     },
   };
 }

@@ -84,6 +84,7 @@ export default async function EditUserRecipePage({
         recipeId={id}
         defaultValues={defaultValues}
         aiEnabled={ent.aiEnabled}
+        coverCredits={ent.credits.covers}
       />
     </main>
   );

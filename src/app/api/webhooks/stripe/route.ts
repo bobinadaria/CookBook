@@ -26,6 +26,7 @@ import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { stripe } from "@/lib/stripe";
 import { createServiceRoleClient } from "@/lib/supabase/admin";
+import { PACK_COVER_CREDITS } from "@/lib/entitlements";
 
 // Отключаем парсинг тела Next.js — нужно сырое тело для верификации подписи Stripe
 export const dynamic = "force-dynamic";
@@ -60,14 +61,52 @@ export async function POST(request: Request) {
   try {
     switch (event.type) {
 
-      // Покупка завершена (подписка или разовый платёж)
+      // Покупка завершена (подписка, разовый платёж или пакет обложек)
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
         const userId  = session.metadata?.user_id;
+        const kind    = session.metadata?.kind;   // 'pack' для пакетов
         const plan    = session.metadata?.plan as "premium" | "lifetime" | undefined;
 
-        if (!userId || !plan) {
-          console.warn("[stripe/webhook] checkout.session.completed: missing metadata", session.id);
+        if (!userId) {
+          console.warn("[stripe/webhook] checkout.session.completed: missing user_id", session.id);
+          break;
+        }
+
+        // ── Пакет AI-обложек ──────────────────────────────────────────────
+        if (kind === "pack") {
+          const size    = session.metadata?.size ?? "";  // "S" | "M" | "L"
+          const credits = PACK_COVER_CREDITS[size];
+
+          if (!credits) {
+            console.warn("[stripe/webhook] pack: unknown size", size, session.id);
+            break;
+          }
+
+          // Идемпотентность: вставляем только если такое событие ещё не обработано
+          const { error } = await admin
+            .from("credit_ledger")
+            .insert({
+              user_id:         userId,
+              delta:           credits,
+              reason:          `pack_${size.toLowerCase()}`,
+              stripe_event_id: event.id,
+            });
+
+          if (error) {
+            // 23505 = unique violation — событие уже обработано, это нормально
+            if (error.code !== "23505") {
+              console.error("[stripe/webhook] Failed to credit pack:", error.message);
+            }
+          } else {
+            console.log(`[stripe/webhook] Credited ${credits} covers (pack ${size}) for user ${userId}`);
+          }
+          break;
+        }
+
+        // ── Подписка / Lifetime ───────────────────────────────────────────
+        if (!plan) {
+          console.warn("[stripe/webhook] checkout.session.completed: missing plan metadata", session.id);
           break;
         }
 

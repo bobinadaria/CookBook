@@ -1,3 +1,10 @@
+// Polyfill for `self` — Next.js 15 dev Edge Runtime sandbox doesn't expose it
+// but webpack's chunk-loading boilerplate requires it (target: 'webworker').
+if (typeof self === "undefined") {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (globalThis as any).self = globalThis;
+}
+
 import { type NextRequest, NextResponse } from "next/server";
 import createIntlMiddleware from "next-intl/middleware";
 import { routing } from "@/i18n/routing";

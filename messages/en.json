@@ -13,7 +13,8 @@
     "home": "Cover",
     "pricing": "Subscribe",
     "admin": "Admin",
-    "backToSite": "To the site"
+    "backToSite": "To the site",
+    "myProfile": "My profile"
   },
   "header": {
     "tagline": "Your kitchen · your cookbook · your AI nutritionist",
@@ -33,6 +34,7 @@
     "heroDescriptor": "Create your own recipe book — AI fills it in from a link, draws a photo, and works out the nutrition honestly from <usda>USDA</usda> data. Add the author's recipes any time too — the catalog grows every month.",
     "heroCtaOpen": "Browse recipes →",
     "heroCtaCreate": "Make your book →",
+    "heroCtaAddRecipe": "Add a recipe to your book →",
     "heroCtaTry": "Pricing",
     "heroFacts": [
       {
@@ -202,6 +204,8 @@
     "packLabel": "pack",
     "currentPlanBadge": "Your plan",
     "ctaSwitchFree": "Switch to Free",
+    "downgradeModalEyebrow": "Confirmation",
+    "downgradeModalTitle": "Switch back to Free?",
     "downgradeConfirmText": "AI access (link, covers, nutrition) turns off right away. Recipes and covers you already saved stay as they are. If you have more than 15 recipes, you won't be able to create new ones until you delete some or go back to Premium.",
     "downgradeConfirmYes": "Yes, switch to Free",
     "downgradeCancel": "Cancel",
@@ -397,6 +401,7 @@
     "noRecipes": "No recipes added yet",
     "resetFilters": "Reset filters",
     "loadMore": "Load more",
+    "addRecipe": "Add recipe",
     "recipeCount": "{count, plural, one {# recipe} other {# recipes}}",
     "drinksFilter": "Drinks",
     "filtersButton": "Filters",
@@ -621,6 +626,7 @@
     "creditRecipes": "Recipe generations",
     "creditsCaption": "in the welcome pack",
     "premiumTitle": "Premium",
+    "freeDesc": "Basic access to your recipe book. Nutrition info, AI covers and URL import are available on Premium.",
     "premiumDesc": "Nutrition info for recipes and recipe import by URL",
     "premiumPrice": "€7.90/mo",
     "premiumCta": "Go Premium",
@@ -639,7 +645,12 @@
     "subscribeCta": "View plans",
     "emailLabel": "Email",
     "compareShow": "View more",
-    "compareHide": "View less"
+    "compareHide": "View less",
+    "coverCreditsTitle": "AI covers",
+    "coverCreditsUnlimited": "Unlimited — beta mode",
+    "coverCreditsEmpty": "No cover credits left. Buy a pack to continue.",
+    "coverCreditsRemaining": "covers remaining",
+    "coverCreditsBuy": "Buy a pack"
   },
   "myRecipes": {
     "tagline": "your private cookbook",
@@ -758,6 +769,8 @@
     "coverAiTitle": "AI cover",
     "coverAiHint": "Works best once the recipe is filled in: the name, ingredients and steps make the image more accurate.",
     "coverAiCounter": "Covers: unlimited during beta",
+    "coverAiCounterBeta": "Covers: unlimited — beta",
+    "coverAiCounterN": "Covers left: {count}",
     "coverAiBuy": "Buy more",
     "coverAiBadge": "Premium · included",
     "premiumLockBadge": "Available on Premium",
@@ -770,6 +783,10 @@
     "leaveTitle": "Save before you go?",
     "leaveMessage": "You've started something but haven't saved it yet. You can stay and finish — or leave, and the draft won't be saved.",
     "leaveConfirm": "Leave without saving",
-    "leaveCancel": "Stay and finish"
+    "leaveCancel": "Stay and finish",
+    "confirmClose": "Close without saving?",
+    "confirmCloseMessage": "You've started something but haven't saved it yet. Your input will be lost.",
+    "confirmCloseYes": "Close",
+    "confirmCloseNo": "Stay"
   }
 }

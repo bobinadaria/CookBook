@@ -6,11 +6,18 @@ import RevealCard from "@/components/animations/RevealCard";
 import HomeMagicDemo from "@/components/home/HomeMagicDemo";
 import { DropCap, Eyebrow, EditorialButton, PullQuote } from "@/components/ui";
 import { fetchFeaturedRecipes } from "@/lib/supabase/server-queries";
+import { createClient } from "@/lib/supabase/server";
+import { getEntitlements } from "@/lib/entitlements";
+import CreateRecipeButton from "@/components/dashboard/CreateRecipeButton";
 import type { LocaleCode } from "@/types";
 
 const HERO_PHOTO = "/hero.png";
 
 export default async function HomePage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  const aiEnabled = user ? (await getEntitlements(user.id)).aiEnabled : false;
+
   const [featured, rawLocale, t] = await Promise.all([
     fetchFeaturedRecipes(),
     getLocale(),
@@ -47,7 +54,11 @@ export default async function HomePage() {
 
           <div>
             <div className="mb-6 flex flex-wrap items-center gap-4">
-              <EditorialButton href="/register">{t("heroCtaCreate")}</EditorialButton>
+              {user ? (
+                <CreateRecipeButton aiEnabled={aiEnabled} label={t("heroCtaAddRecipe")} />
+              ) : (
+                <EditorialButton href="/register">{t("heroCtaCreate")}</EditorialButton>
+              )}
               <EditorialButton href="/recipes" variant="ghost">
                 {t("heroCtaOpen")}
               </EditorialButton>

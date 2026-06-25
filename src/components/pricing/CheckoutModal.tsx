@@ -30,6 +30,13 @@ export default function CheckoutModal({
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
+  // Блокируем скролл фона
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
+  }, []);
+
   // Закрытие по Esc.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {

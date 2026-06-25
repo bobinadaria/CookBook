@@ -7,6 +7,7 @@ import RecipeCard from "@/components/recipe/RecipeCard";
 import FilterDropdown from "@/components/recipe/FilterDropdown";
 import RevealCard from "@/components/animations/RevealCard";
 import { EditorialButton, Eyebrow } from "@/components/ui";
+import CreateRecipeButton from "@/components/dashboard/CreateRecipeButton";
 import { createClient } from "@/lib/supabase/client";
 import { DISPLAYED_CATEGORY_TYPES } from "@/lib/category-types";
 import { cn } from "@/lib/utils";
@@ -80,6 +81,23 @@ export default function RecipesPage() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [filterGroups, setFilterGroups] = useState<FilterGroup[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [aiEnabled, setAiEnabled] = useState(false);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(async ({ data }) => {
+      if (!data.user) return;
+      setIsLoggedIn(true);
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("plan")
+        .eq("id", data.user.id)
+        .single();
+      const plan = profile?.plan;
+      setAiEnabled(plan === "premium" || plan === "lifetime");
+    });
+  }, []);
 
   const [search, setSearch] = useState("");
   const [activeFilters, setActiveFilters] = useState<ActiveFilters>({});
@@ -203,11 +221,16 @@ export default function RecipesPage() {
           <h1 className="mt-3 font-display text-[clamp(2.75rem,6vw,72px)] font-normal leading-[0.92] tracking-[-0.03em] text-burg">
             {t("catalog")}
           </h1>
+          {!loading && (
+            <p className="mt-2 font-body text-[11px] font-semibold uppercase tracking-[0.16em] text-soft">
+              {countLabel(filtered.length)}
+            </p>
+          )}
         </div>
-        {!loading && (
-          <span className="hidden whitespace-nowrap font-body text-[11px] font-semibold uppercase tracking-[0.16em] text-soft sm:block">
-            {countLabel(filtered.length)}
-          </span>
+        {isLoggedIn && (
+          <div className="hidden shrink-0 sm:flex">
+            <CreateRecipeButton aiEnabled={aiEnabled} />
+          </div>
         )}
       </div>
 

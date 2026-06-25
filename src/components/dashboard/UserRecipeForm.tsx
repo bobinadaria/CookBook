@@ -70,6 +70,8 @@ interface UserRecipeFormProps {
   defaultValues?: UserRecipeFormDefaults;
   /** Доступ к AI-функциям (расчёт КБЖУ) — premium/lifetime. Управляет показом кнопки. */
   aiEnabled?: boolean;
+  /** Баланс AI-обложек из credit_ledger. null = монетизация выключена (бета, без лимита). */
+  coverCredits?: number | null;
 }
 
 async function uploadImage(bucket: string, file: File): Promise<string> {
@@ -129,6 +131,7 @@ export default function UserRecipeForm({
   recipeId,
   defaultValues,
   aiEnabled = false,
+  coverCredits = null,
 }: UserRecipeFormProps) {
   const t = useTranslations("myRecipes");
   const tn = useTranslations("recipe.nutrition");
@@ -173,6 +176,27 @@ export default function UserRecipeForm({
   const [coverGenLoading, setCoverGenLoading] = useState(false);
   const [coverGenError, setCoverGenError] = useState<string | null>(null);
   const [coverGenDone, setCoverGenDone] = useState(false);
+  // Локальный счётчик кредитов — обновляется после генерации без перезагрузки.
+  // null = монетизация выключена (бета, без лимита).
+  const [creditsLeft, setCreditsLeft] = useState<number | null>(coverCredits ?? null);
+
+  // Когда пользователь возвращается на вкладку (например, после покупки пакета
+  // в новой вкладке) — перечитываем актуальный баланс с сервера.
+  useEffect(() => {
+    const handleVisibility = async () => {
+      if (document.visibilityState !== "visible") return;
+      try {
+        const res = await fetch("/api/recipes/cover-credits");
+        if (!res.ok) return;
+        const json = (await res.json()) as { credits: number | null };
+        setCreditsLeft(json.credits);
+      } catch {
+        // тихо игнорируем — баланс останется локальным
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
+  }, []);
 
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<Set<string>>(
     new Set(defaultValues?.categoryIds ?? []),
@@ -482,6 +506,8 @@ export default function UserRecipeForm({
       setCoverPreview(json.url);
       setCoverFile(undefined);
       setCoverGenDone(true);
+      // Уменьшаем локальный счётчик (только если монетизация включена)
+      setCreditsLeft((prev) => (prev !== null ? Math.max(0, prev - 1) : null));
     } catch {
       setCoverGenError(t("coverAiError"));
     } finally {
@@ -737,24 +763,36 @@ export default function UserRecipeForm({
                   </span>
                 </div>
                 <p className="mb-3 text-[11px] leading-snug text-soft">{t("coverAiHint")}</p>
-                {/* Счётчик обложек + докупить. На бете лимита нет (тестеры
-                    генерируют свободно), кнопка «Докупить» — каркас под будущую
-                    монетизацию, поэтому disabled. */}
+                {/* Счётчик обложек + докупить. */}
                 <div className="mb-3 flex items-center justify-between gap-2 border-t border-ochre/30 pt-2">
-                  <span className="font-body text-[11px] text-soft">{t("coverAiCounter")}</span>
-                  <button
-                    type="button"
-                    disabled
-                    title={t("coverAiBadge")}
-                    className="cursor-not-allowed rounded-none border border-rule px-2 py-1 font-body text-[10px] font-semibold uppercase tracking-[0.1em] text-muted"
-                  >
-                    {t("coverAiBuy")}
-                  </button>
+                  <span className="font-body text-[11px] text-soft">
+                    {creditsLeft === null
+                      ? t("coverAiCounterBeta")
+                      : t("coverAiCounterN", { count: creditsLeft })}
+                  </span>
+                  {creditsLeft !== null ? (
+                    <a
+                      href="/pricing#covers"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="rounded-none border border-burg px-2 py-1 font-body text-[10px] font-semibold uppercase tracking-[0.1em] text-burg transition-colors hover:bg-burg hover:text-paper"
+                    >
+                      {t("coverAiBuy")}
+                    </a>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled
+                      className="cursor-not-allowed rounded-none border border-rule px-2 py-1 font-body text-[10px] font-semibold uppercase tracking-[0.1em] text-muted"
+                    >
+                      {t("coverAiBuy")}
+                    </button>
+                  )}
                 </div>
                 <button
                   type="button"
                   onClick={handleGenerateCover}
-                  disabled={coverGenLoading || !title.trim()}
+                  disabled={coverGenLoading || !title.trim() || creditsLeft === 0}
                   className={cn(
                     "w-full rounded-none border px-3 py-2 text-xs font-medium uppercase tracking-wider transition-colors",
                     "border-burg bg-burg text-paper hover:bg-burg-dk",

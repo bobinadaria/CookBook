@@ -21,6 +21,13 @@ export default function ConfirmModal({
   onConfirm,
   onCancel,
 }: ConfirmModalProps) {
+  // Блокируем скролл фона
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
+  }, []);
+
   // Close on Escape
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -36,10 +43,10 @@ export default function ConfirmModal({
       onClick={(e) => { if (e.target === e.currentTarget) onCancel(); }}
     >
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-burg/30 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-burg/30 backdrop-blur-sm pointer-events-none" />
 
       {/* Panel */}
-      <div className="relative w-full max-w-sm bg-paper rounded-3xl shadow-2xl p-7 flex flex-col gap-5">
+      <div className="relative w-full max-w-sm bg-paper rounded-3xl shadow-2xl p-7 flex flex-col gap-5" onClick={(e) => e.stopPropagation()}>
 
         {/* Icon */}
         <div className={`w-11 h-11 rounded-none flex items-center justify-center ${danger ? "bg-red-50" : "bg-crust"}`}>

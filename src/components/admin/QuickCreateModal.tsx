@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Spinner } from "@/components/ui";
+import ConfirmModal from "./ConfirmModal";
 
 interface QuickCreateModalProps {
   onClose: () => void;
@@ -16,20 +17,33 @@ export default function QuickCreateModal({ onClose }: QuickCreateModalProps) {
   const [type, setType] = useState<"food" | "drink">("food");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [confirmingClose, setConfirmingClose] = useState(false);
+
+  const isDirty = title.trim() !== "";
+
+  // Блокируем скролл фона
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
+  }, []);
 
   // Focus input on open
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
 
-  // Close on Escape
+  // Close on Escape (если есть данные — спрашиваем; когда confirmingClose — Esc обрабатывает ConfirmModal)
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && !saving) onClose();
+      if (e.key === "Escape" && !saving && !confirmingClose) {
+        if (isDirty) setConfirmingClose(true);
+        else onClose();
+      }
     };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
-  }, [saving, onClose]);
+  }, [saving, onClose, isDirty, confirmingClose]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,13 +64,18 @@ export default function QuickCreateModal({ onClose }: QuickCreateModalProps) {
     /* Backdrop */
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      onClick={(e) => { if (e.target === e.currentTarget && !saving) onClose(); }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget && !saving) {
+          if (isDirty && !confirmingClose) setConfirmingClose(true);
+          else onClose();
+        }
+      }}
     >
       {/* Blur overlay */}
-      <div className="absolute inset-0 bg-burg/30 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-burg/30 backdrop-blur-sm pointer-events-none" />
 
       {/* Panel */}
-      <div className="relative w-full max-w-md bg-paper rounded-3xl shadow-2xl p-8 flex flex-col gap-6 text-left">
+      <div className="relative w-full max-w-md bg-paper rounded-3xl shadow-2xl p-8 flex flex-col gap-6 text-left" onClick={(e) => e.stopPropagation()}>
 
         {/* Header */}
         <div>
@@ -139,7 +158,20 @@ export default function QuickCreateModal({ onClose }: QuickCreateModalProps) {
             </button>
           </div>
         </form>
+
       </div>
+
+      {confirmingClose && (
+        <ConfirmModal
+          danger={false}
+          title="Закрыть без сохранения?"
+          message="Вы кое-что написали, но ещё не сохранили. Данные будут потеряны."
+          confirmLabel="Закрыть"
+          cancelLabel="Остаться"
+          onConfirm={onClose}
+          onCancel={() => setConfirmingClose(false)}
+        />
+      )}
     </div>
   );
 }
