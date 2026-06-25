@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -42,6 +42,14 @@ export default function DowngradeToFreeButton({
     }
     router.refresh();
   };
+
+  // Блокируем скролл фона пока модалка открыта
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
+  }, [open]);
 
   const handleClose = () => {
     if (loading) return;

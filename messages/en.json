@@ -242,6 +242,8 @@
       "eyebrow": "Payment successful",
       "ctaDashboard": "Go to my book",
       "ctaRecipes": "Browse recipes",
+      "ctaAddRecipe": "Add a recipe",
+      "ctaBuyPacks": "Buy cover packs",
       "premium": {
         "title": "Welcome to",
         "accent": "Premium",

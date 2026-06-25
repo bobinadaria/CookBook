@@ -7,6 +7,8 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { Eyebrow } from "@/components/ui";
+import { createClient } from "@/lib/supabase/server";
+import SuccessPlanActions from "./SuccessPlanActions";
 
 export const metadata: Metadata = {
   title: "Payment successful — The Slow Table",
@@ -20,6 +22,20 @@ interface Props {
 export default async function PricingSuccessPage({ searchParams }: Props) {
   const { plan, size } = await searchParams;
   const t = await getTranslations("pricing.success");
+
+  // Нужен для SuccessPlanActions — определяем aiEnabled по текущему плану
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  let aiEnabled = false;
+  if (user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("plan")
+      .eq("id", user.id)
+      .single();
+    const p = profile?.plan;
+    aiEnabled = p === "premium" || p === "lifetime";
+  }
 
   // Определяем заголовок и акцент по плану
   let title: string;
@@ -61,18 +77,26 @@ export default async function PricingSuccessPage({ searchParams }: Props) {
         </p>
 
         <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row">
-          <Link
-            href="/dashboard"
-            className="border-[1.5px] border-ochre bg-ochre px-8 py-4 font-body text-[12px] font-semibold uppercase tracking-[0.15em] text-seal transition-colors hover:bg-ochre-dk"
-          >
-            {t("ctaDashboard")}
-          </Link>
-          <Link
-            href="/recipes"
-            className="border-[1.5px] border-burg/50 px-8 py-4 font-body text-[12px] font-semibold uppercase tracking-[0.15em] text-burg transition-colors hover:bg-burg hover:text-paper"
-          >
-            {t("ctaRecipes")}
-          </Link>
+          {plan === "pack" ? (
+            /* Пакет обложек → кабинет + каталог */
+            <>
+              <Link
+                href="/dashboard"
+                className="border-[1.5px] border-ochre bg-ochre px-8 py-4 font-body text-[12px] font-semibold uppercase tracking-[0.15em] text-seal transition-colors hover:bg-ochre-dk"
+              >
+                {t("ctaDashboard")}
+              </Link>
+              <Link
+                href="/recipes"
+                className="border-[1.5px] border-burg/50 px-8 py-4 font-body text-[12px] font-semibold uppercase tracking-[0.15em] text-burg transition-colors hover:bg-burg hover:text-paper"
+              >
+                {t("ctaRecipes")}
+              </Link>
+            </>
+          ) : (
+            /* Premium / Lifetime → модалка создания рецепта + купить пакеты */
+            <SuccessPlanActions aiEnabled={aiEnabled} />
+          )}
         </div>
       </section>
     </div>
