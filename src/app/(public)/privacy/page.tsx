@@ -1,13 +1,11 @@
-import type { Metadata } from "next";
-import Link from "next/link";
+"use client";
 
-export const metadata: Metadata = {
-  title: "Privacy Policy — The Slow Table",
-  description: "How The Slow Table collects, uses and protects your personal data.",
-  robots: { index: true, follow: true },
-};
+import Link from "next/link";
+import { useState } from "react";
 
 export default function PrivacyPage() {
+  const [lang, setLang] = useState<"ru" | "en">("ru");
+
   return (
     <main className="bg-paper px-6 py-20 md:px-10 lg:px-14">
       <div className="mx-auto max-w-[720px]">
@@ -23,264 +21,183 @@ export default function PrivacyPage() {
           <p className="mt-3 font-body text-sm text-soft">
             Last updated: 26 June 2026 · Effective: 26 June 2026
           </p>
+
+          {/* Language toggle */}
+          <div className="mt-6 flex gap-1">
+            <button
+              onClick={() => setLang("ru")}
+              className={`px-4 py-1.5 font-body text-[11px] font-semibold uppercase tracking-[0.16em] transition-colors ${
+                lang === "ru"
+                  ? "bg-burg text-paper"
+                  : "text-soft hover:text-ink"
+              }`}
+            >
+              RU
+            </button>
+            <button
+              onClick={() => setLang("en")}
+              className={`px-4 py-1.5 font-body text-[11px] font-semibold uppercase tracking-[0.16em] transition-colors ${
+                lang === "en"
+                  ? "bg-burg text-paper"
+                  : "text-soft hover:text-ink"
+              }`}
+            >
+              EN
+            </button>
+          </div>
         </div>
 
         {/* RU version */}
-        <div className="prose-editorial mb-16">
-          <h2 className="mb-6 font-display text-2xl italic text-burg">
-            Политика конфиденциальности
-          </h2>
-
-          <Section title="1. Кто мы">
-            <p>
-              The Slow Table — персональный кулинарный сервис, работающий по адресу{" "}
-              <strong>bydaria.kitchen</strong>. Оператор данных: Дарья Бобина (далее —
-              «мы», «нас»), Чешская Республика. Контакт:{" "}
-              <a href="mailto:hello@bydaria.kitchen" className="text-ochre-dk hover:underline">
-                hello@bydaria.kitchen
-              </a>
-            </p>
-          </Section>
-
-          <Section title="2. Какие данные мы собираем">
-            <ul>
-              <li>
-                <strong>Аккаунт:</strong> имя, адрес электронной почты, хэш пароля (хранится
-                Supabase, не мы). При входе через Google — имя и email из вашего аккаунта Google.
-              </li>
-              <li>
-                <strong>Платёжные данные:</strong> мы не храним номера карт. Stripe обрабатывает
-                платежи напрямую; мы храним только идентификатор клиента Stripe и статус плана
-                (free / premium / lifetime).
-              </li>
-              <li>
-                <strong>Контент:</strong> рецепты, заметки, избранное, загруженные фотографии
-                — то, что вы создаёте в «Моей книге».
-              </li>
-              <li>
-                <strong>Технические данные:</strong> анонимная аналитика посещений (Vercel
-                Analytics), серверные логи. Мы не используем сторонние трекеры или рекламные
-                пиксели.
-              </li>
-            </ul>
-          </Section>
-
-          <Section title="3. Зачем мы обрабатываем данные">
-            <ul>
-              <li>Предоставление сервиса и авторизация (правовое основание: исполнение договора).</li>
-              <li>Обработка платежей через Stripe (исполнение договора).</li>
-              <li>AI-расчёт КБЖУ и генерация обложек (исполнение договора).</li>
-              <li>Безопасность, предотвращение мошенничества (законный интерес).</li>
-              <li>Улучшение сервиса на основе анонимной статистики (законный интерес).</li>
-            </ul>
-          </Section>
-
-          <Section title="4. Кому мы передаём данные">
-            <p>Мы не продаём ваши данные. Мы используем следующих субпроцессоров:</p>
-            <ul>
-              <li>
-                <strong>Supabase</strong> (США / ЕС) — база данных и авторизация.
-              </li>
-              <li>
-                <strong>Stripe</strong> (США) — платёжная обработка. Stripe сертифицирован по
-                PCI DSS.
-              </li>
-              <li>
-                <strong>Vercel</strong> (США) — хостинг и аналитика.
-              </li>
-              <li>
-                <strong>OpenAI</strong> (США) — AI-расчёт КБЖУ (мы передаём только текст
-                состава рецепта).
-              </li>
-              <li>
-                <strong>Google</strong> (США) — генерация обложек и авторизация через Google.
-              </li>
-            </ul>
-            <p>
-              Все субпроцессоры действуют в рамках стандартных договорных условий ЕС (SCC)
-              или аналогичных механизмов передачи данных.
-            </p>
-          </Section>
-
-          <Section title="5. Ваши права (GDPR)">
-            <p>Если вы находитесь в ЕЭЗ, у вас есть право:</p>
-            <ul>
-              <li>получить доступ к своим данным;</li>
-              <li>исправить неточные данные;</li>
-              <li>удалить аккаунт и все данные (напишите нам);</li>
-              <li>перенести данные в другой сервис;</li>
-              <li>
-                подать жалобу в надзорный орган (в Чехии —{" "}
-                <a
-                  href="https://www.uoou.cz"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-ochre-dk hover:underline"
-                >
-                  ÚOOÚ
-                </a>
-                ).
-              </li>
-            </ul>
-          </Section>
-
-          <Section title="6. Cookies">
-            <p>
-              Мы используем только технически необходимые cookies (сессия, языковые настройки)
-              и анонимные аналитические cookies Vercel. Мы не используем рекламные cookies или
-              отслеживающие пиксели третьих сторон.
-            </p>
-          </Section>
-
-          <Section title="7. Срок хранения">
-            <p>
-              Данные аккаунта хранятся до момента его удаления. При удалении аккаунта мы
-              удаляем ваши рецепты, заметки и избранное. Stripe может хранить транзакционные
-              записи согласно своей политике хранения данных.
-            </p>
-          </Section>
-
-          <Section title="8. Изменения">
-            <p>
-              При существенных изменениях мы обновим дату вверху страницы. Для значительных
-              изменений уведомим по email.
-            </p>
-          </Section>
-
-          <Section title="9. Контакт">
-            <p>
-              Вопросы о конфиденциальности:{" "}
-              <a href="mailto:hello@bydaria.kitchen" className="text-ochre-dk hover:underline">
-                hello@bydaria.kitchen
-              </a>
-            </p>
-          </Section>
-        </div>
-
-        {/* Divider */}
-        <div className="mb-16 flex items-center gap-4">
-          <div className="h-px flex-1 bg-rule" />
-          <span className="font-body text-[10px] uppercase tracking-[0.2em] text-muted">EN</span>
-          <div className="h-px flex-1 bg-rule" />
-        </div>
+        {lang === "ru" && (
+          <div>
+            <Section title="1. О нас">
+              <p>
+                The Slow Table — личный кулинарный сервис на сайте <strong>bydaria.kitchen</strong>.
+                Ответственная за обработку персональных данных: Дарья Бобина, Чешская Республика.
+                По всем вопросам пишите на{" "}
+                <a href="mailto:hello@bydaria.kitchen">hello@bydaria.kitchen</a>
+              </p>
+            </Section>
+            <Section title="2. Какие данные мы собираем">
+              <ul>
+                <li><strong>Данные аккаунта:</strong> имя, электронная почта, пароль в зашифрованном виде — хранятся в Supabase. При входе через Google мы получаем имя и почту из вашего Google-аккаунта.</li>
+                <li><strong>Платёжные данные:</strong> номера карт мы не видим и не храним — ими занимается Stripe напрямую. У нас хранится только ваш идентификатор в Stripe и статус подписки.</li>
+                <li><strong>Ваш контент:</strong> рецепты, заметки к рецептам, избранное, фотографии — всё, что вы добавляете в «Мою книгу».</li>
+                <li><strong>Технические данные:</strong> анонимная статистика посещений через Vercel Analytics и серверные логи. Сторонних рекламных трекеров мы не используем.</li>
+              </ul>
+            </Section>
+            <Section title="3. Зачем нам ваши данные">
+              <ul>
+                <li>Чтобы вы могли войти в аккаунт и пользоваться сервисом.</li>
+                <li>Чтобы проводить платежи через Stripe.</li>
+                <li>Чтобы рассчитывать КБЖУ и генерировать обложки с помощью AI.</li>
+                <li>Чтобы защищать сервис от злоупотреблений.</li>
+                <li>Чтобы понимать, как улучшить сайт — на основе анонимной статистики.</li>
+              </ul>
+            </Section>
+            <Section title="4. Кому мы передаём данные">
+              <p>
+                Ваши данные мы не продаём. Для работы сервиса мы пользуемся услугами
+                следующих компаний:
+              </p>
+              <ul>
+                <li><strong>Supabase</strong> (США / ЕС) — база данных и авторизация.</li>
+                <li><strong>Stripe</strong> (США) — приём платежей. Имеет сертификацию PCI DSS.</li>
+                <li><strong>Vercel</strong> (США) — хостинг сайта и аналитика посещений.</li>
+                <li><strong>OpenAI</strong> (США) — расчёт КБЖУ. Мы передаём только текст состава рецепта.</li>
+                <li><strong>Google</strong> (США) — генерация обложек и вход через Google.</li>
+              </ul>
+              <p>
+                Все перечисленные компании работают в соответствии с европейским
+                законодательством о защите данных.
+              </p>
+            </Section>
+            <Section title="5. Ваши права">
+              <p>
+                Если вы живёте в Европейском союзе или Европейской экономической зоне, вы вправе:
+              </p>
+              <ul>
+                <li>узнать, какие данные о вас хранятся;</li>
+                <li>исправить устаревшие или неверные данные;</li>
+                <li>попросить удалить аккаунт со всеми данными — просто напишите нам;</li>
+                <li>получить свои данные в удобном для переноса формате;</li>
+                <li>
+                  подать жалобу в надзорный орган — в Чехии это{" "}
+                  <a href="https://www.uoou.cz" target="_blank" rel="noopener noreferrer">ÚOOÚ</a>.
+                </li>
+              </ul>
+            </Section>
+            <Section title="6. Файлы cookie">
+              <p>
+                Мы используем только необходимые для работы сайта cookie: сессионные и языковые
+                настройки, а также анонимную аналитику Vercel. Рекламных или отслеживающих
+                cookie нет.
+              </p>
+            </Section>
+            <Section title="7. Как долго мы храним данные">
+              <p>
+                Данные аккаунта хранятся, пока вы его не удалите. При удалении мы удаляем
+                ваши рецепты, заметки и избранное. Stripe может хранить сведения о платежах
+                в соответствии со своей политикой.
+              </p>
+            </Section>
+            <Section title="8. Изменения политики">
+              <p>
+                Если мы внесём существенные изменения, дата вверху страницы обновится,
+                а вы получите письмо на почту.
+              </p>
+            </Section>
+            <Section title="9. Связь">
+              <p>
+                Вопросы о конфиденциальности:{" "}
+                <a href="mailto:hello@bydaria.kitchen">hello@bydaria.kitchen</a>
+              </p>
+            </Section>
+          </div>
+        )}
 
         {/* EN version */}
-        <div className="prose-editorial">
-          <h2 className="mb-6 font-display text-2xl italic text-burg">
-            Privacy Policy (English)
-          </h2>
-
-          <Section title="1. Who We Are">
-            <p>
-              The Slow Table is a personal culinary service available at{" "}
-              <strong>bydaria.kitchen</strong>. Data controller: Daria Bobina, Czech Republic.
-              Contact:{" "}
-              <a href="mailto:hello@bydaria.kitchen" className="text-ochre-dk hover:underline">
-                hello@bydaria.kitchen
-              </a>
-            </p>
-          </Section>
-
-          <Section title="2. Data We Collect">
-            <ul>
-              <li>
-                <strong>Account:</strong> name, email address, hashed password (stored by
-                Supabase). If you sign in with Google — your name and email from Google.
-              </li>
-              <li>
-                <strong>Payment data:</strong> we do not store card numbers. Stripe processes
-                payments directly; we store only the Stripe customer ID and your plan status.
-              </li>
-              <li>
-                <strong>Content:</strong> recipes, notes, favourites, uploaded photos — anything
-                you create in &ldquo;My Book&rdquo;.
-              </li>
-              <li>
-                <strong>Technical data:</strong> anonymous visit analytics (Vercel Analytics),
-                server logs. No third-party trackers or ad pixels.
-              </li>
-            </ul>
-          </Section>
-
-          <Section title="3. How We Use Your Data">
-            <ul>
-              <li>Providing the service and authentication (legal basis: contract performance).</li>
-              <li>Processing payments via Stripe (contract performance).</li>
-              <li>AI nutrition calculation and cover generation (contract performance).</li>
-              <li>Security and fraud prevention (legitimate interest).</li>
-              <li>Service improvement via anonymous statistics (legitimate interest).</li>
-            </ul>
-          </Section>
-
-          <Section title="4. Data Processors">
-            <p>We do not sell your data. We use the following sub-processors:</p>
-            <ul>
-              <li><strong>Supabase</strong> (US / EU) — database and authentication.</li>
-              <li><strong>Stripe</strong> (US) — payment processing. PCI DSS certified.</li>
-              <li><strong>Vercel</strong> (US) — hosting and analytics.</li>
-              <li><strong>OpenAI</strong> (US) — AI nutrition calculation (ingredients text only).</li>
-              <li><strong>Google</strong> (US) — cover image generation and Google sign-in.</li>
-            </ul>
-            <p>
-              All sub-processors operate under EU Standard Contractual Clauses (SCC) or
-              equivalent data transfer mechanisms.
-            </p>
-          </Section>
-
-          <Section title="5. Your Rights (GDPR)">
-            <p>If you are in the EEA, you have the right to:</p>
-            <ul>
-              <li>access your personal data;</li>
-              <li>correct inaccurate data;</li>
-              <li>delete your account and all data (contact us);</li>
-              <li>data portability;</li>
-              <li>
-                lodge a complaint with your supervisory authority (in Czech Republic:{" "}
-                <a
-                  href="https://www.uoou.cz"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-ochre-dk hover:underline"
-                >
-                  ÚOOÚ
-                </a>
-                ).
-              </li>
-            </ul>
-          </Section>
-
-          <Section title="6. Cookies">
-            <p>
-              We use only technically necessary cookies (session, language preference) and
-              Vercel&apos;s anonymous analytics cookies. No advertising cookies or third-party
-              tracking pixels.
-            </p>
-          </Section>
-
-          <Section title="7. Retention">
-            <p>
-              Account data is retained until deletion. When you delete your account, we delete
-              your recipes, notes and favourites. Stripe may retain transaction records per its
-              own retention policy.
-            </p>
-          </Section>
-
-          <Section title="8. Changes">
-            <p>
-              We will update the date at the top of this page when we make changes. For
-              significant changes, we will notify you by email.
-            </p>
-          </Section>
-
-          <Section title="9. Contact">
-            <p>
-              Privacy questions:{" "}
-              <a href="mailto:hello@bydaria.kitchen" className="text-ochre-dk hover:underline">
-                hello@bydaria.kitchen
-              </a>
-            </p>
-          </Section>
-        </div>
+        {lang === "en" && (
+          <div>
+            <Section title="1. Who We Are">
+              <p>
+                The Slow Table is a personal culinary service available at{" "}
+                <strong>bydaria.kitchen</strong>. Data controller: Daria Bobina, Czech Republic.
+                Contact: <a href="mailto:hello@bydaria.kitchen">hello@bydaria.kitchen</a>
+              </p>
+            </Section>
+            <Section title="2. Data We Collect">
+              <ul>
+                <li><strong>Account:</strong> name, email address, hashed password (stored by Supabase). If you sign in with Google — your name and email from Google.</li>
+                <li><strong>Payment data:</strong> we do not store card numbers. Stripe processes payments directly; we store only the Stripe customer ID and your plan status.</li>
+                <li><strong>Content:</strong> recipes, notes, favourites, uploaded photos — anything you create in &ldquo;My Book&rdquo;.</li>
+                <li><strong>Technical data:</strong> anonymous visit analytics (Vercel Analytics), server logs. No third-party trackers or ad pixels.</li>
+              </ul>
+            </Section>
+            <Section title="3. How We Use Your Data">
+              <ul>
+                <li>Providing the service and authentication (legal basis: contract performance).</li>
+                <li>Processing payments via Stripe (contract performance).</li>
+                <li>AI nutrition calculation and cover generation (contract performance).</li>
+                <li>Security and fraud prevention (legitimate interest).</li>
+                <li>Service improvement via anonymous statistics (legitimate interest).</li>
+              </ul>
+            </Section>
+            <Section title="4. Data Processors">
+              <p>We do not sell your data. Sub-processors:</p>
+              <ul>
+                <li><strong>Supabase</strong> (US / EU) — database and authentication.</li>
+                <li><strong>Stripe</strong> (US) — payment processing. PCI DSS certified.</li>
+                <li><strong>Vercel</strong> (US) — hosting and analytics.</li>
+                <li><strong>OpenAI</strong> (US) — AI nutrition calculation (ingredients text only).</li>
+                <li><strong>Google</strong> (US) — cover image generation and Google sign-in.</li>
+              </ul>
+              <p>All sub-processors operate under EU Standard Contractual Clauses (SCC).</p>
+            </Section>
+            <Section title="5. Your Rights (GDPR)">
+              <p>If you are in the EEA, you have the right to:</p>
+              <ul>
+                <li>access your personal data;</li>
+                <li>correct inaccurate data;</li>
+                <li>delete your account and all data (contact us);</li>
+                <li>data portability;</li>
+                <li>lodge a complaint with your supervisory authority (in Czech Republic: <a href="https://www.uoou.cz" target="_blank" rel="noopener noreferrer">ÚOOÚ</a>).</li>
+              </ul>
+            </Section>
+            <Section title="6. Cookies">
+              <p>We use only technically necessary cookies (session, language preference) and Vercel&apos;s anonymous analytics cookies. No advertising cookies or third-party tracking pixels.</p>
+            </Section>
+            <Section title="7. Retention">
+              <p>Account data is retained until deletion. Stripe may retain transaction records per its own retention policy.</p>
+            </Section>
+            <Section title="8. Changes">
+              <p>We will update the date at the top of this page when we make changes. For significant changes, we will notify you by email.</p>
+            </Section>
+            <Section title="9. Contact">
+              <p><a href="mailto:hello@bydaria.kitchen">hello@bydaria.kitchen</a></p>
+            </Section>
+          </div>
+        )}
 
         {/* Back link */}
         <div className="mt-16 border-t border-rule pt-8">

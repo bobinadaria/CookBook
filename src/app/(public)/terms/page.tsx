@@ -1,13 +1,11 @@
-import type { Metadata } from "next";
-import Link from "next/link";
+"use client";
 
-export const metadata: Metadata = {
-  title: "Terms of Service — The Slow Table",
-  description: "Terms and conditions for using The Slow Table.",
-  robots: { index: true, follow: true },
-};
+import Link from "next/link";
+import { useState } from "react";
 
 export default function TermsPage() {
+  const [lang, setLang] = useState<"ru" | "en">("ru");
+
   return (
     <main className="bg-paper px-6 py-20 md:px-10 lg:px-14">
       <div className="mx-auto max-w-[720px]">
@@ -23,253 +21,169 @@ export default function TermsPage() {
           <p className="mt-3 font-body text-sm text-soft">
             Last updated: 26 June 2026 · Effective: 26 June 2026
           </p>
+
+          {/* Language toggle */}
+          <div className="mt-6 flex gap-1">
+            <button
+              onClick={() => setLang("ru")}
+              className={`px-4 py-1.5 font-body text-[11px] font-semibold uppercase tracking-[0.16em] transition-colors ${
+                lang === "ru"
+                  ? "bg-burg text-paper"
+                  : "text-soft hover:text-ink"
+              }`}
+            >
+              RU
+            </button>
+            <button
+              onClick={() => setLang("en")}
+              className={`px-4 py-1.5 font-body text-[11px] font-semibold uppercase tracking-[0.16em] transition-colors ${
+                lang === "en"
+                  ? "bg-burg text-paper"
+                  : "text-soft hover:text-ink"
+              }`}
+            >
+              EN
+            </button>
+          </div>
         </div>
 
         {/* RU version */}
-        <div className="prose-editorial mb-16">
-          <h2 className="mb-6 font-display text-2xl italic text-burg">
-            Условия использования
-          </h2>
-
-          <Section title="1. Принятие условий">
-            <p>
-              Используя сайт <strong>bydaria.kitchen</strong> и сервис The Slow Table, вы
-              соглашаетесь с настоящими Условиями. Если вы не согласны — пожалуйста, не
-              используйте сервис.
-            </p>
-          </Section>
-
-          <Section title="2. Описание сервиса">
-            <p>
-              The Slow Table — персональный кулинарный журнал с AI-нутрициологом. Сервис
-              позволяет создавать и хранить рецепты, рассчитывать КБЖУ, генерировать обложки
-              с помощью AI, а также просматривать авторский каталог рецептов Дарьи Бобиной.
-            </p>
-          </Section>
-
-          <Section title="3. Аккаунт">
-            <ul>
-              <li>Вы несёте ответственность за сохранность данных вашего аккаунта.</li>
-              <li>Один аккаунт — один человек; перепродажа доступа запрещена.</li>
-              <li>Вы должны быть не моложе 16 лет для регистрации.</li>
-            </ul>
-          </Section>
-
-          <Section title="4. Тарифы и оплата">
-            <ul>
-              <li>
-                <strong>Free:</strong> базовый доступ к каталогу рецептов и созданию до 15
-                собственных рецептов.
-              </li>
-              <li>
-                <strong>Premium (€7,90/мес):</strong> ежемесячная подписка с AI-функциями.
-                Оплачивается через Stripe. Вы можете отменить подписку в любой момент; доступ
-                сохраняется до конца оплаченного периода.
-              </li>
-              <li>
-                <strong>Lifetime (€79):</strong> единовременный платёж, бессрочный доступ к
-                Premium-функциям.
-              </li>
-              <li>
-                <strong>Пакеты обложек (S/M/L):</strong> единовременная покупка дополнительных
-                AI-генераций обложек. Доступна только для Premium и Lifetime.
-              </li>
-            </ul>
-          </Section>
-
-          <Section title="5. Возвраты">
-            <p>
-              Платежи возврату не подлежат, за исключением случаев, предусмотренных применимым
-              законодательством. Если у вас возникли проблемы — напишите нам, и мы постараемся
-              решить их индивидуально.
-            </p>
-          </Section>
-
-          <Section title="6. Ваш контент">
-            <p>
-              Рецепты и заметки, которые вы создаёте в «Моей книге», принадлежат вам. Вы
-              предоставляете нам ограниченную лицензию на их хранение и отображение в вашем
-              аккаунте. Ваши рецепты приватны по умолчанию и не видны другим пользователям.
-            </p>
-          </Section>
-
-          <Section title="7. Авторские права">
-            <p>
-              Авторский каталог рецептов, тексты, фотографии и дизайн сайта принадлежат
-              Дарье Бобиной и защищены авторским правом. Копирование контента без разрешения
-              запрещено.
-            </p>
-          </Section>
-
-          <Section title="8. AI-контент и точность КБЖУ">
-            <p>
-              Расчёты КБЖУ выполняются на основе данных USDA и являются оценочными. Они не
-              являются медицинской или диетологической рекомендацией. Генерируемые AI-обложки
-              — иллюстративные изображения, созданные автоматически. Мы не несём ответственности
-              за решения, принятые на основании AI-контента.
-            </p>
-          </Section>
-
-          <Section title="9. Ограничение ответственности">
-            <p>
-              Сервис предоставляется «как есть». Мы не гарантируем бесперебойную работу и не
-              несём ответственности за косвенный или прямой ущерб, возникший при использовании
-              сервиса, в максимальной мере, допустимой применимым законодательством.
-            </p>
-          </Section>
-
-          <Section title="10. Прекращение доступа">
-            <p>
-              Мы вправе приостановить или закрыть аккаунт при нарушении настоящих Условий. Вы
-              можете удалить аккаунт в любое время, написав на{" "}
-              <a href="mailto:hello@bydaria.kitchen" className="text-ochre-dk hover:underline">
-                hello@bydaria.kitchen
-              </a>
-              .
-            </p>
-          </Section>
-
-          <Section title="11. Применимое право">
-            <p>
-              Настоящие Условия регулируются законодательством Чешской Республики. Споры
-              рассматриваются в судах Чешской Республики.
-            </p>
-          </Section>
-
-          <Section title="12. Контакт">
-            <p>
-              По всем вопросам:{" "}
-              <a href="mailto:hello@bydaria.kitchen" className="text-ochre-dk hover:underline">
-                hello@bydaria.kitchen
-              </a>
-            </p>
-          </Section>
-        </div>
-
-        {/* Divider */}
-        <div className="mb-16 flex items-center gap-4">
-          <div className="h-px flex-1 bg-rule" />
-          <span className="font-body text-[10px] uppercase tracking-[0.2em] text-muted">EN</span>
-          <div className="h-px flex-1 bg-rule" />
-        </div>
+        {lang === "ru" && (
+          <div>
+            <Section title="1. Принимая условия">
+              <p>
+                Пользуясь сайтом <strong>bydaria.kitchen</strong> и сервисом The Slow Table,
+                вы соглашаетесь с этими условиями. Если вы с ними не согласны — просим не
+                использовать сервис.
+              </p>
+            </Section>
+            <Section title="2. Что такое The Slow Table">
+              <p>
+                Это личный кулинарный журнал с AI-нутрициологом. Здесь можно вести свою
+                книгу рецептов, считать КБЖУ, генерировать обложки с помощью AI и читать
+                авторский каталог рецептов Дарьи Бобиной.
+              </p>
+            </Section>
+            <Section title="3. Аккаунт">
+              <ul>
+                <li>Вы отвечаете за сохранность своих данных для входа.</li>
+                <li>Аккаунт создаётся для личного использования — передавать или перепродавать доступ нельзя.</li>
+                <li>Для регистрации нужно быть не моложе 16 лет.</li>
+              </ul>
+            </Section>
+            <Section title="4. Тарифы и оплата">
+              <ul>
+                <li><strong>Free:</strong> базовый доступ к каталогу рецептов и возможность создать до 15 собственных рецептов.</li>
+                <li><strong>Premium — €7,90 в месяц:</strong> подписка с AI-функциями. Отменить можно в любой момент; доступ остаётся до конца оплаченного периода.</li>
+                <li><strong>Lifetime — €79:</strong> разовый платёж, доступ к Premium навсегда.</li>
+                <li><strong>Пакеты обложек S, M, L:</strong> разовая покупка дополнительных AI-генераций обложек. Доступны только для Premium и Lifetime.</li>
+              </ul>
+            </Section>
+            <Section title="5. Возврат средств">
+              <p>
+                Оплаченные суммы не возвращаются, если иное не предусмотрено законодательством.
+                Если что-то пошло не так — напишите нам, разберёмся.
+              </p>
+            </Section>
+            <Section title="6. Ваши рецепты и заметки">
+              <p>
+                Всё, что вы создаёте в «Моей книге», принадлежит вам. Мы храним ваши материалы,
+                чтобы показывать их вам в аккаунте. По умолчанию ваши рецепты видны только вам.
+              </p>
+            </Section>
+            <Section title="7. Авторские права">
+              <p>
+                Авторский каталог рецептов, тексты, фотографии и дизайн сайта — это интеллектуальная
+                собственность Дарьи Бобиной. Копировать и публиковать их без разрешения нельзя.
+              </p>
+            </Section>
+            <Section title="8. Расчёт КБЖУ и AI-контент">
+              <p>
+                КБЖУ рассчитывается на основе базы данных USDA и носит ориентировочный характер.
+                Это не медицинская рекомендация и не замена консультации диетолога. Обложки
+                генерируются автоматически с помощью AI. Мы не несём ответственности за решения,
+                принятые на основании этих данных.
+              </p>
+            </Section>
+            <Section title="9. Ответственность">
+              <p>
+                Сервис работает в том виде, в каком есть. Мы стараемся обеспечить стабильную
+                работу, но не можем гарантировать бесперебойный доступ. Мы не несём
+                ответственности за косвенный ущерб, связанный с использованием сервиса.
+              </p>
+            </Section>
+            <Section title="10. Блокировка аккаунта">
+              <p>
+                Мы вправе ограничить доступ к аккаунту при нарушении этих условий. Если вы
+                хотите удалить аккаунт — напишите на{" "}
+                <a href="mailto:hello@bydaria.kitchen">hello@bydaria.kitchen</a>, всё сделаем.
+              </p>
+            </Section>
+            <Section title="11. Применимое право">
+              <p>
+                Эти условия регулируются законодательством Чешской Республики.
+              </p>
+            </Section>
+            <Section title="12. Связь">
+              <p>
+                По любым вопросам:{" "}
+                <a href="mailto:hello@bydaria.kitchen">hello@bydaria.kitchen</a>
+              </p>
+            </Section>
+          </div>
+        )}
 
         {/* EN version */}
-        <div className="prose-editorial">
-          <h2 className="mb-6 font-display text-2xl italic text-burg">
-            Terms of Service (English)
-          </h2>
-
-          <Section title="1. Acceptance">
-            <p>
-              By using <strong>bydaria.kitchen</strong> and The Slow Table service, you agree to
-              these Terms. If you do not agree, please do not use the service.
-            </p>
-          </Section>
-
-          <Section title="2. Service Description">
-            <p>
-              The Slow Table is a personal culinary journal with an AI nutritionist. It lets you
-              create and store recipes, calculate nutrition (KBJU), generate AI cover images,
-              and browse the author&apos;s recipe catalogue.
-            </p>
-          </Section>
-
-          <Section title="3. Account">
-            <ul>
-              <li>You are responsible for keeping your account credentials secure.</li>
-              <li>One account per person; reselling access is prohibited.</li>
-              <li>You must be at least 16 years old to register.</li>
-            </ul>
-          </Section>
-
-          <Section title="4. Plans and Payment">
-            <ul>
-              <li>
-                <strong>Free:</strong> basic access to the recipe catalogue and up to 15
-                personal recipes.
-              </li>
-              <li>
-                <strong>Premium (€7.90/month):</strong> monthly subscription with AI features.
-                Processed via Stripe. You may cancel at any time; access continues until the
-                end of the paid period.
-              </li>
-              <li>
-                <strong>Lifetime (€79):</strong> one-time payment for permanent Premium access.
-              </li>
-              <li>
-                <strong>Cover Packs (S/M/L):</strong> one-time purchase of additional
-                AI-generated covers. Available to Premium and Lifetime only.
-              </li>
-            </ul>
-          </Section>
-
-          <Section title="5. Refunds">
-            <p>
-              Payments are non-refundable except where required by applicable law. If you have
-              an issue, contact us and we will do our best to resolve it.
-            </p>
-          </Section>
-
-          <Section title="6. Your Content">
-            <p>
-              Recipes and notes you create in &quot;My Book&quot; belong to you. You grant us
-              a limited licence to store and display them within your account. Your recipes are
-              private by default and not visible to other users.
-            </p>
-          </Section>
-
-          <Section title="7. Intellectual Property">
-            <p>
-              The author&apos;s recipe catalogue, texts, photographs and site design belong to
-              Daria Bobina and are protected by copyright. Copying content without permission
-              is prohibited.
-            </p>
-          </Section>
-
-          <Section title="8. AI Content and Nutrition Accuracy">
-            <p>
-              Nutrition calculations are based on USDA data and are estimates only. They are
-              not medical or dietary advice. AI-generated cover images are illustrative and
-              created automatically. We are not liable for decisions made based on AI-generated
-              content.
-            </p>
-          </Section>
-
-          <Section title="9. Limitation of Liability">
-            <p>
-              The service is provided &quot;as is&quot;. We do not guarantee uninterrupted
-              availability and are not liable for indirect or direct damages arising from use
-              of the service, to the maximum extent permitted by applicable law.
-            </p>
-          </Section>
-
-          <Section title="10. Termination">
-            <p>
-              We may suspend or close your account for violations of these Terms. You may
-              delete your account at any time by emailing{" "}
-              <a href="mailto:hello@bydaria.kitchen" className="text-ochre-dk hover:underline">
-                hello@bydaria.kitchen
-              </a>
-              .
-            </p>
-          </Section>
-
-          <Section title="11. Governing Law">
-            <p>
-              These Terms are governed by the laws of the Czech Republic. Disputes shall be
-              resolved in the courts of the Czech Republic.
-            </p>
-          </Section>
-
-          <Section title="12. Contact">
-            <p>
-              For any questions:{" "}
-              <a href="mailto:hello@bydaria.kitchen" className="text-ochre-dk hover:underline">
-                hello@bydaria.kitchen
-              </a>
-            </p>
-          </Section>
-        </div>
+        {lang === "en" && (
+          <div>
+            <Section title="1. Acceptance">
+              <p>By using <strong>bydaria.kitchen</strong> and The Slow Table service, you agree to these Terms. If you do not agree, please do not use the service.</p>
+            </Section>
+            <Section title="2. Service Description">
+              <p>The Slow Table is a personal culinary journal with an AI nutritionist. It lets you create and store recipes, calculate nutrition (KBJU), generate AI cover images, and browse the author&apos;s recipe catalogue.</p>
+            </Section>
+            <Section title="3. Account">
+              <ul>
+                <li>You are responsible for keeping your account credentials secure.</li>
+                <li>One account per person; reselling access is prohibited.</li>
+                <li>You must be at least 16 years old to register.</li>
+              </ul>
+            </Section>
+            <Section title="4. Plans and Payment">
+              <ul>
+                <li><strong>Free:</strong> basic access to the recipe catalogue and up to 15 personal recipes.</li>
+                <li><strong>Premium (€7.90/month):</strong> monthly subscription with AI features. You may cancel at any time; access continues until the end of the paid period.</li>
+                <li><strong>Lifetime (€79):</strong> one-time payment for permanent Premium access.</li>
+                <li><strong>Cover Packs (S/M/L):</strong> one-time purchase of additional AI-generated covers. Available to Premium and Lifetime only.</li>
+              </ul>
+            </Section>
+            <Section title="5. Refunds">
+              <p>Payments are non-refundable except where required by applicable law. If you have an issue, contact us and we will do our best to resolve it.</p>
+            </Section>
+            <Section title="6. Your Content">
+              <p>Recipes and notes you create in &quot;My Book&quot; belong to you. Your recipes are private by default and not visible to other users.</p>
+            </Section>
+            <Section title="7. Intellectual Property">
+              <p>The author&apos;s recipe catalogue, texts, photographs and site design belong to Daria Bobina and are protected by copyright. Copying content without permission is prohibited.</p>
+            </Section>
+            <Section title="8. AI Content and Nutrition Accuracy">
+              <p>Nutrition calculations are based on USDA data and are estimates only. They are not medical or dietary advice. We are not liable for decisions made based on AI-generated content.</p>
+            </Section>
+            <Section title="9. Limitation of Liability">
+              <p>The service is provided &quot;as is&quot;. We are not liable for indirect or direct damages arising from use of the service, to the maximum extent permitted by applicable law.</p>
+            </Section>
+            <Section title="10. Termination">
+              <p>We may suspend your account for violations of these Terms. You may delete your account by emailing{" "}
+                <a href="mailto:hello@bydaria.kitchen" className="text-ochre-dk hover:underline">hello@bydaria.kitchen</a>.</p>
+            </Section>
+            <Section title="11. Governing Law">
+              <p>These Terms are governed by the laws of the Czech Republic.</p>
+            </Section>
+            <Section title="12. Contact">
+              <p><a href="mailto:hello@bydaria.kitchen" className="text-ochre-dk hover:underline">hello@bydaria.kitchen</a></p>
+            </Section>
+          </div>
+        )}
 
         {/* Back link */}
         <div className="mt-16 border-t border-rule pt-8">
