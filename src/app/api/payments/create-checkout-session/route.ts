@@ -95,6 +95,12 @@ export async function POST(request: Request) {
         cancel_url:  cancelUrl,
         metadata: { user_id: user.id, plan: "premium" },
         payment_method_collection: "always",
+        custom_text: {
+          terms_of_service_acceptance: {
+            message: "I agree to the [Terms of Service](https://bydaria.kitchen/terms) and [Privacy Policy](https://bydaria.kitchen/privacy).",
+          },
+        },
+        consent_collection: { terms_of_service: "required" },
       });
       sessionUrl = session.url;
 
@@ -107,6 +113,12 @@ export async function POST(request: Request) {
         success_url: successUrl,
         cancel_url:  cancelUrl,
         metadata: { user_id: user.id, plan: "lifetime" },
+        custom_text: {
+          terms_of_service_acceptance: {
+            message: "I agree to the [Terms of Service](https://bydaria.kitchen/terms) and [Privacy Policy](https://bydaria.kitchen/privacy).",
+          },
+        },
+        consent_collection: { terms_of_service: "required" },
       });
       sessionUrl = session.url;
 
@@ -120,6 +132,12 @@ export async function POST(request: Request) {
         success_url: successUrl,
         cancel_url:  cancelUrl,
         metadata: { user_id: user.id, kind: "pack", size: item.size },
+        custom_text: {
+          terms_of_service_acceptance: {
+            message: "I agree to the [Terms of Service](https://bydaria.kitchen/terms) and [Privacy Policy](https://bydaria.kitchen/privacy).",
+          },
+        },
+        consent_collection: { terms_of_service: "required" },
       });
       sessionUrl = session.url;
     }

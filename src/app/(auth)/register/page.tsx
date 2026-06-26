@@ -212,6 +212,18 @@ export default function RegisterPage() {
                 <Button type="submit" variant="primary" size="lg" fullWidth loading={loading} className="mt-2">
                   {loading ? t("loading") : t("submit")}
                 </Button>
+
+                <p className="mt-4 text-center text-[11px] text-muted leading-relaxed">
+                  Регистрируясь, вы соглашаетесь с{" "}
+                  <Link href="/terms" className="underline hover:text-soft transition-colors">
+                    Условиями использования
+                  </Link>{" "}
+                  и{" "}
+                  <Link href="/privacy" className="underline hover:text-soft transition-colors">
+                    Политикой конфиденциальности
+                  </Link>
+                  .
+                </p>
               </form>
             </div>
 

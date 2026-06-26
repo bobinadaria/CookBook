@@ -14,13 +14,13 @@
 > (бизнес) и `docs/AI_ARCHITECTURE.md` (AI-слой). Все остальные планы и стратегии — в папке `docs/`
 > (карта — §11).
 >
-> **Обновлено:** 2026-06-21.
+> **Обновлено:** 2026-06-26.
 
 ---
 
 ## 1. Текущее состояние (single source of truth по статусу)
 
-**Стадия:** работающее MVP в проде на Vercel. Не pre-MVP. Монетизация ещё не подключена.
+**Стадия:** работающее MVP в проде на Vercel. Не pre-MVP. **Монетизация включена в прод (2026-06-26).**
 
 **Готово и работает:**
 
@@ -61,11 +61,7 @@
   AI-оценка, ручной review в админке (`api/recipes/request-ingredient`, `resolve-alias`).
 - **Перф** — ISR-кэш страниц рецептов, статическая прегенерация, сжатие обложек.
 
-- **Монетизация (каркас в проде, оплата под флагом)** — Stripe Checkout + вебхук + `credit_ledger`
-  (append-only, `pg_advisory_xact_lock`) + `spend_cover_credit()` / `get_cover_balance()` (SECURITY
-  DEFINER) + `getEntitlements()` + PlanBanner с живыми данными + DowngradeToFreeButton (модалка) +
-  success-страницы. Флаг `MONETIZATION_ENABLED` / `NEXT_PUBLIC_PAYMENTS_ENABLED` — оплату включать
-  по гейту (ценность + аудитория), не по календарю. См. `docs/MONETIZATION_PLAN.md` §8.
+- **Монетизация — в проде с 2026-06-26** — Stripe Live: 5 продуктов (Premium €7.90/мес, Lifetime €79, Pack S/M/L), вебхук `bydaria-kitchen-live` на `checkout.session.completed` + `customer.subscription.deleted`, `MONETIZATION_ENABLED=true` / `NEXT_PUBLIC_PAYMENTS_ENABLED=true` в Vercel. Полный цикл проверен: оплата → `plan=premium` в Supabase, отмена → `plan=free`. `credit_ledger` + `spend_cover_credit()` / `get_cover_balance()` (SECURITY DEFINER) + `getEntitlements()` + PlanBanner + DowngradeToFreeButton + success-страницы. См. `docs/MONETIZATION_PLAN.md` §8.
 - **Обложки-кредиты** — счётчик в форме, декремент после генерации, обновление при возврате со
   вкладки (`visibilitychange`), пакеты S/M/L только для Premium/Lifetime (серверная защита).
 - **Модалка «имя ИЛИ ссылка»** — `UserQuickCreateModal` с переключателем режимов; в режиме «Ссылка»
@@ -77,7 +73,7 @@
 
 **НЕ сделано (намеренно отложено или в бэклоге):**
 
-- Реальная оплата — флаг `MONETIZATION_ENABLED` не включён; включать по гейту Фазы 1.
+- ~~Реальная оплата~~ — **включена в прод 2026-06-26** ✓
 - Premium-фичи в бэклоге («скоро» на `/pricing`): PDF-экспорт, AI-генерация рецепта, шеринг по ссылке.
 - «Меню недели + список покупок» — снято с витрины (решение 2026-06-17).
 - B2B-тариф — после B2C-потока (Фаза 4).
@@ -100,6 +96,7 @@
 6. ~~Мобильный UX~~ — drawer-фильтры, hero, КБЖУ-блок (план — `docs/MOBILE_PLAN.md`).
 7. ~~Монетизация (каркас)~~ — Stripe + credit_ledger + entitlements + PlanBanner + модалка даунгрейда.
 8. ~~Модалка «имя ИЛИ ссылка» + PremiumLock + приватность книги~~ — план `RECIPE_IMPORT_AND_PREMIUM_TEASERS_PLAN.md` реализован полностью (2026-06-25).
+9. ~~Включить реальную оплату~~ — Stripe Live в проде, полный цикл проверен (2026-06-26).
 
 **Активный бэклог (следующее):**
 9. **Контент** — наполнять книгу рецептами (лендинг заявляет «42 рецепта»; в каталоге растёт).
@@ -112,7 +109,7 @@
     источник, приватная, всегда под рукой.
 12. **Premium-фичи** по одной («скоро» на `/pricing`): PDF-экспорт → AI-генерация рецепта →
     шеринг по ссылке.
-13. **Включить реальную оплату** — по гейту Фазы 1 (ценность + аудитория).
+13. ~~**Включить реальную оплату**~~ — сделано 2026-06-26 ✓
 
 > Правило: при закрытии шага — обнови §1 и §2, чтобы здесь не было устаревших данных.
 

@@ -80,7 +80,11 @@ export default async function Footer() {
           />
           <FooterCol
             title={tf("contact")}
-            links={[{ href: "mailto:hello@bydaria.kitchen", label: "hello@bydaria.kitchen" }]}
+            links={[
+              { href: "mailto:hello@bydaria.kitchen", label: "hello@bydaria.kitchen" },
+              { href: "/privacy", label: "Privacy Policy" },
+              { href: "/terms", label: "Terms of Service" },
+            ]}
           />
         </div>
 
