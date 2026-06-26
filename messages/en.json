@@ -99,7 +99,7 @@
     "subCtaCompare": "Compare plans →",
     "subLifetimeEyebrow": "Lifetime · first 50",
     "subLifetimeLede": "One payment — Premium forever + 10 AI cover images as a gift. Closes once all 50 seats are filled.",
-    "subLifetimeSeats": "37 / 50 already taken",
+    "subLifetimeSeats": "",
     "demoEyebrow": "How it works",
     "demoTitle1": "From a link —",
     "demoTitleAccent": "to a page in your book.",
@@ -167,7 +167,7 @@
         "numeral": "II",
         "price": "€7.90",
         "cadence": "/ mo",
-        "lede": "No ceilings — your kitchen, every day.",
+        "lede": "Your recipe book without limits — plus nutrition and recipe import.",
         "cta": "Get Premium",
         "noteTop": "Most popular choice",
         "noteBottom": "",
@@ -175,7 +175,6 @@
           "Unlimited: book, calorie calcs, favorites",
           "Add a recipe by link",
           "AI cover images — bought separately, from €4.90",
-          "Dark mode",
           "Export your book to PDF · soon"
         ],
         "inherits": "Everything in Free, plus:"
@@ -187,9 +186,9 @@
         "price": "€79",
         "cadence": "one-time · first 50",
         "lede": "One payment — Premium forever.",
-        "cta": "Get Lifetime · 37 / 50",
+        "cta": "Get Lifetime",
         "noteTop": "",
-        "noteBottom": "13 seats left",
+        "noteBottom": "",
         "highlights": [
           "One payment — Premium forever (no subscription)",
           "10 AI cover images as a gift"
@@ -343,7 +342,7 @@
           ],
           [
             "Dark mode",
-            false,
+            true,
             true,
             true
           ]

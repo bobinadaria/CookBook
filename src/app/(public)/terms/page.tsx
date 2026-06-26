@@ -1,10 +1,9 @@
-"use client";
-
 import Link from "next/link";
-import { useState } from "react";
+import { getLocale } from "next-intl/server";
 
-export default function TermsPage() {
-  const [lang, setLang] = useState<"ru" | "en">("ru");
+export default async function TermsPage() {
+  const locale = await getLocale();
+  const isEn = locale === "en";
 
   return (
     <main className="bg-paper px-6 py-20 md:px-10 lg:px-14">
@@ -21,34 +20,10 @@ export default function TermsPage() {
           <p className="mt-3 font-body text-sm text-soft">
             Last updated: 26 June 2026 · Effective: 26 June 2026
           </p>
-
-          {/* Language toggle */}
-          <div className="mt-6 flex gap-1">
-            <button
-              onClick={() => setLang("ru")}
-              className={`px-4 py-1.5 font-body text-[11px] font-semibold uppercase tracking-[0.16em] transition-colors ${
-                lang === "ru"
-                  ? "bg-burg text-paper"
-                  : "text-soft hover:text-ink"
-              }`}
-            >
-              RU
-            </button>
-            <button
-              onClick={() => setLang("en")}
-              className={`px-4 py-1.5 font-body text-[11px] font-semibold uppercase tracking-[0.16em] transition-colors ${
-                lang === "en"
-                  ? "bg-burg text-paper"
-                  : "text-soft hover:text-ink"
-              }`}
-            >
-              EN
-            </button>
-          </div>
         </div>
 
         {/* RU version */}
-        {lang === "ru" && (
+        {!isEn && (
           <div>
             <Section title="1. Принимая условия">
               <p>
@@ -134,7 +109,7 @@ export default function TermsPage() {
         )}
 
         {/* EN version */}
-        {lang === "en" && (
+        {isEn && (
           <div>
             <Section title="1. Acceptance">
               <p>By using <strong>bydaria.kitchen</strong> and The Slow Table service, you agree to these Terms. If you do not agree, please do not use the service.</p>
