@@ -161,8 +161,8 @@ export default function RecipeCard({
               на каждый размер шрифта. */}
           <h3
             className={cn(
-              "min-h-[2lh] font-display font-normal leading-[1.15] text-ink transition-colors group-hover:text-burg",
-              compact ? "line-clamp-2 text-[15px] lg:text-[24px]" : "text-[20px] sm:text-[24px]",
+              "min-h-[2lh] line-clamp-2 font-display font-normal leading-[1.15] text-ink transition-colors group-hover:text-burg",
+              compact ? "text-[15px] lg:text-[24px]" : "text-[20px] sm:text-[24px]",
             )}
           >
             {noBreakHyphens(title)}

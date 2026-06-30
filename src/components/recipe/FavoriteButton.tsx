@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { useFavorites } from "@/context/FavoritesContext";
@@ -15,16 +14,15 @@ interface FavoriteButtonProps {
 export default function FavoriteButton({ slug, className, size = "sm" }: FavoriteButtonProps) {
   const t = useTranslations("common");
   const { user, favorites, toggle } = useFavorites();
-  const router = useRouter();
   const isFavorited = favorites.has(slug);
+
+  // Незарегистрированным юзерам сердечко вообще не показываем — избранное
+  // доступно только в аккаунте, прятать функцию лучше, чем редиректить в /login.
+  if (!user) return null;
 
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();  // don't follow the parent <Link>
     e.stopPropagation();
-    if (!user) {
-      router.push("/login");
-      return;
-    }
     toggle(slug);
   };
 
