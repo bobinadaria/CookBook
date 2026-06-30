@@ -83,11 +83,7 @@ export default async function HomePage() {
             className="object-cover object-[center_40%]"
             sizes="(max-width: 1024px) 100vw, 55vw"
           />
-          <div className="absolute left-7 top-7 flex flex-col bg-ochre px-4 py-3">
-            <span className="font-body text-[9px] font-bold uppercase tracking-[0.18em] text-seal">
-              {t("heroPlateLabel")}
-            </span>
-          </div>
+
           <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent px-8 pb-7 pt-24 text-section-fg">
             <Eyebrow color="text-section-fg/85">{t("heroCaptionEyebrow")}</Eyebrow>
             <div className="mt-2 font-display text-[26px] italic leading-[1.15] text-section-fg sm:text-[30px]">

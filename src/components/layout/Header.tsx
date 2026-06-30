@@ -148,13 +148,13 @@ export default function Header() {
 
       {/* Дропдаун */}
       {dropdownOpen && (
-        <div className="absolute right-0 top-full z-50 mt-2 w-52 border border-rule bg-paper shadow-[0_4px_16px_rgba(21,17,13,0.10)]">
+        <div className="absolute right-0 top-full z-50 mt-2 w-64 border border-rule bg-paper shadow-[0_4px_16px_rgba(21,17,13,0.10)]">
           {/* Имя пользователя */}
-          <div className="border-b border-rule px-4 py-3">
-            <p className="font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-ink">
+          <div className="border-b border-rule px-4 py-3 min-w-0">
+            <p className="font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-ink truncate">
               {userName}
             </p>
-            <p className="mt-0.5 font-body text-[10px] text-muted">{user.email}</p>
+            <p className="mt-0.5 font-body text-[10px] text-muted truncate">{user.email}</p>
           </div>
 
           {/* Пункты меню */}

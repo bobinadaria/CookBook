@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { EditorialButton } from "@/components/ui";
+import { SOCIAL_LINKS } from "@/lib/social-links";
+import { createClient } from "@/lib/supabase/server";
 
 function toRoman(n: number): string {
   const map: [number, string][] = [
@@ -44,6 +46,18 @@ export default async function Footer() {
   const tf = await getTranslations("footer");
   const year = toRoman(new Date().getFullYear());
 
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  let isPaid = false;
+  if (user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("plan")
+      .eq("id", user.id)
+      .single();
+    isPaid = profile?.plan === "premium" || profile?.plan === "lifetime";
+  }
+
   return (
     <footer className="mt-20 bg-section px-6 pb-9 pt-[72px] text-section-fg lg:px-14">
       <div className="mx-auto max-w-[1320px]">
@@ -57,9 +71,15 @@ export default async function Footer() {
               by Daria
             </p>
             <div className="mt-[22px]">
-              <EditorialButton variant="ochre" href="/pricing" className="px-[22px] py-3 text-[11px]">
-                {tf("getIssue")}
-              </EditorialButton>
+              {isPaid ? (
+                <EditorialButton variant="ochre" href="/dashboard" className="px-[22px] py-3 text-[11px]">
+                  {t("myBook")}
+                </EditorialButton>
+              ) : (
+                <EditorialButton variant="ochre" href="/pricing" className="px-[22px] py-3 text-[11px]">
+                  {tf("getIssue")}
+                </EditorialButton>
+              )}
             </div>
           </div>
 
@@ -88,11 +108,39 @@ export default async function Footer() {
           />
         </div>
 
-        <div className="flex flex-col gap-2 pt-6 font-body text-[10px] font-semibold uppercase tracking-[0.16em] text-section-soft sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 pt-6 font-body text-[10px] font-semibold uppercase tracking-[0.16em] text-section-soft sm:flex-row sm:items-center sm:justify-between">
           <span>
             &copy; {year} — {tf("author")} &middot; bydaria.kitchen
           </span>
-          <span>Praha &middot; {year}</span>
+          <div className="flex items-center gap-4">
+            {/* Социальные сети */}
+            <a
+              href={SOCIAL_LINKS.instagram}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Instagram"
+              className="text-section-soft transition-colors hover:text-ochre"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+                <circle cx="12" cy="12" r="4"/>
+                <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/>
+              </svg>
+            </a>
+            <a
+              href={SOCIAL_LINKS.telegram}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Telegram"
+              className="text-section-soft transition-colors hover:text-ochre"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M21.8 3L2 10.7l6.8 2.6 2.4 7.3 3.3-3.8 5.4 4 2.9-17.8z"/>
+                <path d="M8.8 13.3l8.4-6.5"/>
+              </svg>
+            </a>
+            <span>Praha &middot; {year}</span>
+          </div>
         </div>
       </div>
     </footer>

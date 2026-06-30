@@ -43,20 +43,11 @@ export default function PlanBanner({ plan = "free" }: { plan?: Plan }) {
             href="/pricing#plans"
             className="mt-4 inline-flex items-center gap-1.5 rounded-none border-[1.5px] border-burg px-4 py-2.5 font-body text-[12px] font-semibold uppercase tracking-[0.12em] text-burg transition-colors hover:bg-burg hover:text-paper"
           >
-            {t("premiumCta")} →
+            {t("compareShow")} →
           </Link>
         </div>
       )}
 
-      {/* Нижняя строка: сравнить планы */}
-      <div className="mt-6 border-t border-rule pt-4">
-        <Link
-          href="/pricing#plans"
-          className="font-body text-[12px] font-semibold uppercase tracking-[0.12em] text-burg transition-colors hover:text-ochre-dk"
-        >
-          {t("compareShow")} →
-        </Link>
-      </div>
     </section>
   );
 }

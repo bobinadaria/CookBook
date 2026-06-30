@@ -601,7 +601,7 @@
       "successFollowText": "New recipes, kitchen stories and product updates — on Instagram and Telegram.",
       "successFollowInstagram": "Instagram",
       "successFollowTelegram": "Telegram",
-      "marketingConsent": "I'd like to receive emails about new recipes and updates",
+      "marketingConsent": "Email me new recipes and occasional updates — no more than monthly, no ads",
       "errorExistsAction": "This email is already registered.",
       "errorExistsLoginCTA": "Sign in",
       "errorExistsForgotCTA": "Forgot password?",
@@ -613,6 +613,14 @@
       "googleLoading": "Redirecting...",
       "googleError": "Couldn't sign in with Google. Please try again",
       "dividerText": "or sign in with email"
+    },
+    "welcome": {
+      "tagline": "welcome",
+      "title": "Almost there",
+      "subtitle": "One quick question while we open your book",
+      "consentLabel": "Email me new recipes and occasional updates — no more than monthly, no ads",
+      "cta": "Open my book",
+      "loading": "Opening..."
     }
   },
   "common": {

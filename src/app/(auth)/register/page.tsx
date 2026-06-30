@@ -24,7 +24,7 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<ErrorState>(null);
   const [step, setStep] = useState<Step>("form");
-  const [marketingConsent, setMarketingConsent] = useState(false);
+  const [marketingConsent, setMarketingConsent] = useState(true);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -125,12 +125,6 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            <Link
-              href="/login"
-              className="inline-flex items-center gap-2 text-sm text-ochre-dk hover:underline"
-            >
-              {t("successLink")}
-            </Link>
           </div>
         ) : (
           /* ── Form state ── */

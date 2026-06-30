@@ -81,7 +81,6 @@ export default function RecipeCard({
 
   const hasNumber = typeof index === "number";
   const roman = hasNumber ? toRoman(index as number) : null;
-  const pageNo = hasNumber ? String((index as number) * 6 + 2).padStart(3, "0") : null;
 
   // В compact мобильное фото занимает ~половину ширины (2 колонки), а не всю.
   const imgSizes = compact
@@ -118,11 +117,6 @@ export default function RecipeCard({
           </div>
         )}
 
-        {pageNo && (
-          <div className="absolute left-3 top-3 bg-ochre px-2.5 py-1.5 font-body text-[10px] font-bold uppercase tracking-[0.16em] text-seal transition-colors group-hover:bg-ochre-dk">
-            P. {pageNo}
-          </div>
-        )}
 
         <div className={cn("recipe-card-fav absolute right-3 top-3", isFavorited && "is-favorited")}>
           <FavoriteButton slug={recipe.slug} />
