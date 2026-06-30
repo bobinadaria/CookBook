@@ -6,6 +6,7 @@ import { Eyebrow } from "@/components/ui";
 import MyBookView, { type BookItem } from "@/components/dashboard/MyBookView";
 import MyBookEmptyState from "@/components/dashboard/MyBookEmptyState";
 import CreateRecipeButton from "@/components/dashboard/CreateRecipeButton";
+import { SOCIAL_LINKS } from "@/lib/social-links";
 
 // Персональные данные — никогда не кешировать статически.
 export const dynamic = "force-dynamic";
@@ -137,6 +138,34 @@ export default async function DashboardPage() {
       ) : (
         <MyBookView items={items} />
       )}
+
+      {/* Блок соцсетей */}
+      <div className="mt-16 border-t border-rule pt-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+        <div>
+          <p className="font-body text-[11px] font-semibold uppercase tracking-[0.16em] text-soft mb-1">
+            {t("followTitle")}
+          </p>
+          <p className="text-sm text-soft">{t("followText")}</p>
+        </div>
+        <div className="flex gap-3 shrink-0">
+          <a
+            href={SOCIAL_LINKS.instagram}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 border border-rule text-ink text-sm px-4 py-2 hover:border-burg hover:text-burg transition-colors"
+          >
+            {t("followInstagram")}
+          </a>
+          <a
+            href={SOCIAL_LINKS.telegram}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 border border-rule text-ink text-sm px-4 py-2 hover:border-burg hover:text-burg transition-colors"
+          >
+            {t("followTelegram")}
+          </a>
+        </div>
+      </div>
 
     </main>
   );

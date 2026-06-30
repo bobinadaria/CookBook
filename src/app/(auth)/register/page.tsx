@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import GoogleAuthButton from "@/components/auth/GoogleAuthButton";
 import AuthDivider from "@/components/auth/AuthDivider";
 import { Button } from "@/components/ui";
+import { SOCIAL_LINKS } from "@/lib/social-links";
 
 type Step = "form" | "success";
 type ErrorState =
@@ -23,6 +24,7 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<ErrorState>(null);
   const [step, setStep] = useState<Step>("form");
+  const [marketingConsent, setMarketingConsent] = useState(false);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -43,7 +45,12 @@ export default function RegisterPage() {
       email,
       password,
       // Имя уходит в метаданные → триггер handle_new_user кладёт его в profiles.display_name.
-      options: { data: name.trim() ? { display_name: name.trim() } : undefined },
+      options: {
+        data: {
+          ...(name.trim() ? { display_name: name.trim() } : {}),
+          marketing_consent: marketingConsent,
+        },
+      },
     });
 
     // Supabase quirk: при попытке регистрации существующего email НЕ возвращает error
@@ -88,9 +95,36 @@ export default function RegisterPage() {
             <h1 className="font-display text-[2.8rem] leading-tight text-ink mb-6">
               {t("successTitle")}
             </h1>
-            <p className="text-soft text-sm leading-relaxed mb-10">
+            <p className="text-soft text-sm leading-relaxed mb-8">
               {t("successText", { email })}
             </p>
+
+            {/* Соцсети */}
+            <div className="mb-8 border-t border-rule pt-8">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-soft mb-1">
+                {t("successFollowTitle")}
+              </p>
+              <p className="text-sm text-soft mb-5">{t("successFollowText")}</p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <a
+                  href={SOCIAL_LINKS.instagram}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-2 border border-burg text-burg text-sm font-medium px-5 py-2.5 hover:bg-burg hover:text-paper transition-colors"
+                >
+                  {t("successFollowInstagram")}
+                </a>
+                <a
+                  href={SOCIAL_LINKS.telegram}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-2 border border-burg text-burg text-sm font-medium px-5 py-2.5 hover:bg-burg hover:text-paper transition-colors"
+                >
+                  {t("successFollowTelegram")}
+                </a>
+              </div>
+            </div>
+
             <Link
               href="/login"
               className="inline-flex items-center gap-2 text-sm text-ochre-dk hover:underline"
@@ -208,6 +242,19 @@ export default function RegisterPage() {
                     </div>
                   </div>
                 )}
+
+                {/* Маркетинговое согласие (GDPR opt-in) */}
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={marketingConsent}
+                    onChange={(e) => setMarketingConsent(e.target.checked)}
+                    className="mt-0.5 shrink-0 accent-burg"
+                  />
+                  <span className="text-[11px] text-soft leading-relaxed">
+                    {t("marketingConsent")}
+                  </span>
+                </label>
 
                 <Button type="submit" variant="primary" size="lg" fullWidth loading={loading} className="mt-2">
                   {loading ? t("loading") : t("submit")}
