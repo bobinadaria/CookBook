@@ -25,18 +25,17 @@ export default async function HomePage() {
   ]);
   const locale = rawLocale as LocaleCode;
 
-  const heroFacts = t.raw("heroFacts") as { v: string; l: string }[];
   const stats = t.raw("stats") as { n: string; t: string }[];
   const editorP1 = t("editorP1");
 
   return (
     <div className="bg-paper text-ink">
       {/* ── Hero spread ───────────────────────────────────────────────────── */}
-      <section className="flex flex-col-reverse border-b border-rule lg:grid lg:grid-cols-[1fr_1.1fr] lg:min-h-[760px]">
+      <section className="flex flex-col-reverse border-b border-rule lg:grid lg:grid-cols-[1fr_1.1fr] lg:min-h-[560px]">
         {/* Left — headline + lede + meta */}
-        <div className="flex flex-col justify-between gap-8 px-6 py-10 md:px-10 lg:gap-10 lg:px-14 lg:py-16">
+        <div className="flex flex-col justify-between gap-6 px-6 py-10 md:px-10 lg:gap-8 lg:px-14 lg:py-10">
           <div>
-            <h1 className="font-display text-[clamp(2.5rem,9vw,120px)] font-normal leading-[0.9] tracking-[-0.03em] text-burg lg:leading-[0.88]">
+            <h1 className="font-display text-[clamp(2.5rem,5.5vw,76px)] font-normal leading-[0.9] tracking-[-0.03em] text-burg lg:leading-[0.88]">
               {t("heroTitle1")}
               <br />
               <em className="italic text-ochre">{t("heroTitle2")}</em>
@@ -63,18 +62,12 @@ export default async function HomePage() {
                 {t("heroCtaOpen")}
               </EditorialButton>
             </div>
-            <div className="flex flex-wrap gap-x-8 gap-y-3 border-t border-rule pt-5 font-body text-[11px] font-semibold uppercase tracking-[0.13em] text-soft">
-              {heroFacts.map((f) => (
-                <span key={f.v}>
-                  <b className="font-display text-[14px] italic text-burg">{f.v}</b> &nbsp;{f.l}
-                </span>
-              ))}
-            </div>
+
           </div>
         </div>
 
         {/* Right — full-bleed photo + magazine plate + caption */}
-        <div className="relative aspect-[16/10] bg-crust sm:aspect-[4/3] lg:aspect-auto lg:min-h-[760px]">
+        <div className="relative aspect-[16/10] bg-crust sm:aspect-[4/3] lg:aspect-auto lg:min-h-[560px]">
           <Image
             src={HERO_PHOTO}
             alt={t("heroAlt")}

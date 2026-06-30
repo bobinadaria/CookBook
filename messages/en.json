@@ -36,18 +36,15 @@
     "heroCtaCreate": "Make your book →",
     "heroCtaAddRecipe": "Add a recipe to your book →",
     "heroCtaTry": "Pricing",
+    "heroFactUsda": "nutrition data from US Dept. of Agriculture scientists",
     "heroFacts": [
       {
-        "v": "±5%",
-        "l": "nutrition accuracy"
+        "v": "USDA",
+        "l": "nutrition data from US Dept. of Agriculture scientists"
       },
       {
-        "v": "Honest",
-        "l": "calories are real data, not an AI guess"
-      },
-      {
-        "v": "2",
-        "l": "languages: RU & EN"
+        "v": "RU / EN",
+        "l": "share recipes with friends — they'll get it"
       }
     ],
     "heroPlateLabel": "On the cover",
