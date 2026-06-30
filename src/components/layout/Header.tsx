@@ -247,21 +247,17 @@ export default function Header() {
           <Link href="/" className="font-display text-[22px] italic leading-none text-burg">
             The Slow Table
           </Link>
-          <div className="flex items-center gap-1">
-            <LanguageSwitcher />
-            <ThemeToggle />
-            <button
-              onClick={() => setMobileOpen((v) => !v)}
-              aria-label={mobileOpen ? "Закрыть меню" : "Открыть меню"}
-              aria-expanded={mobileOpen}
-              aria-controls="mobile-menu"
-              className="-mr-1 flex h-11 w-11 flex-col items-center justify-center gap-[5px] text-burg"
-            >
-              <span className={cn("block h-[2px] w-5 bg-current transition-transform", mobileOpen && "translate-y-[7px] rotate-45")} />
-              <span className={cn("block h-[2px] w-5 bg-current transition-opacity", mobileOpen && "opacity-0")} />
-              <span className={cn("block h-[2px] w-5 bg-current transition-transform", mobileOpen && "-translate-y-[7px] -rotate-45")} />
-            </button>
-          </div>
+          <button
+            onClick={() => setMobileOpen((v) => !v)}
+            aria-label={mobileOpen ? "Закрыть меню" : "Открыть меню"}
+            aria-expanded={mobileOpen}
+            aria-controls="mobile-menu"
+            className="-mr-1 flex h-11 w-11 flex-col items-center justify-center gap-[5px] text-burg"
+          >
+            <span className={cn("block h-[2px] w-5 bg-current transition-transform", mobileOpen && "translate-y-[7px] rotate-45")} />
+            <span className={cn("block h-[2px] w-5 bg-current transition-opacity", mobileOpen && "opacity-0")} />
+            <span className={cn("block h-[2px] w-5 bg-current transition-transform", mobileOpen && "-translate-y-[7px] -rotate-45")} />
+          </button>
         </div>
       </div>
 
@@ -372,6 +368,12 @@ export default function Header() {
                 </div>
               </>
             )}
+
+            <div className="my-2 h-px bg-rule" />
+            <div className="flex items-center justify-between py-2">
+              <LanguageSwitcher />
+              <ThemeToggle />
+            </div>
 
             <div className="pb-safe" />
           </nav>

@@ -137,12 +137,12 @@ export default function HomeMagicDemo() {
         {/* Заголовок */}
         <div className="mb-6 max-w-[700px] md:mb-9">
           <Eyebrow color="text-ochre-dk">{t("demoEyebrow")}</Eyebrow>
-          <h2 className="mt-3 font-display text-[30px] font-normal leading-[0.95] tracking-[-0.02em] text-burg sm:mt-3.5 sm:text-[56px]">
+          <h2 className="mt-3 font-display text-[36px] font-normal leading-[0.95] tracking-[-0.02em] text-burg lg:mt-3.5 lg:text-[64px]">
             {t("demoTitle1")} <em className="italic text-ochre">{t("demoTitleAccent")}</em>
           </h2>
-          <p className="mt-5 hidden font-reader text-[17px] leading-[1.7] text-ink sm:block">{t("demoLede")}</p>
+          <p className="mt-5 hidden font-reader text-[15px] leading-[1.7] text-ink sm:block">{t("demoLede")}</p>
           {/* Мобильный указатель шагов — превью сразу читается как «4 шага» */}
-          <ol className="mt-4 flex flex-wrap items-center gap-x-2.5 gap-y-1.5 font-body text-[11px] font-semibold uppercase tracking-[0.1em] text-soft sm:hidden">
+          <ol className="mt-4 flex flex-wrap items-center gap-x-2.5 gap-y-1.5 font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-soft sm:hidden">
             {demoSteps.map((s, i) => (
               <li key={s} className="flex items-center gap-2.5">
                 {i > 0 && <span className="text-rule" aria-hidden>→</span>}
@@ -156,7 +156,7 @@ export default function HomeMagicDemo() {
         <div className="overflow-hidden border border-rule bg-crust">
           {/* Строка ссылки */}
           <div className="flex items-center gap-3 border-b border-rule bg-paper px-4 py-3.5 md:px-5">
-            <span className="hidden font-body text-[10px] font-semibold uppercase tracking-[0.16em] text-soft sm:block">
+            <span className="hidden font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-soft sm:block">
               {t("demoUrlLabel")}
             </span>
             <div className="flex flex-1 items-center overflow-hidden whitespace-nowrap border border-rule bg-crust px-3 py-2 font-body text-[13px] text-ink">
@@ -174,7 +174,7 @@ export default function HomeMagicDemo() {
             </div>
             <span
               className={cn(
-                "shrink-0 px-2.5 py-1.5 font-body text-[10px] font-bold uppercase tracking-[0.16em] transition-colors",
+                "shrink-0 px-2.5 py-1.5 font-body text-[11px] font-bold uppercase tracking-[0.14em] transition-colors",
                 importing
                   ? "animate-pulse bg-ochre text-seal"
                   : "border border-rule text-soft",
@@ -190,7 +190,7 @@ export default function HomeMagicDemo() {
             <div className="border-b border-rule p-5 md:border-b-0 md:border-r md:p-7">
               <h3
                 className={cn(
-                  "font-display text-[22px] font-normal leading-[1.1] text-ink transition-all duration-500 sm:text-[28px]",
+                  "font-display text-[24px] font-normal leading-[1.15] text-ink transition-all duration-500 lg:text-[30px]",
                   showFields ? "translate-y-0 opacity-100" : "translate-y-1 opacity-0",
                 )}
               >
@@ -199,7 +199,7 @@ export default function HomeMagicDemo() {
 
               <p
                 className={cn(
-                  "mt-3 hidden max-w-[46ch] font-reader text-[15px] leading-[1.6] text-soft transition-all delay-100 duration-500 sm:block",
+                  "mt-3 hidden max-w-[46ch] font-reader text-[15px] leading-[1.7] text-soft transition-all delay-100 duration-500 sm:block",
                   showFields ? "translate-y-0 opacity-100" : "translate-y-1 opacity-0",
                 )}
               >
@@ -219,7 +219,7 @@ export default function HomeMagicDemo() {
                   <li
                     key={ing}
                     className={cn(
-                      "font-body text-[14px] leading-[1.6] text-ink transition-all duration-300",
+                      "font-body text-[13px] leading-[1.6] text-ink transition-all duration-300",
                       i >= 4 && "hidden sm:list-item",
                       i < revealedIng ? "translate-y-0 opacity-100" : "translate-y-1 opacity-0",
                     )}
@@ -249,13 +249,13 @@ export default function HomeMagicDemo() {
                   imageReady ? "opacity-0" : "opacity-100",
                 )}
               >
-                <span className="font-body text-[11px] font-semibold uppercase tracking-[0.16em] text-soft">
+                <span className="font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-soft">
                   {generatingImage ? t("demoImageGenerating") : ""}
                 </span>
               </div>
               <div
                 className={cn(
-                  "absolute left-3 top-3 z-10 bg-ochre px-2.5 py-1.5 font-body text-[10px] font-bold uppercase tracking-[0.16em] text-seal transition-opacity duration-500",
+                  "absolute left-3 top-3 z-10 bg-ochre px-2.5 py-1.5 font-body text-[11px] font-bold uppercase tracking-[0.14em] text-seal transition-opacity duration-500",
                   imageReady ? "opacity-100" : "opacity-0",
                 )}
               >
@@ -274,7 +274,7 @@ export default function HomeMagicDemo() {
             <Eyebrow color="text-ochre">{t("demoNutritionLabel")}</Eyebrow>
             <div className="mt-2 flex flex-wrap items-baseline gap-x-8 gap-y-4 border-t border-section-rule pt-4">
               <div className="flex items-baseline gap-3">
-                <span className="font-display text-[56px] font-normal italic leading-none text-ochre sm:text-[64px]">
+                <span className="font-display text-[44px] font-normal italic leading-none text-ochre lg:text-[60px]">
                   {kcalShown}
                 </span>
                 <span className="font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-section-fg/80">
@@ -284,11 +284,11 @@ export default function HomeMagicDemo() {
               <div className="flex gap-7 sm:gap-9">
                 {macros.map((m) => (
                   <div key={m.label}>
-                    <div className="font-body text-[10px] font-semibold uppercase tracking-[0.14em] text-section-soft">
+                    <div className="font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-section-soft">
                       {m.label}
                     </div>
                     <div className="mt-1">
-                      <span className="font-display text-[28px] font-normal leading-none text-section-fg sm:text-[32px]">
+                      <span className="font-display text-[28px] font-normal leading-none text-section-fg">
                         {showNutrition ? m.value : 0}
                       </span>
                       <span className="ml-1 font-body text-[11px] font-semibold text-section-fg/65">
@@ -308,7 +308,7 @@ export default function HomeMagicDemo() {
             <button
               type="button"
               onClick={replay}
-              className="font-body text-[12px] font-semibold uppercase tracking-[0.15em] text-burg transition-colors hover:text-ochre-dk"
+              className="font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-burg transition-colors hover:text-ochre-dk"
             >
               &#8635; {t("demoReplay")}
             </button>
@@ -317,7 +317,7 @@ export default function HomeMagicDemo() {
 
         {/* Примечание + CTA */}
         <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-rule pt-5 sm:mt-8 sm:gap-5 sm:pt-7">
-          <p className="hidden max-w-[500px] font-body text-[12px] leading-[1.7] text-soft sm:block">{t("demoNote")}</p>
+          <p className="hidden max-w-[500px] font-body text-[13px] leading-[1.7] text-soft sm:block">{t("demoNote")}</p>
           <EditorialButton href="/register">{t("demoCta")}</EditorialButton>
         </div>
       </div>
